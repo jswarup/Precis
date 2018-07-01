@@ -1,0 +1,11 @@
+
+#pragma once
+
+struct Cv_Version
+{
+	const std::string 	m_GITSHA1;
+	
+	Cv_Version( void)
+		: m_GITSHA1( "@GIT_SHA1@") 
+	{}
+};
