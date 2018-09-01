@@ -36,6 +36,7 @@
     <ClInclude Include="..\..\..\src\segue\timbre\sg_timbrenode.h" />
     <ClInclude Include="..\..\..\src\segue\timbre\sg_timbreparser.h" />
     <ClInclude Include="..\..\..\src\segue\xml\sg_xmlgrammar.h" />
+    <ClInclude Include="..\..\..\src\segue\xml\sg_xmlnode.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

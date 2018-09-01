@@ -2,7 +2,12 @@
 #pragma once
  
 
+
+#ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS 1
+#define strcasecmp      stricmp
+#define strncasecmp     strnicmp 
+#endif
 
 //_____________________________________________________________________________________________________________________________
 
@@ -31,10 +36,7 @@
 #include    <stdarg.h>
 
 
-#ifdef _MSC_VER
-#define strcasecmp      stricmp
-#define strncasecmp     strnicmp 
-#endif
+
 
 #define     CV_UINT8_MAX        uint8_t( -1)
 #define     CV_UINT16_MAX       uint16_t( -1)

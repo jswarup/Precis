@@ -3,6 +3,7 @@
 
 
 #include    "segue/timbre/sg_timbreparser.h"
+#include 	"segue/xml/sg_xmlnode.h" 
 
 namespace Sg_Xml
 {
