@@ -23,7 +23,7 @@ bool    Cv_CmdRunner::ParseOption( Cv_CmdExecutor *exe, const std::string &key, 
     for ( Cv_CmdOption   *opt = m_Options; opt && opt->m_Opt; ++opt)
     {
         const char      *p = strchr( opt->m_Opt, '[');
-        int             n = p ? p -opt->m_Opt : strlen( opt->m_Opt);
+        int64_t         n = p ? p -opt->m_Opt : strlen( opt->m_Opt);
         if (strncmp( opt->m_Opt, key.c_str(), n) == 0)
         {
             std::string     arg;

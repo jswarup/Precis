@@ -1,0 +1,7 @@
+{  
+    "cmake.buildDirectory": "${workspaceRoot}/delivery",
+    "cmake.sourceDirectory": "${workspaceRoot}/toolkit/builds/code",
+     
+    "C_Cpp.intelliSenseEngineFallback": "Disabled",
+    "cmake.configureOnOpen": true
+}
