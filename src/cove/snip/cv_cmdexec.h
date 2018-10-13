@@ -84,15 +84,20 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
+struct Cv_LinkHook
+{
+    void    *m_FuncPtr;
+    Cv_LinkHook( void *funPtr)
+        : m_FuncPtr( funPtr)
+    {}
+};
+
+//_____________________________________________________________________________________________________________________________
 
 #define CV_CMD_DECLARE( X)                                                                  \
-    void  X##Linkup( void)                                                                  \
-    {                                                                                       \
-        void     X##CMD( void);								                                \
-        X##CMD();                                                                           \
-    }													                                    \
-                                                                                            \
- 
+    void            X##CMD( void);								                            \
+    Cv_LinkHook     cv_##X##LinkHook( ( void *) &X##CMD);                                   \
+
 
 #define CV_CMD_DEFINE( X, Name, Doc, Opts)                                                  \
                                                                                             \

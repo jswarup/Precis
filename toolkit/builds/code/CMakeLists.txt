@@ -35,6 +35,11 @@ include_directories(
 #------------------------------------------------------------------------------------------------------------------------------ 
 
 if(PR_VSCODE)
+
+if(PR_DBG)
+add_definitions(-DEBUG)
+endif()
+
 add_definitions(-std:c++latest)
 endif()
 
