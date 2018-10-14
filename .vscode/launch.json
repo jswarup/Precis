@@ -9,7 +9,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/delivery/bin/precis.exe",
-            "args": [],
+            "args": [ "trellis" ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

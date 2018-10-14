@@ -1,9 +1,9 @@
 #---------------------------------------- CMakeLists.txt --------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.0)
-
-
-set(CMAKE_VERBOSE_MAKEFILE ON)
+ 
+set( CMAKE_BUILD_TYPE "Debug")
+set( CMAKE_VERBOSE_MAKEFILE ON)
 
 #------------------------------------------------------------------------------------------------------------------------------
 #options [ be sure to remove CMakeCache.txt after editing these lines ]
@@ -60,11 +60,10 @@ configure_file("${SOURCE_PATH}cove/barn/cv_version.h.in" "${CMAKE_LIBRARY_OUTPUT
 
 #------------------------------------------------------------------------------------------------------------------------------ 
 
-include_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+include_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${SOURCE_PATH})
 list(APPEND SOURCES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cv_version.h")
 
 #------------------------------------------------------------------------------------------------------------------------------
- 
 
 set ( TR_COVEFILES 
     ${SOURCE_PATH}/cove/barn/cv_include.cpp
@@ -72,7 +71,11 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/cove/snip/cv_cmdexec.cpp
     ${SOURCE_PATH}/cove/snip/cv_typerep.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdtimbre.cpp
+    ${SOURCE_PATH}/segue/tenor/sg_include.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdxml.cpp
+    ${SOURCE_PATH}/trellis/tenor/tr_cmdtrellis.cpp
+    ${SOURCE_PATH}/trellis/tenor/tr_include.cpp
+    ${SOURCE_PATH}/trellis/swarm/tr_worker.cpp
 )
 
 add_library( cove STATIC ${TR_COVEFILES} )
