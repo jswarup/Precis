@@ -17,27 +17,25 @@
 #include    <string>
 #include    <vector>
 #include    <bitset>
-#include	<set>
+#include    <set>
 #include    <map>
 #include    <algorithm>
 #include    <iostream>
 #include    <fstream>
 #include    <sstream>
 #include    <typeinfo>
-#include	<memory>
+#include    <memory>
 #include    <numeric>
-#include	<valarray>
+#include    <valarray>
 #include    <stdexcept>
 #include    <limits>
 #include    <functional>
 #include    <atomic>
 #include    <thread>
 #include    <cstring>
-#include    <stdarg.h>
+#include    <stdarg.h> 
 
-
-
-
+ 
 #define     CV_UINT8_MAX        uint8_t( -1)
 #define     CV_UINT16_MAX       uint16_t( -1)
 #define     CV_UINT32_MAX       uint32_t( -1)
