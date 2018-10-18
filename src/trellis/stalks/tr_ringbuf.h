@@ -3,6 +3,7 @@
  
 #include    <cinttypes>
 #include    <cstdio> 
+#include    "trellis/stalks/tr_atomic.h"
  
 //_____________________________________________________________________________________________________________________________ 
 
@@ -18,20 +19,20 @@ public:
     
     
 private:    
-    std::atomic< uint32_t>  m_WriteInd; 
+    Tr_Type< uint32_t>      m_WriteInd; 
     uint32_t                m_ReadableSz;
        
     Type                    m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);   
     
-    std::atomic< uint32_t>  m_ReadInd alignas( CV_CACHELINE_SIZE);  
+    Tr_Type< uint32_t>      m_ReadInd alignas( CV_CACHELINE_SIZE);  
     uint32_t                m_WriteableSz; 
     
 public: 
     Tr_RingBuffer()  
         : m_ReadableSz( 0), m_WriteableSz( 0)
     {
-        m_WriteInd = 0;
-        m_ReadInd = 0;
+        m_WriteInd.Set( 0);
+        m_ReadInd.Set( 0);
     }
         
     ~Tr_RingBuffer()
@@ -73,10 +74,10 @@ public:
     {
         if ( dataSz >  Sz)
             dataSz = Sz;
-        uint32_t    readInd = m_ReadInd.load();
+        uint32_t    readInd = m_ReadInd.Get();
         if ( m_ReadableSz < dataSz)
         { 
-            m_ReadableSz = (Sz - readInd + m_WriteInd) % Sz;
+            m_ReadableSz = (Sz - readInd + m_WriteInd.Get()) % Sz;
             if ( m_ReadableSz < dataSz)
                 dataSz = m_ReadableSz;
         }
@@ -87,15 +88,15 @@ public:
     
     void    DereserveRead(  uint32_t readInd, uint32_t dataSz)
     {
-        m_ReadInd = ( readInd + dataSz) % Sz;
+        m_ReadInd.Set(( readInd + dataSz) % Sz);
     }
     
     auto    ReserveWrite( uint32_t dataSz)
     {
-        uint32_t    writeInd = m_WriteInd.load();
+        uint32_t    writeInd = m_WriteInd.Get();
         if ( m_WriteableSz < dataSz)
         {
-            m_WriteableSz = (Sz - 1 - writeInd + m_ReadInd.load()) % Sz;  
+            m_WriteableSz = (Sz - 1 - writeInd + m_ReadInd.Get()) % Sz;  
             if ( m_WriteableSz < dataSz)
                 dataSz = m_WriteableSz;
         }
@@ -109,7 +110,7 @@ public:
     
     void    DereserveWrite(  uint32_t writeInd, uint32_t dataSz)
     {
-        m_WriteInd =( writeInd + dataSz) % Sz;
+        m_WriteInd.Set(( writeInd + dataSz) % Sz);
     }
     
 private:

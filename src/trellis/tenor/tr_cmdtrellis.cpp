@@ -60,7 +60,7 @@ public:
 CV_CMD_DEFINE( Sg_TrellisCmdProcessor, "trellis", "trellis", s_TrellisIfcOptions)
 
 
-static const int cv_numEventsToGenerate = 20000000;
+static const int cv_numEventsToGenerate = 100000000;
  
 
 //_____________________________________________________________________________________________________________________________
@@ -68,23 +68,19 @@ static const int cv_numEventsToGenerate = 20000000;
 static int TestConsume( Tr_RingBuffer< uint64_t>    *pRingBuf)
 {
     typedef Tr_RingBuffer<uint64_t>     RingBuf;
-    
-//     _mm_pause(); 
+     
     Cv_Reader< RingBuf>     reader;
     reader.SetRing( pRingBuf);
     
     uint64_t                prev = CV_UINT64_MAX;
     while( true)
     {
-        uint64_t     val = 0;
+        uint64_t     val = 0; 
         bool        res = reader.Fetch( &val);
-        if ( !res)
-        {
-            _mm_pause();
-            continue;
-        } 
-        printf( "%llu\n", val);
-        CV_ERROR_ASSERT( ( prev == CV_UINT64_MAX)  || ( prev < val))
+        if ( !res) 
+            continue; 
+        //printf( "%llu\n", val);
+        //CV_ERROR_ASSERT( ( prev == CV_UINT64_MAX)  || ( prev < val))
         prev = val;
         if ( val == (cv_numEventsToGenerate -1))
             return 0; 
@@ -102,20 +98,16 @@ static int TestProduce( void)
     Cv_Writer< RingBuf>     writer;
     writer.SetRing( &ringBuf);
     
-    std::thread t{TestConsume, &ringBuf};
+    std::thread t{ TestConsume, &ringBuf};
         
     for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
-    {
-         
+    { 
         bool    res  = writer.Put( num_event); 
-        if ( !res)
-        {
-            _mm_pause();
-            continue;
-        }  
+        if ( !res) 
+            continue; 
         bool    res1  = writer.Unput( &num_event); 
         bool    res2  = writer.Put( num_event); 
-        CV_ERROR_ASSERT( res1 && res2)
+        //CV_ERROR_ASSERT( res1 && res2)
                 
         ++num_event; 
     }

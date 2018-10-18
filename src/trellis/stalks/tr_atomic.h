@@ -5,7 +5,7 @@
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Stor, typename Atm = std::false_type>
+template < typename Stor, typename Atm = std::true_type>
 class Tr_Type
 { 
     std::atomic< Stor>          m_Value;
@@ -22,7 +22,7 @@ public:
     
     void    Set( Stor t)
     {  
-        m_Value = t; 
+        m_Value.store( t, std::memory_order_relaxed); 
     }    
      
     Tr_Type     &operator=( const Tr_Type &t)
