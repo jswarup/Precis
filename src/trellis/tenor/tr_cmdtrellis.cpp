@@ -62,6 +62,70 @@ CV_CMD_DEFINE( Sg_TrellisCmdProcessor, "trellis", "trellis", s_TrellisIfcOptions
 
 static const int cv_numEventsToGenerate = 100000000;
  
+//_____________________________________________________________________________________________________________________________
+
+struct Tr_Consume
+{
+    typedef Tr_RingBuffer<uint64_t>     RingBuf;
+    
+    uint64_t                m_Prev;
+    Cv_Reader< RingBuf>     reader;
+    
+    Tr_Consume( void)
+        : m_Prev( CV_UINT64_MAX)
+    {}
+
+    void    InitSetup( RingBuf *pRingBuf)
+    {        
+        reader.SetRing( pRingBuf);
+    }
+
+    void    DoRun( void)
+    { 
+        while( true)
+        {
+            uint64_t    val = 0; 
+            bool        res = reader.Fetch( &val);
+            if ( !res) 
+                continue; 
+            //printf( "%llu\n", val);
+            CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
+            m_Prev = val;
+            if ( val == (cv_numEventsToGenerate -1))
+                return; 
+        }
+        return;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct Tr_Produce
+{
+    typedef Tr_RingBuffer<uint64_t>     RingBuf;
+    Cv_Writer< RingBuf>                 writer;
+
+    Tr_Produce( void) 
+    {}
+
+    void    InitSetup( RingBuf *pRingBuf)
+    {        
+        writer.SetRing( pRingBuf);
+    }
+
+    void    DoRun( void)
+    { 
+        for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
+        { 
+            bool    res  = writer.Put( num_event); 
+            if ( !res) 
+                continue; 
+                    
+            ++num_event; 
+        }
+        writer.Unload();
+    }
+};
 
 //_____________________________________________________________________________________________________________________________
 
@@ -69,22 +133,9 @@ static int TestConsume( Tr_RingBuffer< uint64_t>    *pRingBuf)
 {
     typedef Tr_RingBuffer<uint64_t>     RingBuf;
      
-    Cv_Reader< RingBuf>     reader;
-    reader.SetRing( pRingBuf);
-    
-    uint64_t                prev = CV_UINT64_MAX;
-    while( true)
-    {
-        uint64_t     val = 0; 
-        bool        res = reader.Fetch( &val);
-        if ( !res) 
-            continue; 
-        //printf( "%llu\n", val);
-        //CV_ERROR_ASSERT( ( prev == CV_UINT64_MAX)  || ( prev < val))
-        prev = val;
-        if ( val == (cv_numEventsToGenerate -1))
-            return 0; 
-    }
+    Tr_Consume              consumer;
+    consumer.InitSetup( pRingBuf);
+    consumer.DoRun(); 
     return 0;
 }
 
@@ -93,25 +144,12 @@ static int TestConsume( Tr_RingBuffer< uint64_t>    *pRingBuf)
 static int TestProduce( void)
 {
     typedef Tr_RingBuffer<uint64_t>     RingBuf;
-    
-    RingBuf                 ringBuf;
-    Cv_Writer< RingBuf>     writer;
-    writer.SetRing( &ringBuf);
-    
-    std::thread t{ TestConsume, &ringBuf};
-        
-    for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
-    { 
-        bool    res  = writer.Put( num_event); 
-        if ( !res) 
-            continue; 
-        bool    res1  = writer.Unput( &num_event); 
-        bool    res2  = writer.Put( num_event); 
-        //CV_ERROR_ASSERT( res1 && res2)
-                
-        ++num_event; 
-    }
-    writer.Unload();
+
+    RingBuf                 ringBuf; 
+    Tr_Produce              producer;
+    producer.InitSetup( &ringBuf); 
+    std::thread             t{ TestConsume, &ringBuf};
+    producer.DoRun();
     t.join();
     return 0;
 }

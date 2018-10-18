@@ -37,31 +37,18 @@ public:
         
     ~Tr_RingBuffer()
     {}
-    
-    static  Tr_RingBuffer   *Create( const char *name, uint32_t sz, uint32_t sockId, uint32_t flags) 
-    {   
-        void    *buffer = NULL;;
-        int     rc = posix_memalign(&buffer, CV_CACHELINE_SIZE, sizeof ( Tr_RingBuffer< Type>));
-        if ( rc != 0)
-            return NULL; 
-        return new (buffer) Tr_RingBuffer< Type>(); 
-    }
-    void                Discard( void) 
-    { 
-        delete this; 
-    }
-    
+     
     uint32_t            Count( void) const 
     { 
-        uint32_t    readInd = m_ReadInd.load();
-        uint32_t    writeInd = m_WriteInd.load();
+        uint32_t    readInd = m_ReadInd.Get();
+        uint32_t    writeInd = m_WriteInd.Get();
         return uint32_t( (Sz - readInd + writeInd) % Sz);
     }
     
     uint32_t            FreeCount( void) const 
     { 
-        uint32_t    readInd = m_ReadInd.load();
-        uint32_t    writeInd = m_WriteInd.load();
+        uint32_t    readInd = m_ReadInd.Get();
+        uint32_t    writeInd = m_WriteInd.Get();
         return uint32_t( (Sz - 1 - writeInd + readInd) % Sz); 
     }
     
@@ -213,23 +200,21 @@ class Cv_Writer
 protected: 
     typedef typename RingBuf::Type          Type;
     
-    RingBuf                                 *m_SinkRing; 
-    uint32_t                                m_WriteInd;    
-    uint32_t                                bytesWr1; 
-    uint32_t                                m_DataSz;
-    uint32_t                                m_Ind;
+    RingBuf                                 *m_SinkRing;    // The attached ring
+    uint32_t                                m_WriteInd;     // ring-Index to write at
+    uint32_t                                m_BytesWr1;     // number of Bytes to be written at ring-write-index
+    uint32_t                                m_DataSz;       // Total bytes to write
+    uint32_t                                m_Ind;          // Current write-index
     
-   uint32_t     RingInd( uint32_t ind) {   return ( m_Ind < bytesWr1) ? m_WriteInd +m_Ind : m_Ind -bytesWr1;   }
+   uint32_t     RingInd( uint32_t ind) {  return ( m_Ind < m_BytesWr1) ? m_WriteInd +m_Ind : m_Ind -m_BytesWr1;   }
    
  public:
     Cv_Writer( RingBuf *ringBuf = NULL)
         :   m_SinkRing( ringBuf), m_WriteInd( CV_UINT32_MAX), m_DataSz( 0), m_Ind( 0)
     {} 
      
-    void            SetRing( RingBuf *ringBuf) {  m_SinkRing = ringBuf; }
-        
-    bool            IsDrained( void) const { return ( m_Ind == m_DataSz); }
-    
+    void            SetRing( RingBuf *ringBuf) {  m_SinkRing = ringBuf; } 
+    bool            IsDrained( void) const { return ( m_Ind == m_DataSz); } 
     bool            Put( const Type &val, uint32_t reservedSz = 32) 
     { 
         if ( IsDrained() && !Reserve( reservedSz)) 
@@ -258,7 +243,7 @@ protected:
         
         m_DataSz = dataSz;   
         m_Ind = 0;
-        std::tie( m_WriteInd, bytesWr1, m_DataSz) = m_SinkRing->ReserveWrite( m_DataSz);        
+        std::tie( m_WriteInd, m_BytesWr1, m_DataSz) = m_SinkRing->ReserveWrite( m_DataSz);        
         return m_DataSz;
     }
     
