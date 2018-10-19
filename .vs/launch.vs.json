@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [ 
+    {
+      "type": "default",
+      "project": "toolkit\\builds\\code\\CMakeLists.txt",
+      "projectTarget": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
+      "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
+      "args": [ "trellis" ]
+    }
+  ]
+}

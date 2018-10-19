@@ -59,7 +59,6 @@ public:
  
 CV_CMD_DEFINE( Sg_TrellisCmdProcessor, "trellis", "trellis", s_TrellisIfcOptions)
 
-
 static const int cv_numEventsToGenerate = 100000000;
  
 //_____________________________________________________________________________________________________________________________
@@ -100,7 +99,7 @@ struct Tr_Consume
 
 //_____________________________________________________________________________________________________________________________
 
-struct Tr_Produce
+struct Tr_Produce 
 {
     typedef Tr_RingBuffer<uint64_t>     RingBuf;
     Cv_Writer< RingBuf>                 writer;
