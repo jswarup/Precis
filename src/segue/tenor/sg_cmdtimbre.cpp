@@ -24,9 +24,7 @@ class Sg_TimbreCmdProcessor : public Cv_CmdExecutor
 
 public:
     Sg_TimbreCmdProcessor( void)  
-    {
-
-    }
+    {}
 
     int     Execute( void);
     int     Test(void);
@@ -38,8 +36,7 @@ public:
     }
 
     bool    ParseArg( const std::string &key, const std::string &arg)
-    {
-         
+    { 
         return false;
     }
 };

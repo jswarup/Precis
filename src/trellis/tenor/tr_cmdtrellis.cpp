@@ -5,6 +5,7 @@
 #include    "cove/snip/cv_cmdexec.h" 
 #include    "trellis/swarm/tr_worker.h" 
 #include    "trellis/stalks/tr_ringbuf.h"
+#include    "trellis/stalks/tr_datacarousal.h"
 
 #include    <utility>
 #include    <tuple>

@@ -58,6 +58,22 @@
 
 //_____________________________________________________________________________________________________________________________
 
+template < typename X>
+struct  Cv_Couple : public std::tuple< X, X> 
+{
+    Cv_Couple( void) {}
+    
+    Cv_Couple( const std::tuple< X, X> &data)
+        : std::tuple< X, X>( data)
+    {}
+    
+    Cv_Couple( std::tuple< X, X> &&data)
+        : std::tuple< X, X>( data)
+    {};
+};
+
+//_____________________________________________________________________________________________________________________________
+
 #define Hv_MAKESTR(s)       #s
 
 #define Hv_CONCAT(s,t)      Hv_MAKESTR(s##t)

@@ -12,7 +12,7 @@ class Tr_Type
   
 public:
     Tr_Type( void) 
-    :  m_Value( false)
+    :  m_Value( 0)
     {} 
   
     Stor    Get( void) const 
