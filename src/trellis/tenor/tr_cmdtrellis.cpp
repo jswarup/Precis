@@ -66,22 +66,22 @@ static const int cv_numEventsToGenerate = 100000000;
 
 struct Tr_Consume
 {
-    typedef Tr_RingBuffer<uint64_t>     RingBuf;
+    typedef Tr_DataCarousal<uint64_t>     DataCarousal;
     
-    uint64_t                m_Prev;
-    Cv_Reader< RingBuf>     reader;
+    uint64_t                    m_Prev;
+    Tr_DataDock< uint64_t>      m_Dock;
     
     Tr_Consume( void)
         : m_Prev( CV_UINT64_MAX)
     {}
 
-    void    InitSetup( RingBuf *pRingBuf)
+    void    InitSetup( DataCarousal *pRingBuf)
     {        
-        reader.SetRing( pRingBuf);
+        m_Dock.Setup( pRingBuf);
     }
 
     void    DoRun( void)
-    { 
+    { /*
         while( true)
         {
             uint64_t    val = 0; 
@@ -94,6 +94,7 @@ struct Tr_Consume
             if ( val == (cv_numEventsToGenerate -1))
                 return; 
         }
+       */
         return;
     }
 };
@@ -102,19 +103,21 @@ struct Tr_Consume
 
 struct Tr_Produce 
 {
-    typedef Tr_RingBuffer<uint64_t>     RingBuf;
-    Cv_Writer< RingBuf>                 writer;
+    typedef Tr_DataCarousal<uint64_t>   DataCarousal;
+    Tr_DataDock< uint64_t>              m_Dock;
+    
 
     Tr_Produce( void) 
     {}
 
-    void    InitSetup( RingBuf *pRingBuf)
+    void    InitSetup( DataCarousal *pRingBuf)
     {        
-        writer.SetRing( pRingBuf);
+        m_Dock.Setup( pRingBuf);
     }
 
     void    DoRun( void)
     { 
+        /*
         for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
         { 
             bool    res  = writer.Put( num_event); 
@@ -124,31 +127,26 @@ struct Tr_Produce
             ++num_event; 
         }
         writer.Unload();
+        */
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
-static int TestConsume( Tr_RingBuffer< uint64_t>    *pRingBuf)
-{
-    typedef Tr_RingBuffer<uint64_t>     RingBuf;
-     
-    Tr_Consume              consumer;
-    consumer.InitSetup( pRingBuf);
-    consumer.DoRun(); 
-    return 0;
-}
-
 //_____________________________________________________________________________________________________________________________
 
 static int TestProduce( void)
 {
-    typedef Tr_RingBuffer<uint64_t>     RingBuf;
+    
+    typedef Tr_DataCarousal< uint64_t>     DataCarousal;
 
-    RingBuf                 ringBuf; 
+    DataCarousal            ringBuf; 
     Tr_Produce              producer;
+    Tr_Consume              consumer;
+    consumer.InitSetup( &ringBuf);
     producer.InitSetup( &ringBuf); 
-    std::thread             t{ TestConsume, &ringBuf};
+    
+    std::thread             t{ &Tr_Consume::DoRun, &consumer};
     producer.DoRun();
     t.join();
     return 0;

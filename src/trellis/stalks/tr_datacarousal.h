@@ -51,7 +51,7 @@ public:
 //_____________________________________________________________________________________________________________________________
  
 template < typename Ty> 
-class   Tr_DataDock 
+class   Tr_DataDock : public Cv_DLink< Tr_DataDock< Ty> >
 {
     Tr_Type< uint32_t>      m_Index; 
     Tr_DataCarousal< Ty>    *m_DataCarousal;
@@ -67,7 +67,7 @@ public:
     void    Setup( Tr_DataCarousal< Ty> *dataCarousal)
     {
         m_DataCarousal = dataCarousal;
-        Append( this);
+        m_DataCarousal->Append( this);
         return;
     } 
 };

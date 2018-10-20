@@ -41,7 +41,7 @@ public:
     {
         DHandler    *hndlr = Handler();
         DLinkPtr    tl = Tail();
-        DLinkPtr    tlNx = tl ? hndlr->GetNext( tl) : ( Circ ? dl : DNIL()); 
+        DLinkPtr    tlNx = tl ? hndlr->Next( tl) : ( Circ ? dl : DNIL()); 
         hndlr->SetNext( dl,  tlNx);
         hndlr->SetPrev( dl, tl);
         if ( tl != DNIL())
@@ -49,7 +49,7 @@ public:
         else        
             m_Head = dl;   
         hndlr->SetPrev( m_Head, dl);               // make dl the tail 
-        XD_SANITY_ASSERT( TestSanity())
+        CV_SANITY_ASSERT( TestSanity())
         return;
     }
     
@@ -79,7 +79,7 @@ public:
         if ( IsSingle())
         { 
             m_Head = DNIL();
-            XD_SANITY_ASSERT( TestSanity())
+            CV_SANITY_ASSERT( TestSanity())
             return hndlr->DoInit( dl);
         }
         
@@ -88,21 +88,21 @@ public:
         {
             hndlr->SetPrev( hndlr->Next( dl), hndlr->Prev( dl));
             hndlr->SetNext( hndlr->Prev( dl),  hndlr->Next( dl));
-            XD_SANITY_ASSERT( TestSanity())
+            CV_SANITY_ASSERT( TestSanity())
             return hndlr->DoInit( dl);
         }
         if ( dl == tl)
         {
-            XD_SANITY_ASSERT( TestSanity())
+            CV_SANITY_ASSERT( TestSanity())
             hndlr->SetNext( hndlr->Prev( dl), DNIL());
             hndlr->SetPrev( m_Head, hndlr->Prev( dl));     // make dl the tail
-            XD_SANITY_ASSERT( TestSanity())
+            CV_SANITY_ASSERT( TestSanity())
         }
         else if ( dl == m_Head)
         {
             m_Head = hndlr->Next( m_Head);
             hndlr->SetPrev( m_Head, tl);
-            XD_SANITY_ASSERT( TestSanity())
+            CV_SANITY_ASSERT( TestSanity())
         }
         return hndlr->DoInit( dl);
     }
@@ -153,7 +153,7 @@ public:
         }
         else
         {
-            //XD_SANITY_ASSERT(m_Head == DNIL())
+            //CV_SANITY_ASSERT(m_Head == DNIL())
             m_Head = dh;
         }
         hndlr->SetPrev( m_Head,  dt); // make dt the tail
@@ -218,7 +218,7 @@ public:
 //_____________________________________________________________________________________________________________________________ 
 
 template < typename DLink, bool Circ = false>
-class Cv_DLinkList : public Cv_DList< DLink *, Cv_DLinkList< DLink>, Circ >
+class Cv_DLinkList : public Cv_DList< DLink *, Cv_DLinkList< DLink, Circ>, Circ >
 {
 public:  
     static constexpr DLink   *NIL( void) { return  ( DLink *) NULL; }
@@ -270,8 +270,8 @@ public:
         return dl;
     }
     
-    void        PushIndex( Stor spurt) { this->Append( spurt); ++m_Sz;    XD_SANITY_ASSERT( TestSanity())  }
-    void        RemoveIndex( Stor spurt) { this->Remove( spurt); --m_Sz;   XD_SANITY_ASSERT( TestSanity())  } 
+    void        PushIndex( Stor spurt) { this->Append( spurt); ++m_Sz;    CV_SANITY_ASSERT( TestSanity())  }
+    void        RemoveIndex( Stor spurt) { this->Remove( spurt); --m_Sz;   CV_SANITY_ASSERT( TestSanity())  } 
       
     void        PopHeadTo( Stor spurtId, uint32_t sz)
     {
@@ -283,7 +283,7 @@ public:
         if ( spurtId == NIL())
             return;
         this->SetPrev( spurtId, Prev( headId)); 
-        XD_SANITY_ASSERT( TestSanity())
+        CV_SANITY_ASSERT( TestSanity())
     }
     
 };
