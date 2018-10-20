@@ -84,7 +84,7 @@ public:
     }
     
     const Type      &Get( uint32_t k) const { return m_DataCarousal->Get(  m_Begin +k); }
-    void            Set( uint32_t k, const Type &x) { m_DataCarousal->Set(  m_Begin, x); }
+    void            Set( uint32_t k, const Type &x) { m_DataCarousal->Set(  m_Begin +k, x); }
 
     void       Commit( uint32_t sz) 
     {

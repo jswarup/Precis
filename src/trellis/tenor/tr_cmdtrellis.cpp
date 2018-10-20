@@ -81,20 +81,23 @@ struct Tr_Consume
     }
 
     void    DoRun( void)
-    { /*
+    {  
         while( true)
         {
-            uint64_t    val = 0; 
-            bool        res = reader.Fetch( &val);
-            if ( !res) 
+            uint32_t    sz = m_Dock.Summon(); 
+            if ( !sz) 
                 continue; 
-            //printf( "%llu\n", val);
-            CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
-            m_Prev = val;
-            if ( val == (cv_numEventsToGenerate -1))
-                return; 
-        }
-       */
+            for ( uint32_t i = 0; i < sz; ++i)
+            {
+                uint32_t    val = m_Dock.Get( i);
+                printf( "%llu\n", val);
+                CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
+                m_Prev = val;
+                if ( val == (cv_numEventsToGenerate -1))
+                    return; 
+            }
+            m_Dock.Commit( sz);
+        } 
         return;
     }
 };
@@ -142,11 +145,12 @@ static int TestProduce( void)
 
     DataCarousal            ringBuf; 
     Tr_Produce              producer;
-    Tr_Consume              consumer;
-    producer.InitSetup( &ringBuf); 
-    consumer.InitSetup( &ringBuf);
-    
+    producer.InitSetup( &ringBuf);
+
+    Tr_Consume              consumer; 
+    consumer.InitSetup( &ringBuf);    
     std::thread             t{ &Tr_Consume::DoRun, &consumer};
+
     producer.DoRun();
     t.join();
     return 0;
