@@ -117,17 +117,17 @@ struct Tr_Produce
 
     void    DoRun( void)
     { 
-        /*
+         
         for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
         { 
-            bool    res  = writer.Put( num_event); 
-            if ( !res) 
-                continue; 
-                    
-            ++num_event; 
-        }
-        writer.Unload();
-        */
+            uint32_t    sz = m_Dock.Summon();
+            if ( !sz)
+                continue;
+            for ( uint32_t i = 0; i < sz; ++i)
+                m_Dock.Set( i, num_event++);
+            m_Dock.Commit( sz);
+        } 
+         
     }
 };
 
@@ -143,8 +143,8 @@ static int TestProduce( void)
     DataCarousal            ringBuf; 
     Tr_Produce              producer;
     Tr_Consume              consumer;
-    consumer.InitSetup( &ringBuf);
     producer.InitSetup( &ringBuf); 
+    consumer.InitSetup( &ringBuf);
     
     std::thread             t{ &Tr_Consume::DoRun, &consumer};
     producer.DoRun();
