@@ -60,7 +60,7 @@ public:
  
 CV_CMD_DEFINE( Sg_TrellisCmdProcessor, "trellis", "trellis", s_TrellisIfcOptions)
 
-static const int cv_numEventsToGenerate = 100000000;
+static const int cv_numEventsToGenerate = 10000;
  
 //_____________________________________________________________________________________________________________________________
 
@@ -87,16 +87,20 @@ struct Tr_Consume
             uint32_t    sz = m_Dock.Summon(); 
             if ( !sz) 
                 continue; 
-            for ( uint32_t i = 0; i < sz; ++i)
+            uint32_t i = 0;
+            for ( ; i < sz;)
             {
-                uint32_t    val = m_Dock.Get( i);
+                uint32_t    val = m_Dock.Get( i++);
                 printf( "%llu\n", val);
                 CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
                 m_Prev = val;
                 if ( val == (cv_numEventsToGenerate -1))
-                    return; 
+                {
+                    m_Dock.Commit( i);
+                    return;
+                } 
             }
-            m_Dock.Commit( sz);
+            m_Dock.Commit( i);
         } 
         return;
     }
@@ -126,11 +130,12 @@ struct Tr_Produce
             uint32_t    sz = m_Dock.Summon();
             if ( !sz)
                 continue;
-            for ( uint32_t i = 0; i < sz; ++i)
+            uint32_t i = 0;
+            for ( ; ( i < sz) && ( num_event < cv_numEventsToGenerate); ++i)
                 m_Dock.Set( i, num_event++);
-            m_Dock.Commit( sz);
+            m_Dock.Commit( i);
         } 
-         
+        return;
     }
 };
 
@@ -148,11 +153,22 @@ static int TestProduce( void)
     producer.InitSetup( &ringBuf);
 
     Tr_Consume              consumer; 
-    consumer.InitSetup( &ringBuf);    
+    consumer.InitSetup( &ringBuf);   
+
+    Tr_Consume              consumer1; 
+    consumer1.InitSetup( &ringBuf); 
+  
+    Tr_Consume              consumer2; 
+    consumer2.InitSetup( &ringBuf);    
+ 
+    std::thread             t2{ &Tr_Consume::DoRun, &consumer2};
     std::thread             t{ &Tr_Consume::DoRun, &consumer};
+    std::thread             t1{ &Tr_Consume::DoRun, &consumer1};
 
     producer.DoRun();
+    t1.join();
     t.join();
+    t2.join();
     return 0;
 }
 
