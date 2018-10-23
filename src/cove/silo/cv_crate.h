@@ -177,33 +177,39 @@ template < typename Lambda, typename... Args>
         return accum;
     }
 
-    struct   Constructor 
-    {  
-        Cv_CrateRepos                   *m_Crate;
-        std::map< void *, Entry *>      m_CnstrMap;
-
-        Constructor( Cv_CrateRepos  *crate) 
-            : m_Crate( crate)
-        {}
-
-    template < typename Node>    
-        Entry     *FetchSynTree( Node *node)
-        {
-            typedef typename Node::SynElem      SynItem;
-
-            auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
-            if ( !res.second)
-                return static_cast< SynItem *>( res.first->second); 
-            SynItem     *synItem = new SynItem();
-            auto        item = synItem->Setup( node, this);
-            if ( item != static_cast< Entry *>( synItem))
-                delete synItem;
-            m_Crate->Store( synItem);
-            res.first->second = item;
-            return item;
-        }     
-    };
 };  
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename Crate>
+struct   Cv_Constructor 
+{   
+    typedef typename Crate::Entry   Entry; 
+
+    Cv_CrateRepos< Crate>           *m_Crate;
+    std::map< void *, Entry *>      m_CnstrMap;
+
+    Cv_Constructor( Cv_CrateRepos< Crate>  *crate) 
+        : m_Crate( crate)
+    {}
+
+template < typename Node>    
+    Entry     *FetchSynTree( Node *node)
+    {
+        typedef typename Node::SynElem      SynItem;
+
+        auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
+        if ( !res.second)
+            return static_cast< SynItem *>( res.first->second); 
+        SynItem     *synItem = new SynItem();
+        auto        item = synItem->Setup( node, this);
+        if ( item != static_cast< Entry *>( synItem))
+            delete synItem;
+        m_Crate->Store( synItem);
+        res.first->second = item;
+        return item;
+    }     
+};
 
 //_____________________________________________________________________________________________________________________________
 
