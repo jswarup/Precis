@@ -187,7 +187,7 @@ struct Str : public Node< Str >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser();
+        typename Forge::TParser     *parser = ctxt->GetParser();
         const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
@@ -377,20 +377,26 @@ template < typename Forge>
 //_____________________________________________________________________________________________________________________________ 
 
 struct CharSet : public Node< CharSet >
-{
-     
+{    
     Sg_ChSet     m_Bits;
 
-    CharSet( const std::string &set)
+    CharSet( const std::string & chSet)
     { 
-        SetName( std::string( "CharSet:" +set));
-        const char      *p = set.c_str();
+        SetName( std::string( "CharSet:" +chSet));
+        const char      *p = chSet.c_str();
+        bool            negFlg = false;
         while ( *p)
         {
             const char      *first = p;
+            if ( *first == '^')
+            {
+               negFlg = true;
+               continue;
+            } 
             m_Bits.Set( *first, true);
             ++p;
-
+            if ( !*p)
+                continue;
             const char      *second = (p + 1);
             if ( *p && *second && ( *p == '-') )
             {
@@ -399,9 +405,10 @@ struct CharSet : public Node< CharSet >
                 p += 2;
             }
         }
-    }
+        if ( negFlg)
+            m_Bits.Negate();
+    } 
 
-    
     CharSet operator ~( void) const 
     {
         CharSet     neg( SELF);

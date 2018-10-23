@@ -132,8 +132,7 @@ struct XMLDoc  : public Node< XMLDoc>
     XMLDoc( void)
         : m_SynRepos(),  m_SynCrate( &m_SynRepos), m_SynCnstr( &m_SynCrate)
     {
-    }
-
+    } 
     
     auto           DocumentOver( void) const { return []( auto ctxt) {  
                                                             std::cout << ctxt.MatchStr() << "\n";

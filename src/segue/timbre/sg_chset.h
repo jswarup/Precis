@@ -49,6 +49,9 @@ public:
 
     Sg_ChSet( void) { Init(); }
 
+ 
+    uint8_t         GetU8( uint32_t c) const  { return ( ( uint8_t *) &m_ChSet[ 0])[ c / 8]; }
+
     bool            Get( uint32_t c) const  { return ( m_ChSet[ c / 64] & (uint64_t( 1) << (c % 64))) != 0; }
     Sg_ChSet        &Set( uint32_t c, bool v) 
     { 

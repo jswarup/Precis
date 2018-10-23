@@ -19,9 +19,7 @@ static Cv_CmdOption     s_TimbreIfcOptions[] =
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_TimbreCmdProcessor : public Cv_CmdExecutor
-{
-     
-
+{ 
 public:
     Sg_TimbreCmdProcessor( void)  
     {}
