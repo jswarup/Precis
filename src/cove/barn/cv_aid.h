@@ -1,4 +1,4 @@
-//___________________________________________ cv_aid.h _________________________________________________________________________
+// cv_aid.h ____________________________________________________________________________________________________________________
 #pragma once
 
 #include    "cove/barn/cv_cexpr.h"
@@ -27,7 +27,7 @@ template < class Iterator, class X>
 
     //_____________________________________________________________________________________________________________________________
 
-    template < class Iterator>
+template < class Iterator>
     static void  Init( Iterator b, Iterator e) 
     { 
         typedef typename Iterator::value_type ValueType;
@@ -36,7 +36,13 @@ template < class Iterator, class X>
         for ( ; b != e; ++b) 
         	*b = x;
     }
-    
+
+template < class X>
+    static void  MemSetZero( X *b, const X *e) 
+    { 
+        for ( ; b != e; ++b) 
+        	*b = X( 0);
+    }
     static bool                 FileExists( const char *fileName);
     
     static std::string          Basename( const std::string &path);

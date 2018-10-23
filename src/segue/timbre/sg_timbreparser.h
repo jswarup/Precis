@@ -258,9 +258,7 @@ template < typename Cnstr>
         auto    synItem = new SynElem( m_Str); 
         cnstr->m_Crate->Store( synItem); 
         return synItem;
-    } 
- 
-
+    }  
 };
 
 //_____________________________________________________________________________________________________________________________ 

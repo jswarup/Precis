@@ -5,13 +5,15 @@
 
 class Sg_ChSet
 {
+public:
     enum 
     { 
         Sz = 4,
         SzChBits = 256,
     };
 
-    uint64_t  m_ChSet[4]; 
+protected:
+    uint64_t    m_ChSet[4]; 
 
     void        Init( void) { memset( m_ChSet, 0, sizeof( m_ChSet)); }
     
@@ -53,12 +55,11 @@ public:
     uint8_t         GetU8( uint32_t c) const  { return ( ( uint8_t *) &m_ChSet[ 0])[ c / 8]; }
 
     bool            Get( uint32_t c) const  { return ( m_ChSet[ c / 64] & (uint64_t( 1) << (c % 64))) != 0; }
-    Sg_ChSet        &Set( uint32_t c, bool v) 
-    { 
-        ( v ) ? m_ChSet[ ((c) / 64) ] |= ( uint64_t( 1) << ((c) % 64)) 
-            : m_ChSet[ ((c) / 64) ] &= ~(uint64_t( 1) << ((c) % 8)); 
-        return *this; 
-    }
+    void            Set( uint32_t c, bool v)  {  ( v ) ? SetChar( c) : ClearChar( c); }
+
+    
+    void            SetChar( uint32_t c) { m_ChSet[ ((c) / 64) ] |= ( uint64_t( 1) << ((c) % 64)); } 
+    void            ClearChar( uint32_t c)  { m_ChSet[ ((c) / 64) ] &= ~(uint64_t( 1) << ((c) %  64)); }
  
     Sg_ChSet        &Negate( void)
     { 
@@ -69,9 +70,28 @@ public:
         return *this;
     }
 
+    Sg_ChSet                  &UnionWith( const Sg_ChSet &src2)
+    {
+        m_ChSet[ 0] |= m_ChSet[ 0];
+        m_ChSet[ 1] |= m_ChSet[ 1];
+        m_ChSet[ 2] |= m_ChSet[ 2];
+        m_ChSet[ 3] |= m_ChSet[ 3]; 
+        return *this;
+    }
+
+    Sg_ChSet        Union( const Sg_ChSet &src2) const { return Sg_ChSet( SELF).UnionWith( src2); }
+
     Sg_ChSet        Negative( void) const { return Sg_ChSet( SELF).Negate();} 
  
+    
+    bool            IsEqual( const Sg_ChSet &cs) const  {  return ( m_ChSet[ 0] == cs.m_ChSet[ 0]) && ( m_ChSet[ 1] == cs.m_ChSet[ 1]) && 
+                                                                    ( m_ChSet[ 2] == cs.m_ChSet[ 2])  && ( m_ChSet[ 3] == cs.m_ChSet[ 3]) ; }
+
     void            SetByteRange( int start, int stop, bool value); // Start and Stop are inclusive
+
+    int             ListChars( int *list) const;
+
+    std::string     ToString ( void) const;
 };
  
 
