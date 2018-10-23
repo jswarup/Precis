@@ -143,8 +143,8 @@ struct     StrSynElem : public SynElem
 
     const char      *GetName( void) const { return "Seq"; }
 
-    StrSynElem( void)
-        :   m_CaselessFlg( false)
+    StrSynElem( const std::string  &str, bool clf)
+        :   m_Str( str), m_CaselessFlg( clf)
     {}
 
     bool    WriteDot( Cv_DotStream &strm)  
@@ -201,14 +201,19 @@ template < typename Forge>
     }
 
     struct     SynElem : public StrSynElem
-    { 
-    template < typename Cnstr>
-        auto        Setup( Str *str, Cnstr *cnstr)
-        {
-            m_Str = str->m_Str;
-             return this; 
-        } 
-    }; 
+    {
+        SynElem( const std::string  &str)
+            :   StrSynElem( str, false)
+        {}
+    };
+ 
+template < typename Cnstr>
+    auto        Setup( Cnstr *cnstr)
+    {
+        auto    synItem = new SynElem( m_Str);    
+        cnstr->m_Crate->Store( synItem); 
+        return synItem;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -241,17 +246,20 @@ template < typename Forge>
     }
 
     struct     SynElem : public StrSynElem 
-    {
-        std::string     m_Name;
+    { 
+        SynElem( const std::string  &str)
+            :   StrSynElem( str, true)
+        {}
+    }; 
 
-    template < typename Cnstr>
-        auto        Setup( IStr *str, Cnstr *cnstr)
-        {
-            m_Str = str->m_Str;
-            m_CaselessFlg = true;
-             return this; 
-        }
-    };
+template < typename Cnstr>
+    auto        Setup( Cnstr *cnstr)
+    {
+        auto    synItem = new SynElem( m_Str); 
+        cnstr->m_Crate->Store( synItem); 
+        return synItem;
+    } 
+ 
 
 };
 
@@ -280,13 +288,15 @@ template < typename Forge>
 
     struct     SynElem : public StrSynElem
     {
-    template < typename Cnstr>
-       auto        Setup( Char *str, Cnstr *cnstr)
-        {
-            m_Str.push_back( str->m_Char);
-             return this; 
-        }
-    };
+    }; 
+template < typename Cnstr>
+    auto        Setup( Cnstr *cnstr)
+    {
+        auto    synItem = new SynElem(); 
+        synItem->m_Str.push_back( str->m_Char);
+        cnstr->m_Crate->Store( synItem); 
+        return synItem;
+    }  
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -312,14 +322,15 @@ template < typename Forge>
     } 
 
     struct     SynElem : public RefSynElem
-    { 
-    template < typename Cnstr>
-        auto        Setup( RangeNode *node, Cnstr *cnstr)
-        {  
-            return this;
-        } 
-    };
-
+    {
+    }; 
+template < typename Cnstr>
+    auto        Setup( Cnstr *cnstr)
+    {
+        auto    synItem = new SynElem();  
+        cnstr->m_Crate->Store( synItem); 
+        return synItem;
+    }   
 };
 
 //_____________________________________________________________________________________________________________________________ 

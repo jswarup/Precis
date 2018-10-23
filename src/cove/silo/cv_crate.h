@@ -200,14 +200,10 @@ template < typename Node>
 
         auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
         if ( !res.second)
-            return static_cast< SynItem *>( res.first->second); 
-        SynItem     *synItem = new SynItem();
-        auto        item = synItem->Setup( node, this);
-        if ( item != static_cast< Entry *>( synItem))
-            delete synItem;
-        m_Crate->Store( synItem);
-        res.first->second = item;
-        return item;
+            return static_cast< SynItem *>( res.first->second);  
+        auto        synItem = node->Setup( this);
+        res.first->second = synItem;
+        return synItem;
     }     
 };
 
