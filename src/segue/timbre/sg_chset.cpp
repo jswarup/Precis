@@ -225,21 +225,13 @@ int Sg_ChSet::ListChars( int *list) const
 
 static     const int   CCLPRETTYPRINT_NUMSTRINGS = 8;
 static     const int   CCLPRETTYPRINT_STRINGLEN = 512;
+  
 
-#define CHARPRETTYPRINT_NORMAL 0
-#define CHARPRETTYPRINT_CHARCLASS 1
-
-char *charPrettyPrint ( int c, char *p, int mode )
+char *charPrettyPrint( int c, char *p, bool chrClsFlg )
 {
 	bool escape = false;
 	bool hex = false;
-	if ( c >= 256 )
-	{
-		sprintf ( p, "\\x%03X", c );
-		p += 5;
-		return p;
-	}
-	switch ( c )
+	switch ( c)
 	{
 		case '\t' :
 			sprintf ( p, "\\t" );
@@ -260,29 +252,25 @@ char *charPrettyPrint ( int c, char *p, int mode )
 		case '\a' :
 			sprintf ( p, "\\a" );
 			p += 2;
-			return p;
-		/*case 0x1b :
-			sprintf ( p, "\\e" );
-			p += 2;
-			return p; */
+			return p; 
 		case 0x0b :
 			sprintf ( p, "\\v" );
 			p += 2;
 			return p;
 	}
-	if ( mode == CHARPRETTYPRINT_NORMAL && 1 )
+	if ( !chrClsFlg )
 	{
 		if ( strchr ( "'\"=", c ) )
 			hex = 1;
 		if ( strchr ( "^$ *+{}[].\\/|?", c ) )
 			escape = 1;
 	}
-	else if ( mode == CHARPRETTYPRINT_CHARCLASS && 1 )
+	else if ( chrClsFlg )
 	{
 		if ( strchr ( "^[]\\/-", c ) )
 			escape = 1;
 	}
-	if ( !isalnum ( c ) && ( c != '.') && ( c != '$') && ( c != '@') && ( c != '_') )
+	if ( !isalnum( c) && ( c != '.') && ( c != '$') && ( c != '@') && ( c != '_') )
 		hex = 1;
 	if ( hex )
 	{
@@ -305,70 +293,53 @@ char *charPrettyPrint ( int c, char *p, int mode )
 
 //_____________________________________________________________________________________________________________________________
 
+int Sg_ChSet::ToStringBasic( char *curStr) const
+{
+	int         curChars[ 256];
+	int         curWeight = ListChars( curChars);  
+	char        *p = curStr;
+	*( p++ ) = '[';
+	for ( int i = 0; i < curWeight;  )
+	{
+        int     j = i + 1;
+		for ( ; j < curWeight; j++ )
+		{
+			if ( curChars[j] != curChars[j-1] + 1 )
+				break;
+		}
+		int     len = j - i;
+		p = charPrettyPrint ( curChars[i], p, true);
+		if ( len > 2 )
+			* ( p++ ) = '-';
+		if ( len > 1 )
+			p = charPrettyPrint ( curChars[i+len-1], p, true);
+        i += len;
+	}
+	* ( p++ ) = ']';
+	*p = '\0';
+    return curWeight;
+}
+
+//_____________________________________________________________________________________________________________________________
+
 std::string     Sg_ChSet::ToString ( void) const
 {
-
-
+ 
     if ( IsEqual( Word()))
         return "[[Word]]";
     if ( IsEqual( NonWord()))
         return "[[NonWord]]";
-
-	static int  stringIdx = 0;
-	static char strings[ CCLPRETTYPRINT_NUMSTRINGS][ CCLPRETTYPRINT_STRINGLEN];
-	int         posChars[ 259], negChars[ 259];
-	char        *str = strings[ stringIdx];
     
-	stringIdx = ( stringIdx + 1 ) % CCLPRETTYPRINT_NUMSTRINGS;
-
-	char        negStr[ CCLPRETTYPRINT_STRINGLEN] = ""; 
-    char        posStr[ CCLPRETTYPRINT_STRINGLEN] = "";
-	int         posWeight = ListChars ( posChars );
-	int         eos = Get ( 256);
-	int         eop = Get ( 257);
-	Sg_ChSet      negCcl = Negative();
-    negCcl.m_ChSet[ 32] = 0;  // No EOP,EOS in inverse
-	int             negWeight = negCcl.ListChars( negChars);
-	for ( int neg = 0; neg < 2; neg++ )
-	{
-		if ( neg && ( eop || eos ) )
-		{
-			break;
-		}
-		Sg_ChSet    curCcl ( neg ? negCcl : SELF );
-		char            *curStr = ( neg ? negStr : posStr );
-		int             *curChars = ( neg ? negChars : posChars );
-		int             curWeight = ( neg ? negWeight : posWeight );
-		char            *p = curStr;
-		*( p++ ) = '[';
-		if ( neg )
-		{
-			* ( p++ ) = '^';
-		}
-		for ( int i = 0; i < curWeight;  )
-		{
-            int     j = i + 1;
-			for ( ; j < curWeight; j++ )
-			{
-				if ( curChars[j] != curChars[j-1] + 1 )
-					break;
-			}
-			int     len = j - i;
-			p = charPrettyPrint ( curChars[i], p, CHARPRETTYPRINT_CHARCLASS );
-			if ( len > 2 )
-				* ( p++ ) = '-';
-			if ( len > 1 )
-				p = charPrettyPrint ( curChars[i+len-1], p, CHARPRETTYPRINT_CHARCLASS );
-            i += len;
-		}
-		* ( p++ ) = ']';
-		*p = '\0';
-	}
-	if ( eop || eos || strlen ( posStr ) <= strlen ( negStr ) || negWeight == 0 )
-		strcpy ( str, posStr );
-	else
-		strcpy ( str, negStr );
-	return str;
+    char        posStr[ 512] = "";
+	int         posWeight = ToStringBasic( &posStr[ 1]);
+    
+	Sg_ChSet    negCcl = Negative();	
+    char        negStr[ 512] = "^";
+    int         negWeight = negCcl.ToStringBasic( &negStr[ 1]);
+     
+	if ( strlen ( posStr ) <= strlen ( negStr ) || negWeight == 0 )
+		return posStr; 
+	return negStr;
 }
 
 //_____________________________________________________________________________________________________________________________

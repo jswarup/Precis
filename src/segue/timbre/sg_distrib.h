@@ -9,21 +9,6 @@ class Fs_BaseDistrib;
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct Fs_SubsetDesc 
-{
-    uint16_t  first;
-    uint16_t  weight;
-
-public:
-    Fs_SubsetDesc( uint16_t f = 0)
-        :   first( f), weight( 0)
-    {}
-
-    int32_t             Compare( const Fs_SubsetDesc &sd) const;
-};
-
-//_____________________________________________________________________________________________________________________________ 
-
 class Fs_Distrib
 {
 public:
@@ -58,9 +43,7 @@ public:
     bool            IsRep( uint32_t k) const;
     
     
-    int32_t         Compare( const Fs_CharDistrib &cd) const;
-    
-    std::vector< Fs_SubsetDesc>     SubsetDescs( void) const;
+    int32_t         Compare( const Fs_CharDistrib &cd) const; 
 
     void            MergeClass( uint16_t eq1, uint16_t eq2);
 

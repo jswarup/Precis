@@ -3,21 +3,7 @@
 
 #include    "segue/tenor/sg_include.h"
 #include    "segue/timbre/sg_distrib.h" 
-
-//_____________________________________________________________________________________________________________________________ 
-// sort by decreasing weight (but pure EOS/EOP subsets last)
-
-int32_t     Fs_SubsetDesc::Compare( const Fs_SubsetDesc &sd) const 
-{ 
-    if ( first < 256 && sd.first >= 256)
-        return -1;
-    if ( first >= 256 && sd.first < 256)
-        return 1 ;
-    return ( weight != sd.weight) ? ( weight > sd.weight ? -1 : 1) 
-                                                         : (( first != sd.first) ? ( first < sd.first ? -1 : 1) 
-                                                                                 : 0);  
-}
-                                                                                                                        
+                                                                                                                   
 //_____________________________________________________________________________________________________________________________ 
 
 Fs_Distrib::~Fs_Distrib( void)
@@ -43,46 +29,7 @@ Fs_CharDistrib::Fs_CharDistrib( void)
 {
     memset( m_EqClassIds, 0, sizeof( m_EqClassIds));
 }
-
-//_____________________________________________________________________________________________________________________________ 
-
-/*
-Fs_CharDistrib::Fs_CharDistrib( const Fs_CharDistrib &prtn)
-    :   m_SzEqClass( 0)
-{
-    bool     hit[ Sg_ChSet::SzChBits];
-    memset( hit, 0, sizeof( hit));
-
-    for ( uint16_t start = 0; start < Sg_ChSet::SzChBits; start++) 
-    {
-        if ( hit[ start]) 
-            continue;
-        
-        hit[ start] = true;
-        SetEqClassId( start, m_SzEqClass++);
-        for ( uint16_t i = prtn.m_Next[ start]; !hit[i]; i = prtn.m_Next[i]) 
-        {
-            SetEqClassId( i, m_SzEqClass -1);
-            hit[ i] = true;
-        }
-    }
-}
-*/
-//_____________________________________________________________________________________________________________________________ 
-
-std::vector< Fs_SubsetDesc>  Fs_CharDistrib::SubsetDescs( void) const
-{
-    std::vector< Fs_SubsetDesc>     subsets( m_SzEqClass, Fs_SubsetDesc( CV_UINT16_MAX));
-    for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; i++) 
-    {
-        Fs_SubsetDesc    *pLast = &subsets[ m_EqClassIds[ i] ];
-        if (  pLast->first == CV_UINT16_MAX)
-            pLast->first = i;
-        ++pLast->weight;
-    }
-    return subsets;
-}
-
+ 
 //_____________________________________________________________________________________________________________________________ 
 
 void    Fs_CharDistrib::MergeClass( uint16_t eq1, uint16_t eq2)

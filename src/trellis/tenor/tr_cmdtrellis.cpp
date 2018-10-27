@@ -110,7 +110,7 @@ struct Tr_Consume
 
 struct Tr_Produce 
 {
-    typedef Tr_DataCarousal<uint64_t>   DataCarousal;
+    typedef Tr_DataCarousal< uint64_t>   DataCarousal;
     Tr_DataDock< uint64_t>              m_Dock;
     
 
