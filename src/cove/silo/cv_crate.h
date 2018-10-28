@@ -1,6 +1,6 @@
-//_______________________________________________ cv_crate.h _______________________________________________________________
+// cv_crate.h ________________________________________________________________________________________________________________
 #pragma once
- 
+
 #include    "cove/silo/cv_repos.h"
 #include    "cove/barn/cv_cexpr.h"
 
@@ -9,7 +9,7 @@
 class  Cv_CrateEntry : public Cv_ReposEntry
 {
 public:
-    uint32_t                         m_Type; 
+    uint32_t                         m_Type;						//  The Type-Index 
 
 public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
@@ -19,7 +19,7 @@ public:
  template <  typename Crate,  typename Lambda, typename... Args>
     auto    Operate(  Lambda lambda,  Args&... args)  
     {
-        return Crate::Operate( static_cast< typename Crate::Entry *>( this), lambda, args...);
+        return Crate::OperateOn( static_cast< typename Crate::Entry *>( this), lambda, args...);
     } 
 
 };  
@@ -38,7 +38,7 @@ struct Cv_CrateLambdaAccum< bool>
 {
     bool    m_Value;
 
-    Cv_CrateLambdaAccum< bool>( bool v = true)
+    Cv_CrateLambdaAccum( bool v = true)
         :  m_Value( v)
     {}
 
@@ -83,11 +83,11 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    OperateOn( Entry *entry, Lambda &lambda,  Args&... args)
     {
         if ( entry->m_Type ==  Sz)
             return lambda( static_cast< Elem *>( entry), args...); 
-        return CrateBase::Operate( entry, lambda, args...);
+        return CrateBase::OperateOn( entry, lambda, args...);
     }
 }; 
 
@@ -111,7 +111,7 @@ template < typename X = void>
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    OperateOn( Entry *entry, Lambda &lambda,  Args&... args)
     {
         return lambda( static_cast< Elem *>( entry), args...); 
     }
@@ -171,7 +171,7 @@ template < typename Lambda, typename... Args>
             Entry     *si = m_Repos->m_Elems[ i]; 
             if ( !si)
                 continue; 
-            if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
+            if ( !accum.Accumulate( Crate::OperateOn( si, lambda, args...)))
                 return accum;
         }
         return accum;
@@ -239,7 +239,7 @@ template < typename Lambda, typename... Args>
         Accum                                               accum;
         for ( Entry    *si = m_Stack->Top(); si; si = si->GetBelow())
         {  
-            if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
+            if ( !accum.Accumulate( Crate::OperateOn( si, lambda, args...)))
                 return accum;
         }
         return accum;

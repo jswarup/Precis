@@ -292,20 +292,20 @@ template < typename Forge>
     {   
         typename Forge::TParser     *parser = ctxt->GetParser(); 
 
-        if ( !parser->HasMore())
+        if ( !parser->HasMore( Min ? Min : 1))
             return false;
  
         uint32_t                    count = 0;
         while ( count < Min)
         {
-            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->HasMore( 1) || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return false;
             ++count; 
         }
 
         while ( count < Max)
         {
-            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->HasMore( 1) || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return true; 
             ++count;
         }

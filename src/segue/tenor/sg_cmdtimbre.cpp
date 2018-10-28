@@ -25,7 +25,7 @@ public:
     {}
 
     int     Execute( void);
-    int     Test(void);
+    int     Test( void);
 
     bool    ProcessProgArgs( std::istream &cmdStrm)
     {
@@ -63,7 +63,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
     
     {
         using namespace Sg_Timbre;
-        
+		
         InStream    inStream( "alltelltest");
         Parser      parser( &inStream);
         auto        lRgx = Str( "l") [( []( auto ctxt) {  
