@@ -10,7 +10,7 @@ set( CMAKE_VERBOSE_MAKEFILE ON)
 OPTION(PR_DBG "Build Library with Malloc Debug option" ON)
 OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)  
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
-OPTION(PR_VSCODE "Build Library with Malloc Debug option" ON)
+OPTION(PR_VISUALSTUDIO "Build with visual studio" OFF)
  
 #------------------------------------------------------------------------------------------------------------------------------
 
@@ -34,13 +34,19 @@ include_directories(
 
 #------------------------------------------------------------------------------------------------------------------------------ 
 
-if(PR_VSCODE)
+if(PR_VISUALSTUDIO)
 
 if(PR_DBG)
-add_definitions(-DEBUG)
+add_definitions( -DEBUG)
 endif()
 
-add_definitions(-std:c++latest)
+add_definitions( -DPR_VISUALSTUDIO -std:c++latest)
+
+else()
+
+add_definitions( -std=c++1z)
+set (CMAKE_EXE_LINKER_FLAGS -pthread)
+
 endif()
 
 #------------------------------------------------------------------------------------------------------------------------------ 

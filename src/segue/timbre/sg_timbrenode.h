@@ -142,7 +142,7 @@ template <typename ParentForge>
 template < typename Cnstr>
     auto        Setup( Cnstr *cnstr)
     {  
-        auto    synItem = new SynElem{  m_ErrStr};         
+        auto    synItem = new SynElem{ m_ErrStr = m_ErrStr};         
         cnstr->m_Crate->Store( synItem);
         return synItem;
     } 
@@ -313,9 +313,7 @@ template < typename Forge>
         return true;
     }
 
-    struct     SynElem : public RepeatSynElem
-    {  
-    };        
+    typedef RepeatSynElem		SynElem;
 
 template < typename Cnstr>
     auto        Setup( Cnstr *cnstr)
@@ -356,9 +354,7 @@ template < typename Forge>
         return match;
     }
 
-    struct     SynElem : public AltSynElem
-    {
-    };
+	typedef AltSynElem			SynElem; 
 
 template < typename Cnstr>
     auto        Setup(  Cnstr *cnstr)

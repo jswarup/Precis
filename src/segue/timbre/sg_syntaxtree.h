@@ -30,7 +30,10 @@ struct  SynElem   : public Cv_CrateEntry
 public:
     const char      *GetName( void) const { return "Syn"; } 
 
-    bool    WriteDot( Cv_DotStream &strm)  
+	SynElem( void)
+	{}
+
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         return true;
     } 
@@ -44,7 +47,7 @@ struct     RefSynElem : public SynElem
     
     const char      *GetName( void) const { return "Ref"; }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -63,7 +66,7 @@ struct     LexemeSynElem : public SynElem
 
     const char      *GetName( void) const { return "Ref"; }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -81,7 +84,7 @@ struct     ActionSynElem : public RefSynElem
 
     const char      *GetName( void) const { return "Act"; }
 
-    bool    WriteDot( Cv_DotStream &strm)   
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)   
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -99,7 +102,7 @@ struct     SeqSynElem : public SynElem
 
     const char                  *GetName( void) const { return "Seq"; } 
     
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -123,7 +126,7 @@ struct     AltSynElem : public SynElem
 
     const char      *GetName( void) const { return "Alt"; } 
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -147,7 +150,7 @@ struct     RepeatSynElem : public SynElem
 
     const char      *GetName( void) const { return "Rep"; }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=hexagon  label= <<FONT> #" << this << "  <BR />";
         strm.OStream() << "( " << uint32_t( m_Min) << ", ";

@@ -147,7 +147,7 @@ struct     StrSynElem : public SynElem
         :   m_Str( str), m_CaselessFlg( clf)
     {}
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />";
         strm << m_Str;
@@ -164,7 +164,7 @@ struct     CSetSynElem : public SynElem
 
     const char      *GetName( void) const { return "CSet"; }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
     {
         strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />"; 
         strm << " </FONT>>];\n "; 
@@ -296,7 +296,7 @@ template < typename Cnstr>
     auto        Setup( Cnstr *cnstr)
     {
         auto    synItem = new SynElem(); 
-        synItem->m_Str.push_back( str->m_Char);
+        synItem->m_Str.push_back( m_Char);
         cnstr->m_Crate->Store( synItem); 
         return synItem;
     }  

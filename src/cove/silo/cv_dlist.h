@@ -65,7 +65,7 @@ public:
         }
         else
         {
-            XD_SANITY_ASSERT( m_Head == DNIL())
+            CV_SANITY_ASSERT( m_Head == DNIL())
             hndlr->SetNext( dl, DNIL());
             hndlr->SetPrev( dl, dl);                // make dl the tail
         }
@@ -220,6 +220,8 @@ public:
 template < typename DLink, bool Circ = false>
 class Cv_DLinkList : public Cv_DList< DLink *, Cv_DLinkList< DLink, Circ>, Circ >
 {
+    typedef Cv_DList< DLink *, Cv_DLinkList< DLink, Circ>, Circ >       Base;
+    
 public:  
     static constexpr DLink   *NIL( void) { return  ( DLink *) NULL; }
     
@@ -237,7 +239,7 @@ public:
     } 
 
     Cv_DLinkList(  DLink *h = NULL)
-        : Cv_DList( h) 
+        : Base( h) 
     {}
   
 };
