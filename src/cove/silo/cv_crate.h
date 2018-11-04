@@ -18,7 +18,7 @@ public:
 	{}
 
 	uint64_t	Id( void) const { return m_Id; }
-	void		SetId( uint64_t	id) { m_Id = id; }
+	void		SetId( uint32_t	id) { m_Id = id; }
 
 	uint32_t	Type( void) const { return m_Type; }
 	void		SetType( uint8_t type) { m_Type = type; }

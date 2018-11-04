@@ -7,8 +7,8 @@
       "inheritEnvironments": [
         "msvc_x64_x64"
       ],
-      "buildRoot": "${workspaceRoot}\\..\\..\\..\\delivery\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
-      "installRoot": "${workspaceRoot}\\..\\..\\..\\delivery\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "buildRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""
