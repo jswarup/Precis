@@ -68,7 +68,7 @@
           <buildCommandWorkingDir>../../delivery</buildCommandWorkingDir>
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
-          <executablePath></executablePath>
+          <executablePath>../../delivery/bin/precis</executablePath>
           <ccTool>
             <incDir>
               <pElem>../../src</pElem>

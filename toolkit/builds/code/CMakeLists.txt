@@ -5,12 +5,13 @@ cmake_minimum_required(VERSION 3.0)
 set( CMAKE_BUILD_TYPE "Debug")
 set( CMAKE_VERBOSE_MAKEFILE ON)
 
+project(precis VERSION 0.1.0)
 #------------------------------------------------------------------------------------------------------------------------------
 #options [ be sure to remove CMakeCache.txt after editing these lines ]
 OPTION(PR_DBG "Build Library with Malloc Debug option" ON)
 OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)  
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
-OPTION(PR_VISUALSTUDIO "Build with visual studio" ON)
+OPTION(PR_VISUALSTUDIO "Build with visual studio" OFF)
  
 #------------------------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +45,7 @@ endif(PR_DBG)
 else()
 
 add_definitions( -std=c++1z)
-set (CMAKE_EXE_LINKER_FLAGS -pthread)
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -no-pie" )
 
 endif(PR_VISUALSTUDIO)
 
@@ -93,7 +94,6 @@ add_executable(precis  ${PrecisSourceFiles} ${CXX_SRCS} )
 
 target_link_libraries( precis cove )  
 
-project(precis VERSION 0.1.0)
 
 #------------------------------------------------------------------------------------------------------------------------------
 
