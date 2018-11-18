@@ -23,7 +23,7 @@ struct  InStream
         m_StrVec[ str.size()] = 0;
     }
     
-    bool                HasMore( uint32_t k) { return ( m_Cursor +k -1) < m_StrVec.size(); }
+    bool                HasMore( void) { return m_Cursor < m_StrVec.size(); }
     bool                Next( void) { return ++m_Cursor < m_StrVec.size(); } 
     char                Curr( void) { return m_StrVec[ m_Cursor]; }
     uint32_t            Marker( void) const { return m_Cursor; } 
@@ -102,7 +102,7 @@ public:
     
     Forge           *TopForge( void) { return m_ForgeStack.Top(); }
     Forge           *BottomForge( void) { return m_ForgeStack.Bottom(); } 
-    bool            HasMore( uint32_t k) { return m_InStream->HasMore( k); }
+    bool            HasMore( void) { return m_InStream->HasMore(); }
     bool            Next( void) { return m_InStream->Next(); } 
     Item            Curr( void) { return m_InStream->Curr(); } 
     Mark            Marker( void) const { return m_InStream->Marker(); }
@@ -143,11 +143,11 @@ struct     StrSynElem : public SynElem
 
     const char      *GetName( void) const { return "Seq"; }
 
-    StrSynElem( const std::string  &str, bool clf)
-        :   m_Str( str), m_CaselessFlg( clf)
+    StrSynElem( void)
+        :   m_CaselessFlg( false)
     {}
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />";
         strm << m_Str;
@@ -164,7 +164,7 @@ struct     CSetSynElem : public SynElem
 
     const char      *GetName( void) const { return "CSet"; }
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />"; 
         strm << " </FONT>>];\n "; 
@@ -187,14 +187,11 @@ struct Str : public Node< Str >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser();
+        typename Forge::TParser      *parser = ctxt->GetParser();
         const char                  *pCh = m_Str.c_str();
-		if (!parser->HasMore( uint32_t( m_Str.length())))
-			return false;
-
         while ( *pCh)
         {
-            bool    match = parser->HasMore( 1) && ( *pCh == parser->Curr());
+            bool    match = parser->HasMore() && ( *pCh == parser->Curr());
             if ( ! match) 
                 return false; 
             parser->Next();                       
@@ -204,19 +201,14 @@ template < typename Forge>
     }
 
     struct     SynElem : public StrSynElem
-    {
-        SynElem( const std::string  &str)
-            :   StrSynElem( str, false)
-        {}
-    };
- 
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem( m_Str);    
-        cnstr->m_Crate->Store( synItem); 
-        return synItem;
-    } 
+    { 
+    template < typename Cnstr>
+        auto        Setup( Str *str, Cnstr *cnstr)
+        {
+            m_Str = str->m_Str;
+             return this; 
+        } 
+    }; 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -236,12 +228,10 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::TParser      *parser = ctxt->GetParser();
-        const char                  *pCh = m_Str.c_str(); 
-		if ( !parser->HasMore(uint32_t(m_Str.length())))
-			return false;
+        const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
-            bool    match = parser->HasMore( 1) && ( *pCh ==  Cv_Aid::UpCase( parser->Curr()));
+            bool    match = parser->HasMore() && ( *pCh ==  Cv_Aid::UpCase( parser->Curr()));
             if ( ! match) 
                 return false; 
             parser->Next();                       
@@ -251,19 +241,18 @@ template < typename Forge>
     }
 
     struct     SynElem : public StrSynElem 
-    { 
-        SynElem( const std::string  &str)
-            :   StrSynElem( str, true)
-        {}
-    }; 
-
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
     {
-        auto    synItem = new SynElem( m_Str); 
-        cnstr->m_Crate->Store( synItem); 
-        return synItem;
-    }  
+        std::string     m_Name;
+
+    template < typename Cnstr>
+        auto        Setup( IStr *str, Cnstr *cnstr)
+        {
+            m_Str = str->m_Str;
+            m_CaselessFlg = true;
+             return this; 
+        }
+    };
+
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -282,7 +271,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::TParser      *parser = ctxt->GetParser(); 
-        bool    match = parser->HasMore( 1) && ( parser->Curr() == m_Char);
+        bool    match = parser->HasMore() && ( parser->Curr() == m_Char);
         if ( !match)
             return false;
         parser->Next();
@@ -291,15 +280,13 @@ template < typename Forge>
 
     struct     SynElem : public StrSynElem
     {
-    }; 
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem(); 
-        synItem->m_Str.push_back( m_Char);
-        cnstr->m_Crate->Store( synItem); 
-        return synItem;
-    }  
+    template < typename Cnstr>
+       auto        Setup( Char *str, Cnstr *cnstr)
+        {
+            m_Str.push_back( str->m_Char);
+             return this; 
+        }
+    };
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -317,7 +304,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::TParser     *parser = ctxt->GetParser(); 
-        bool                        match = parser->HasMore( 1) && (( C1 <= parser->Curr()) && ( parser->Curr() < C2));
+        bool                        match = parser->HasMore() && (( C1 <= parser->Curr()) && ( parser->Curr() < C2));
         if ( !match)
             return false;
         parser->Next();
@@ -325,15 +312,14 @@ template < typename Forge>
     } 
 
     struct     SynElem : public RefSynElem
-    {
-    }; 
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem();  
-        cnstr->m_Crate->Store( synItem); 
-        return synItem;
-    }   
+    { 
+    template < typename Cnstr>
+        auto        Setup( RangeNode *node, Cnstr *cnstr)
+        {  
+            return this;
+        } 
+    };
+
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -391,26 +377,20 @@ template < typename Forge>
 //_____________________________________________________________________________________________________________________________ 
 
 struct CharSet : public Node< CharSet >
-{    
+{
+     
     Sg_ChSet     m_Bits;
 
-    CharSet( const std::string & chSet)
+    CharSet( const std::string &set)
     { 
-        SetName( std::string( "CharSet:" +chSet));
-        const char      *p = chSet.c_str();
-        bool            negFlg = false;
+        SetName( std::string( "CharSet:" +set));
+        const char      *p = set.c_str();
         while ( *p)
         {
             const char      *first = p;
-            if ( *first == '^')
-            {
-               negFlg = true;
-               continue;
-            } 
             m_Bits.Set( *first, true);
             ++p;
-            if ( !*p)
-                continue;
+
             const char      *second = (p + 1);
             if ( *p && *second && ( *p == '-') )
             {
@@ -419,10 +399,9 @@ struct CharSet : public Node< CharSet >
                 p += 2;
             }
         }
-        if ( negFlg)
-            m_Bits.Negate();
-    } 
+    }
 
+    
     CharSet operator ~( void) const 
     {
         CharSet     neg( SELF);
@@ -434,7 +413,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::TParser     *parser = ctxt->GetParser();  
-        bool                        match = parser->HasMore( 1) && m_Bits.Get( parser->Curr());
+        bool                        match = parser->HasMore() && m_Bits.Get( parser->Curr());
         if ( ! match)
             return false;
         parser->Next();

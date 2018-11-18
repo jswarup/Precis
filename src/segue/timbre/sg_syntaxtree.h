@@ -9,7 +9,8 @@
 //_____________________________________________________________________________________________________________________________  
 
 namespace Sg_Timbre
-{ 
+{
+    
 struct     SynElem;
 struct     RefSynElem;
 struct     ActionSynElem;
@@ -30,10 +31,7 @@ struct  SynElem   : public Cv_CrateEntry
 public:
     const char      *GetName( void) const { return "Syn"; } 
 
-	SynElem( void)
-	{}
-
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         return true;
     } 
@@ -47,7 +45,7 @@ struct     RefSynElem : public SynElem
     
     const char      *GetName( void) const { return "Ref"; }
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -66,7 +64,7 @@ struct     LexemeSynElem : public SynElem
 
     const char      *GetName( void) const { return "Ref"; }
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -84,14 +82,16 @@ struct     ActionSynElem : public RefSynElem
 
     const char      *GetName( void) const { return "Act"; }
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)   
+    bool    WriteDot( Cv_DotStream &strm)   
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
         strm << 'R' << this << " -> " << 'R' << m_Elem << " [ arrowhead=tee color=black] ; \n"; 
         return true;
-    }  
+    } 
+    
+ 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -102,7 +102,7 @@ struct     SeqSynElem : public SynElem
 
     const char                  *GetName( void) const { return "Seq"; } 
     
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -115,7 +115,9 @@ struct     SeqSynElem : public SynElem
             regex = fRegex;
         }
         return true;
-    } 
+    }
+    
+ 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -126,7 +128,7 @@ struct     AltSynElem : public SynElem
 
     const char      *GetName( void) const { return "Alt"; } 
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=parallelogram  label= <<FONT> #" << this << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -137,7 +139,8 @@ struct     AltSynElem : public SynElem
             strm << 'R' << this << " -> " << 'R' << regex << " [ arrowhead=tee color=black] ; \n";
         }
         return true;
-    } 
+    }
+ 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -150,7 +153,7 @@ struct     RepeatSynElem : public SynElem
 
     const char      *GetName( void) const { return "Rep"; }
 
-    bool    WriteDot( SynCrate *crate, Cv_DotStream &strm)  
+    bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << this << " [ shape=hexagon  label= <<FONT> #" << this << "  <BR />";
         strm.OStream() << "( " << uint32_t( m_Min) << ", ";
@@ -162,9 +165,12 @@ struct     RepeatSynElem : public SynElem
 
         strm << 'R' << this << " -> " << 'R' << m_Elem << " [ arrowhead=dot  color=black] ; \n"; 
         return true;
-    } 
+    }
+
+ 
 };
 
  
 //_____________________________________________________________________________________________________________________________ 
+
 }; 

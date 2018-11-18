@@ -125,14 +125,15 @@ template < typename Forge>
 
 struct XMLDoc  : public Node< XMLDoc>
 { 
-    Cv_Repos< SynParserCrate::Entry>            m_SynRepos;
-    Cv_CrateRepos< SynParserCrate>              m_SynCrate;
-    Cv_Constructor< SynParserCrate>             m_SynCnstr; 
+    Cv_Repos< SynParserCrate::Entry>              m_SynRepos;
+    Cv_CrateRepos < SynParserCrate>               m_SynCrate;
+    Cv_CrateRepos < SynParserCrate>::Constructor  m_SynCnstr; 
 
     XMLDoc( void)
         : m_SynRepos(),  m_SynCrate( &m_SynRepos), m_SynCnstr( &m_SynCrate)
     {
-    } 
+    }
+
     
     auto           DocumentOver( void) const { return []( auto ctxt) {  
                                                             std::cout << ctxt.MatchStr() << "\n";

@@ -19,13 +19,17 @@ static Cv_CmdOption     s_TimbreIfcOptions[] =
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_TimbreCmdProcessor : public Cv_CmdExecutor
-{ 
+{
+     
+
 public:
     Sg_TimbreCmdProcessor( void)  
-    {}
+    {
+
+    }
 
     int     Execute( void);
-    int     Test( void);
+    int     Test(void);
 
     bool    ProcessProgArgs( std::istream &cmdStrm)
     {
@@ -34,7 +38,8 @@ public:
     }
 
     bool    ParseArg( const std::string &key, const std::string &arg)
-    { 
+    {
+         
         return false;
     }
 };
@@ -63,7 +68,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
     
     {
         using namespace Sg_Timbre;
-		
+        
         InStream    inStream( "alltelltest");
         Parser      parser( &inStream);
         auto        lRgx = Str( "l") [( []( auto ctxt) {  
@@ -80,16 +85,16 @@ int     Sg_TimbreCmdProcessor::Execute( void)
        
         Cv_Repos< SynParserCrate::Entry>              synRepos;
         Cv_CrateRepos < SynParserCrate>               synCrate( &synRepos);
-        Cv_Constructor < SynParserCrate>   synCnstr( &synCrate);
+        Cv_CrateRepos < SynParserCrate>::Constructor  synCnstr( &synCrate);
         auto                    synElem = synCnstr.FetchSynTree( &regex);
         std::ofstream           ostrm( "a.dot");
         Cv_DotStream            synDotStrm( &ostrm, false); 
-        synCrate.OperateAll(  [&synDotStrm, &synCrate]( auto k ){
-            k->WriteDot( &synCrate, synDotStrm);
+        synCrate.OperateAll(  [&synDotStrm]( auto k ){
+            k->WriteDot( synDotStrm);
             return true;
          }); 
-        synElem->Operate<SynParserCrate>( [&synDotStrm, &synCrate]( auto k ){
-            k->WriteDot( &synCrate, synDotStrm);
+        synElem->Operate<SynParserCrate>( [&synDotStrm]( auto k ){
+            k->WriteDot( synDotStrm);
             return true;
          });
         synCrate.Clear();

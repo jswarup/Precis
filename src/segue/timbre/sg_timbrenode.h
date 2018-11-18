@@ -133,19 +133,17 @@ template <typename ParentForge>
     { 
         return false;  
     } 
-     
-    struct     SynElem : public Sg_Timbre::SynElem
-    {
-        std::string     m_ErrStr;
-    };
 
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {  
-        auto    synItem = new SynElem{ m_ErrStr = m_ErrStr};         
-        cnstr->m_Crate->Store( synItem);
-        return synItem;
-    } 
+    struct     SynElem : public Sg_Timbre::SynElem
+    { 
+         
+    template < typename Cnstr>
+        auto        Setup( Error *node, Cnstr *cnstr)
+        {  
+            m_ErrStr = node->m_ErrStr;
+            return this;
+        } 
+    };
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -183,16 +181,13 @@ template <typename ParentForge>
     
     struct     SynElem : public ActionSynElem
     { 
+    template < typename Cnstr>
+        auto        Setup( Action *node, Cnstr *cnstr)
+        {
+            m_Elem = cnstr->FetchSynTree( &node->m_Node);       ; 
+            return this;
+        } 
     };
-
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem();
-        synItem->m_Elem = cnstr->FetchSynTree( &m_Node);        
-        cnstr->m_Crate->Store( synItem); 
-        return synItem;
-    } 
 };
 
 
@@ -220,15 +215,14 @@ template <typename ParentForge>
     struct     SynElem : public LexemeSynElem
     {
         typedef typename Target::SynElem       TargetElem;
+
+        template < typename Cnstr>
+        auto        Setup( LexemeNode *node, Cnstr *cnstr)
+        {
+            m_Elem = cnstr->FetchSynTree( &node.m_LexNode);       ; 
+            return this;
+        } 
     };
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    { 
-        auto    synItem = new SynElem(); 
-        synItem->m_Elem = cnstr->FetchSynTree( &m_LexNode);         
-        cnstr->m_Crate->Store( synItem);
-        return synItem;
-    } 
 };
  
 //_____________________________________________________________________________________________________________________________ 
@@ -260,16 +254,14 @@ template < typename Forge>
 
     struct     SynElem : public SeqSynElem
     {
+    template < typename Cnstr>
+        auto        Setup( Seq *node, Cnstr *cnstr)
+        {
+            m_SeqList.push_back( cnstr->FetchSynTree( &node->m_Left)); 
+            m_SeqList.push_back( cnstr->FetchSynTree( &node->m_Right));  
+            return this;
+        } 
     };
-template < typename Cnstr>
-    auto        Setup(  Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem();
-        synItem->m_SeqList.push_back( cnstr->FetchSynTree( &m_Left)); 
-        synItem->m_SeqList.push_back( cnstr->FetchSynTree( &m_Right));        
-        cnstr->m_Crate->Store( synItem);
-        return synItem;
-    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -292,20 +284,20 @@ template < typename Forge>
     {   
         typename Forge::TParser     *parser = ctxt->GetParser(); 
 
-        if ( !parser->HasMore( Min ? Min : 1))
+        if ( !parser->HasMore())
             return false;
  
         uint32_t                    count = 0;
         while ( count < Min)
         {
-            if ( !parser->HasMore( 1) || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return false;
             ++count; 
         }
 
         while ( count < Max)
         {
-            if ( !parser->HasMore( 1) || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return true; 
             ++count;
         }
@@ -313,18 +305,17 @@ template < typename Forge>
         return true;
     }
 
-    typedef RepeatSynElem		SynElem;
-
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {   
-        auto    synItem = new SynElem();
-        synItem->m_Elem = cnstr->FetchSynTree( &m_Target);
-        synItem->m_Min = Min; 
-        synItem->m_Max = Max;        
-        cnstr->m_Crate->Store( synItem);
-        return synItem;
-    } 
+    struct     SynElem : public RepeatSynElem
+    {         
+    template < typename Cnstr>
+        auto        Setup( Repeat *node, Cnstr *cnstr)
+        {
+            m_Elem = cnstr->FetchSynTree( &node->m_Target);
+            m_Min = Min;
+            m_Max = Max;
+            return this; 
+        } 
+    }; 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -354,17 +345,16 @@ template < typename Forge>
         return match;
     }
 
-	typedef AltSynElem			SynElem; 
-
-template < typename Cnstr>
-    auto        Setup(  Cnstr *cnstr)
-    { 
-        auto    synItem = new SynElem();
-        synItem->m_AltList.push_back( cnstr->FetchSynTree( &m_Left)); 
-        synItem->m_AltList.push_back( cnstr->FetchSynTree( &m_Right));        
-        cnstr->m_Crate->Store( synItem);
-        return synItem;  
-    } 
+    struct     SynElem : public AltSynElem
+    {
+    template < typename Cnstr>
+        auto        Setup( Alt *node, Cnstr *cnstr)
+        {
+            m_AltList.push_back( cnstr->FetchSynTree( &node->m_Left)); 
+            m_AltList.push_back( cnstr->FetchSynTree( &node->m_Right));  
+            return this;
+        } 
+    };
      
 };
 
@@ -396,17 +386,14 @@ struct Diff : public Node< Diff< Left, Right> >
 
     struct     SynElem : public AltSynElem
     {
+        template < typename Cnstr>
+        auto        Setup( Diff *node, Cnstr *cnstr)
+        {
+            m_AltList.push_back( cnstr->FetchSynTree( &node->m_Left)); 
+            m_AltList.push_back( cnstr->FetchSynTree( &node->m_Right));  
+            return this;
+        } 
     };
-
-template < typename Cnstr>
-    auto        Setup( Cnstr *cnstr)
-    {
-        auto    synItem = new SynElem();
-        synItem->m_AltList.push_back( cnstr->FetchSynTree( &m_Left)); 
-        synItem->m_AltList.push_back( cnstr->FetchSynTree( &m_Right));        
-        cnstr->m_Crate->Store( synItem);
-        return synItem;  
-    } 
 
 };
 
