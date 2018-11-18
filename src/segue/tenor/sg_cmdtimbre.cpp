@@ -42,8 +42,7 @@ public:
          
         return false;
     }
-};
-
+}; 
 
 //_____________________________________________________________________________________________________________________________ 
  
@@ -82,9 +81,8 @@ int     Sg_TimbreCmdProcessor::Execute( void)
             
 
         apiErrCode = StrParser( "alltest").Match( &regex);
-       
-        Cv_Repos< SynParserCrate::Entry>              synRepos;
-        Cv_CrateRepos < SynParserCrate>               synCrate( &synRepos);
+        
+        Cv_CrateRepos < SynParserCrate>               synCrate ;
         Cv_CrateRepos < SynParserCrate>::Constructor  synCnstr( &synCrate);
         auto                    synElem = synCnstr.FetchSynTree( &regex);
         std::ofstream           ostrm( "a.dot");

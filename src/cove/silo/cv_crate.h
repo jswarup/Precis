@@ -9,7 +9,8 @@
 class  Cv_CrateEntry : public Cv_ReposEntry
 {
 public:
-    uint32_t                         m_Type; 
+	typedef uint32_t				TypeStor;	
+	TypeStor                         m_Type; 
 
 public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
@@ -61,7 +62,8 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< T, Rest...>       Crate;
     typedef Cv_Crate< Rest...>          CrateBase;
     typedef T                           Elem;
-    typedef typename CrateBase::Entry   Entry;
+    typedef typename CrateBase::Entry   Entry; 
+	typedef typename Entry::TypeStor    TypeStor;
     
     enum {
         Sz = CrateBase::Sz +1,
@@ -73,15 +75,15 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     }     
 
 template <typename X, typename std::enable_if< std ::is_base_of< T, X>::value, void>::type * = nullptr>
-    void AssignIndex( X *obj)
+	TypeStor AssignIndex( X *obj)
     {
-        obj->m_Type =  Sz;
+        return obj->m_Type =  Sz;
     } 
 
 template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value, void>::type * = nullptr>
-    void AssignIndex( X *obj)
+	TypeStor AssignIndex( X *obj)
     {
-        CrateBase::AssignIndex( obj);
+		return CrateBase::AssignIndex( obj);
     } 
   
 template <  typename Lambda, typename... Args>
@@ -103,13 +105,14 @@ struct Cv_CrateT
         Sz = 1,
     }; 
 
-    typedef  T      Entry;
-    typedef T       Elem;
+    typedef  T							Entry;
+    typedef T							Elem;
+	typedef typename Entry::TypeStor    TypeStor;
 
 template < typename X = void>    
-    void AssignIndex( X *obj)
+	TypeStor AssignIndex( X *obj)
     { 
-        obj->m_Type =  Sz;
+		return obj->m_Type =  Sz;
     }
 
 template <  typename Lambda, typename... Args>
@@ -138,28 +141,35 @@ class Cv_CrateRepos  : public Crate
 { 
 public: 
     typedef typename Crate::Entry                           Entry; 
+	typedef typename Entry::TypeStor						TypeStor; 
 
 protected:
-    Cv_Repos< Entry>                                        *m_Repos;
-
+	std::vector< Entry *>				m_Elems;
+	std::vector< TypeStor>				m_Types;
    
 public: 
-    Cv_CrateRepos( Cv_Repos< Entry> *repos)
-        : m_Repos( repos)
-    {}
+    Cv_CrateRepos( void) 
+    {
+		m_Elems.push_back( NULL); 
+		m_Types.push_back( 0); 
+	}
 
     void Clear( void)
     {
         OperateAll( []( auto x) { delete x; return true; }); 
-        m_Repos->m_Elems.clear();
+        m_Elems.clear();
+		m_Types.clear();
     }
+
+	uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
 template<  class Object>
     void    Store( Object *x)
     {
-        Crate::AssignIndex( x);        
-        uint32_t    k = m_Repos->Size();
-        m_Repos->SetAt( k, x);
+		TypeStor	typeVal = Crate::AssignIndex( x);   
+		x->SetId( m_Elems.size());
+		m_Elems.push_back( x); 
+		m_Types.push_back( typeVal); 
         return;
     }
  
@@ -168,9 +178,9 @@ template < typename Lambda, typename... Args>
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
         Accum                                               accum;
-        for ( uint32_t i = 0; i < m_Repos->Size(); ++i)
+        for ( uint32_t i = 0; i < Size(); ++i)
         {
-            Entry     *si = m_Repos->m_Elems[ i]; 
+            Entry     *si = m_Elems[ i]; 
             if ( !si)
                 continue; 
             if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
