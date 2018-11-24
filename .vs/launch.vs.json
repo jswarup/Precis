@@ -3,10 +3,9 @@
   "defaults": {},
   "configurations": [
     {
-      "type": "default",
-      "project": "toolkit\\builds\\code\\CMakeLists.txt",
-      "projectTarget": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
-      "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
+      "type": "native",
+      "name": "D:\\Jyoti\\Work\\Precis",
+      "project": "D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe",
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "args": [
         "timbre"

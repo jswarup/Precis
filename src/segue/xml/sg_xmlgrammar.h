@@ -125,8 +125,8 @@ template < typename Forge>
 
 struct XMLDoc  : public Node< XMLDoc>
 {  
-    Cv_CrateRepos < SynParserCrate>               m_SynCrate;
-    Cv_CrateRepos < SynParserCrate>::Constructor  m_SynCnstr; 
+    Cv_CrateRepos < SynParserCrate>					m_SynCrate;
+    Cv_CrateConstructor< SynParserCrate>			m_SynCnstr; 
 
     XMLDoc( void)
         :  m_SynCrate( ), m_SynCnstr( &m_SynCrate)

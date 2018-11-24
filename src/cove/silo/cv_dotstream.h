@@ -24,11 +24,7 @@ public:
 
     std::ostream    &OStream( void) { return *m_OStrm; } 
   
-    Cv_DotStream    &operator<<( const Cv_ReposEntry *x)  
-    { 
-        *m_OStrm << x->GetName() << '_' <<  x->GetId();
-        return SELF;
-    } 
+   
     
     Cv_DotStream   &operator<<( const char *x)
     {
@@ -36,7 +32,14 @@ public:
             SELF << *x;
         return SELF;
     } 
-    
+
+template < typename Entry>
+	Cv_DotStream    &operator<<( const Entry *x)  
+	{ 
+		*m_OStrm << x->GetName() << '_' <<  x->GetId();
+		return SELF;
+	} 
+
     Cv_DotStream   &operator<<( const std::string &y)
     {
         SELF << y.c_str();
