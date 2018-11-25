@@ -3,6 +3,7 @@
  
 #include    "cove/silo/cv_repos.h"
 #include    "cove/barn/cv_cexpr.h"
+#include    "cove/silo/cv_dotstream.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -23,6 +24,12 @@ public:
         return Crate::Operate( static_cast< typename Crate::Entry *>( this), lambda, args...);
     } 
 
+
+	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
+	{ 
+		dotStrm.OStream() << x->GetName() << '_' <<  x->GetId();
+		return dotStrm;
+	} 
 };  
 
 //_____________________________________________________________________________________________________________________________
@@ -189,33 +196,39 @@ template < typename Lambda, typename... Args>
         return accum;
     }
 
-    struct   Constructor 
-    {  
-        Cv_CrateRepos                   *m_Crate;
-        std::map< void *, Entry *>      m_CnstrMap;
+};
 
-        Constructor( Cv_CrateRepos  *crate) 
-            : m_Crate( crate)
-        {}
+//_____________________________________________________________________________________________________________________________
 
-    template < typename Node>    
-        Entry     *FetchSynTree( Node *node)
-        {
-            typedef typename Node::SynElem      SynItem;
+template < typename Crate>
+struct   Cv_CrateConstructor 
+{  
+typedef typename Crate::Entry                           Entry; 
 
-            auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
-            if ( !res.second)
-                return static_cast< SynItem *>( res.first->second); 
-            SynItem     *synItem = new SynItem();
-            auto        item = synItem->Setup( node, this);
-            if ( item != static_cast< Entry *>( synItem))
-                delete synItem;
-            m_Crate->Store( synItem);
-            res.first->second = item;
-            return item;
-        }     
-    };
-};  
+	Cv_CrateRepos< Crate>			*m_Crate;
+	std::map< void *, Entry *>      m_CnstrMap;
+
+	Cv_CrateConstructor( Cv_CrateRepos< Crate>  *crate) 
+		: m_Crate( crate)
+	{}
+
+template < typename Node>    
+	Entry     *FetchSynTree( Node *node)
+	{
+		typedef typename Node::SynElem      SynItem;
+
+		auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
+		if ( !res.second)
+			return static_cast< SynItem *>( res.first->second); 
+		SynItem     *synItem = new SynItem();
+		auto        item = synItem->Setup( node, this);
+		if ( item != static_cast< Entry *>( synItem))
+			delete synItem;
+		m_Crate->Store( synItem);
+		res.first->second = item;
+		return item;
+	}     
+};
 
 //_____________________________________________________________________________________________________________________________
 

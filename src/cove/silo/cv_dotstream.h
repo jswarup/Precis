@@ -5,7 +5,8 @@
 
 class  Cv_DotStream
 { 
-    std::ostream            *m_OStrm;
+public:
+	std::ostream            *m_OStrm;
 
 public:
     Cv_DotStream( std::ostream *strm, bool vertFlg=true)
@@ -21,14 +22,10 @@ public:
     {
         *m_OStrm <<  "}\n";
     }
+	 
 
     std::ostream    &OStream( void) { return *m_OStrm; } 
   
-    Cv_DotStream    &operator<<( const Cv_ReposEntry *x)  
-    { 
-        *m_OStrm << x->GetName() << '_' <<  x->GetId();
-        return SELF;
-    } 
     
     Cv_DotStream   &operator<<( const char *x)
     {
