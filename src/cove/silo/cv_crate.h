@@ -160,7 +160,7 @@ template <  typename Lambda, typename... Args>
 
 template<typename T>
 struct  Cv_CrateT<T, typename  Cv_TypeEngage::Exist< typename T::Elem>::Note> : public T
-{
+{ 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -241,19 +241,17 @@ typedef typename Crate::Entry                           Entry;
 		: m_Crate( crate)
 	{}
 
+template<  class Object>
+	void    Store( Object *x) { m_Crate->Store( x); }
+
 template < typename Node>    
-	Entry     *FetchSynTree( Node *node)
-	{
-		typedef typename Node::SynElem      SynItem;
+	Entry     *FetchElem( Node *node)
+	{ 
 
 		auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
 		if ( !res.second)
-			return static_cast< SynItem *>( res.first->second); 
-		SynItem     *synItem = new SynItem();
-		auto        item = synItem->Setup( node, this);
-		if ( item != static_cast< Entry *>( synItem))
-			delete synItem;
-		m_Crate->Store( synItem);
+			return static_cast< Entry *>( res.first->second);  
+		auto		*item = node->FetchElem( this); 
 		res.first->second = item;
 		return item;
 	}     

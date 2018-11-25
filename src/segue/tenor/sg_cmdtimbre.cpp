@@ -84,7 +84,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
         
         Cv_CrateRepos< SynParserCrate>               synCrate ;
         Cv_CrateConstructor< SynParserCrate>		synCnstr( &synCrate);
-        auto                    synElem = synCnstr.FetchSynTree( &regex);
+        auto                    synElem = synCnstr.FetchElem( &regex);
         std::ofstream           ostrm( "a.dot");
         Cv_DotStream            synDotStrm( &ostrm, false); 
         synCrate.OperateAll(  [&synDotStrm]( auto k ){

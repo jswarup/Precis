@@ -198,17 +198,16 @@ template < typename Forge>
             ++pCh;
         }
         return true;
-    }
+    } 
 
-    struct     SynElem : public StrSynElem
-    { 
-    template < typename Cnstr>
-        auto        Setup( Str *str, Cnstr *cnstr)
-        {
-            m_Str = str->m_Str;
-             return this; 
-        } 
-    }; 
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new StrSynElem();            
+		elem->m_Str = m_Str; 
+		cnstr->Store( elem);
+		return elem;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -239,20 +238,17 @@ template < typename Forge>
         }
         return true;
     }
+	 
 
-    struct     SynElem : public StrSynElem 
-    {
-        std::string     m_Name;
-
-    template < typename Cnstr>
-        auto        Setup( IStr *str, Cnstr *cnstr)
-        {
-            m_Str = str->m_Str;
-            m_CaselessFlg = true;
-             return this; 
-        }
-    };
-
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new StrSynElem();            
+		elem->m_Str = m_Str; 
+		elem->m_CaselessFlg = true;
+		cnstr->Store( elem);
+		return elem;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -277,16 +273,16 @@ template < typename Forge>
         parser->Next();
         return  true;;
     }   
+	  
 
-    struct     SynElem : public StrSynElem
-    {
-    template < typename Cnstr>
-       auto        Setup( Char *str, Cnstr *cnstr)
-        {
-            m_Str.push_back( str->m_Char);
-             return this; 
-        }
-    };
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new StrSynElem();            
+		elem->m_Str.push_back( m_Char);
+		cnstr->Store( elem);
+		return elem;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -309,17 +305,15 @@ template < typename Forge>
             return false;
         parser->Next();
         return  true;
-    } 
+    }  
 
-    struct     SynElem : public RefSynElem
-    { 
-    template < typename Cnstr>
-        auto        Setup( RangeNode *node, Cnstr *cnstr)
-        {  
-            return this;
-        } 
-    };
-
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new CSetSynElem();  
+		cnstr->Store( elem);
+		return elem;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -337,15 +331,15 @@ template < typename Forge>
         typename Forge::TParser      *parser = ctxt->GetParser(); 
         return  !parser->HasMore();
     }   
+	 
 
-    struct     SynElem : public StrSynElem
-    {
-        template < typename Cnstr>
-        auto        Setup( Char *str, Cnstr *cnstr)
-        { 
-            return this; 
-        }
-    };
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new CSetSynElem();  
+		cnstr->Store( elem);
+		return elem;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -365,14 +359,14 @@ template < typename Forge>
         return  true;
     }   
 
-    struct     SynElem : public StrSynElem
-    {
-        template < typename Cnstr>
-        auto        Setup( Char *str, Cnstr *cnstr)
-        { 
-            return this; 
-        }
-    };
+
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new CSetSynElem();  
+		cnstr->Store( elem);
+		return elem;
+	} ;
 };
 //_____________________________________________________________________________________________________________________________ 
 
@@ -418,17 +412,15 @@ template < typename Forge>
             return false;
         parser->Next();
         return true;
-    }
+    } 
 
-    struct     SynElem : public CSetSynElem
-    { 
-    template < typename Cnstr>
-        auto    Setup( CharSet *cset, Cnstr *cnstr)
-        {
-            m_Filt = cset->m_Bits;
-            return this; 
-        }
-    };
+template < typename Cnstr>
+	auto        FetchElem( Cnstr *cnstr)
+	{  
+		auto			*elem = new CSetSynElem();  
+		elem->m_Filt = m_Bits;
+		return elem;
+	} 
 };
  
 //_____________________________________________________________________________________________________________________________ 
