@@ -2,66 +2,37 @@
 #pragma once
  
 #include    "cove/silo/cv_repos.h"
-#include    "cove/barn/cv_cexpr.h" 
+#include    "cove/barn/cv_cexpr.h"
 
 //_____________________________________________________________________________________________________________________________
 
-class  Cv_CrateId 
+class  Cv_CrateEntry : public Cv_ReposEntry
 {
-public:	
-	typedef uint32_t	IPtrStor;	
-	typedef uint32_t	IndexStor;	
-	typedef uint32_t	TypeStor;	 
-	enum {
-		SzTypeBits	= 8,
-		SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
-		MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
-	};
-
-	IPtrStor			m_IPtr; 
-	
 public:
-	Cv_CrateId( IndexStor id, TypeStor type)
-		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
-	{} 
+	typedef uint32_t				TypeStor;	
+	TypeStor                         m_Type; 
 
-
-	IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
-	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
-
-	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
-	TypeStor		SetType( TypeStor k) { return  m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); }
-};
-
-//_____________________________________________________________________________________________________________________________
-
-class  Cv_CrateEntry  : public Cv_CrateId
-{ 
 public:
-    Cv_CrateEntry( IndexStor id = IndexStor( -1))
-        :  Cv_CrateId( id, 0)
-    {}
-
-	const char      *GetName( void) const { return ""; } 
-
-template <  typename Crate,  typename Lambda, typename... Args>
-	auto    Operate( TypeStor type, Lambda lambda,  Args&... args)  
-	{
-		return Crate::Operate( type, static_cast< typename Crate::Entry *>( this), lambda, args...);
-	} 
-
-template <  typename Crate,  typename Lambda, typename... Args>
+    Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
+        :  Cv_ReposEntry( id), m_Type( 0)
+    {} 
+ 
+ template <  typename Crate,  typename Lambda, typename... Args>
     auto    Operate(  Lambda lambda,  Args&... args)  
     {
-        return Crate::Operate( GetType(), static_cast< typename Crate::Entry *>( this), lambda, args...);
-    }
+        return Crate::Operate( static_cast< typename Crate::Entry *>( this), lambda, args...);
+    } 
+
 };  
 
 //_____________________________________________________________________________________________________________________________
 
+
 template < typename ValType>
 struct Cv_CrateLambdaAccum
-{}; 
+{
+}; 
+
 
 //_____________________________________________________________________________________________________________________________
 
@@ -70,7 +41,7 @@ struct Cv_CrateLambdaAccum< bool>
 {
     bool    m_Value;
 
-    Cv_CrateLambdaAccum( bool v = true)
+    Cv_CrateLambdaAccum< bool>( bool v = true)
         :  m_Value( v)
     {}
 
@@ -88,23 +59,25 @@ struct Cv_CrateLambdaAccum< bool>
 template < typename T, typename... Rest>
 struct Cv_Crate : public Cv_Crate< Rest...>
 {   
-    typedef Cv_Crate< T, Rest...>			Crate;
-    typedef Cv_Crate< Rest...>				CrateBase;
-    typedef T								Elem;
-    typedef typename CrateBase::Entry		Entry; 
-	typedef typename CrateBase::TypeStor    TypeStor; 
-
+    typedef Cv_Crate< T, Rest...>       Crate;
+    typedef Cv_Crate< Rest...>          CrateBase;
+    typedef T                           Elem;
+    typedef typename CrateBase::Entry   Entry; 
+	typedef typename Entry::TypeStor    TypeStor;
+    
     enum {
         Sz = CrateBase::Sz +1,
     };
       
     Cv_Crate( void) 
-    {}
+    {
+        
+    }     
 
 template <typename X, typename std::enable_if< std ::is_base_of< T, X>::value, void>::type * = nullptr>
 	TypeStor AssignIndex( X *obj)
     {
-        return obj->SetType( TypeStor( Sz));
+        return obj->m_Type =  Sz;
     } 
 
 template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value, void>::type * = nullptr>
@@ -114,11 +87,11 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( TypeStor type, Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
     {
-        if ( type ==  Sz)
+        if ( entry->m_Type ==  Sz)
             return lambda( static_cast< Elem *>( entry), args...); 
-        return CrateBase::Operate( type, entry, lambda, args...);
+        return CrateBase::Operate( entry, lambda, args...);
     }
 }; 
 
@@ -127,8 +100,9 @@ template <  typename Lambda, typename... Args>
 template<typename T, typename=void>
 struct Cv_CrateT
 { 
+
     enum {
-        Sz = 1, 
+        Sz = 1,
     }; 
 
     typedef  T							Entry;
@@ -142,7 +116,7 @@ template < typename X = void>
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( TypeStor type, Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
     {
         return lambda( static_cast< Elem *>( entry), args...); 
     }
@@ -158,9 +132,6 @@ struct  Cv_CrateT<T, typename  Cv_TypeEngage::Exist< typename T::Elem>::Note> : 
 template < typename T >
 struct   Cv_Crate< T> : Cv_CrateT< T>
 { 
-	typedef typename T::IndexStor	IndexStor;	 
-	typedef typename T::TypeStor	TypeStor;
-	 
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -171,14 +142,12 @@ class Cv_CrateRepos  : public Crate
 public: 
     typedef typename Crate::Entry                           Entry; 
 	typedef typename Entry::TypeStor						TypeStor; 
-	typedef typename Entry::IndexStor						IndexStor;  
 
 protected:
 	std::vector< Entry *>				m_Elems;
 	std::vector< TypeStor>				m_Types;
    
 public: 
-
     Cv_CrateRepos( void) 
     {
 		m_Elems.push_back( NULL); 
@@ -198,7 +167,7 @@ template<  class Object>
     void    Store( Object *x)
     {
 		TypeStor	typeVal = Crate::AssignIndex( x);   
-		x->SetId( IndexStor( m_Elems.size()));
+		x->SetId( m_Elems.size());
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
         return;
@@ -214,56 +183,39 @@ template < typename Lambda, typename... Args>
             Entry     *si = m_Elems[ i]; 
             if ( !si)
                 continue; 
-            if ( !accum.Accumulate( Crate::Operate( m_Types[ i], si, lambda, args...)))
+            if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
                 return accum;
         }
         return accum;
-    } 
+    }
 
-template < typename Lambda, typename... Args>
-	auto    Operate( IndexStor iptr, Lambda lambda,  Args&... args)  
-	{   
-		typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
-		Accum                                               accum; 
-		Entry     *si = m_Elems[ iptr]; 
-		if ( !si)
-			return accum; 
-		accum.Accumulate( Crate::Operate( m_Types[ iptr], si, lambda, args...));
-		return accum;
-	} 
+    struct   Constructor 
+    {  
+        Cv_CrateRepos                   *m_Crate;
+        std::map< void *, Entry *>      m_CnstrMap;
+
+        Constructor( Cv_CrateRepos  *crate) 
+            : m_Crate( crate)
+        {}
+
+    template < typename Node>    
+        Entry     *FetchSynTree( Node *node)
+        {
+            typedef typename Node::SynElem      SynItem;
+
+            auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
+            if ( !res.second)
+                return static_cast< SynItem *>( res.first->second); 
+            SynItem     *synItem = new SynItem();
+            auto        item = synItem->Setup( node, this);
+            if ( item != static_cast< Entry *>( synItem))
+                delete synItem;
+            m_Crate->Store( synItem);
+            res.first->second = item;
+            return item;
+        }     
+    };
 };  
-
-//_____________________________________________________________________________________________________________________________
-
-template < typename Crate>
-struct   Cv_CrateConstructor 
-{  
-typedef typename Crate::Entry                           Entry; 
-
-	Cv_CrateRepos< Crate>			*m_Crate;
-	std::map< void *, Entry *>      m_CnstrMap;
-
-	Cv_CrateConstructor( Cv_CrateRepos< Crate>  *crate) 
-		: m_Crate( crate)
-	{}
-
-template < typename Node>    
-	Entry     *FetchSynTree( Node *node)
-	{
-		typedef typename Node::SynElem      SynItem;
-
-		auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
-		if ( !res.second)
-			return static_cast< SynItem *>( res.first->second); 
-		SynItem     *synItem = new SynItem();
-		auto        item = synItem->Setup( node, this);
-		if ( item != static_cast< Entry *>( synItem))
-			delete synItem;
-		m_Crate->Store( synItem);
-		res.first->second = item;
-		return item;
-	}     
-};
 
 //_____________________________________________________________________________________________________________________________
 
@@ -287,7 +239,8 @@ template<  class Object>
         Crate::AssignIndex( x);  
         m_Stack->Push( x);
         return;
-    } 
+    }
+
  
 template < typename Lambda, typename... Args>
     auto    OperateAll(  Lambda &lambda,  Args&... args)  

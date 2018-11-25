@@ -95,11 +95,7 @@
             ex="false"
             tool="1"
             flavor2="11">
-        <ccTool>
-          <preprocessorList>
-            <Elem>EBUG</Elem>
-            <Elem>PR_VISUALSTUDIO</Elem>
-          </preprocessorList>
+        <ccTool flags="0">
         </ccTool>
       </item>
       <item path="../../src/cove/snip/cv_cmdexec.cpp"
