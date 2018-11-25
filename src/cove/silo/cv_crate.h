@@ -7,17 +7,46 @@
 
 //_____________________________________________________________________________________________________________________________
 
-class  Cv_CrateEntry : public Cv_ReposEntry
+class  Cv_CrateId 
 {
+public:	
+	typedef uint32_t	IPtrStor;	
+	typedef uint32_t	IndexStor;	
+	typedef uint32_t	TypeStor;	 
+	enum {
+		SzTypeBits	= 8,
+		SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
+		MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
+	};
+
+	IPtrStor			m_IPtr; 
+	
 public:
-	typedef uint32_t				TypeStor;	
-	TypeStor                         m_Type; 
+	Cv_CrateId( IndexStor id, TypeStor type)
+		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
+	{} 
+
+
+	IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
+	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
+
+	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
+	TypeStor		SetType( TypeStor k) { return  m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); }
+};
+
+//_____________________________________________________________________________________________________________________________
+
+class  Cv_CrateEntry : public Cv_CrateId
+{
+public:  
 
 public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
-        :  Cv_ReposEntry( id), m_Type( 0)
+        :  Cv_CrateId( id, 0)
     {} 
- 
+	
+	const char		*GetName( void) const { return "Entry"; }
+
  template <  typename Crate,  typename Lambda, typename... Args>
     auto    Operate(  Lambda lambda,  Args&... args)  
     {
@@ -48,7 +77,7 @@ struct Cv_CrateLambdaAccum< bool>
 {
     bool    m_Value;
 
-    Cv_CrateLambdaAccum< bool>( bool v = true)
+    Cv_CrateLambdaAccum( bool v = true)
         :  m_Value( v)
     {}
 
@@ -84,7 +113,7 @@ struct Cv_Crate : public Cv_Crate< Rest...>
 template <typename X, typename std::enable_if< std ::is_base_of< T, X>::value, void>::type * = nullptr>
 	TypeStor AssignIndex( X *obj)
     {
-        return obj->m_Type =  Sz;
+        return obj->SetType(  Sz);
     } 
 
 template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value, void>::type * = nullptr>
@@ -96,7 +125,7 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
 template <  typename Lambda, typename... Args>
     static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
     {
-        if ( entry->m_Type ==  Sz)
+        if ( entry->GetType() ==  Sz)
             return lambda( static_cast< Elem *>( entry), args...); 
         return CrateBase::Operate( entry, lambda, args...);
     }
