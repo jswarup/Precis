@@ -38,21 +38,31 @@ public:
 
 class  Cv_CrateEntry : public Cv_CrateId
 {
-public:  
+public:   
+	struct	 Var
+	{    
 
+		Cv_CrateEntry		*m_Entry;
+		TypeStor			m_Type; 
+
+		Var( Cv_CrateEntry *entry, TypeStor typeStor)
+			: m_Entry( entry), m_Type( typeStor)
+		{}  
+
+	template <  typename Crate, typename Lambda, typename... Args>
+		auto    Operate( Lambda &lambda,  Args&... args)  
+		{
+			return Crate::Operate( static_cast< typename Crate::Entry *>( m_Entry), m_Type, lambda, args...);
+		}
+
+	};
 public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
         :  Cv_CrateId( id, 0)
     {} 
 	
 	const char		*GetName( void) const { return "Entry"; }
-
- template <  typename Crate,  typename Lambda, typename... Args>
-    auto    Operate(  Lambda lambda,  Args&... args)  
-    {
-        return Crate::Operate( static_cast< typename Crate::Entry *>( this), lambda, args...);
-    } 
-
+	 
 
 	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
 	{ 
@@ -60,6 +70,8 @@ public:
 		return dotStrm;
 	} 
 };  
+
+
 
 //_____________________________________________________________________________________________________________________________
 
@@ -99,12 +111,13 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< Rest...>          CrateBase;
     typedef T                           Elem;
     typedef typename CrateBase::Entry   Entry; 
-	typedef typename Entry::TypeStor    TypeStor;
+	typedef typename CrateBase::Var		Var; 
+	typedef typename Entry::TypeStor    TypeStor; 
     
     enum {
         Sz = CrateBase::Sz +1,
     };
-      
+       
     Cv_Crate( void) 
     {
         
@@ -123,12 +136,12 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
-        if ( entry->GetType() ==  Sz)
+        if ( typeStor ==  Sz)
             return lambda( static_cast< Elem *>( entry), args...); 
-        return CrateBase::Operate( entry, lambda, args...);
-    }
+        return CrateBase::Operate( entry, typeStor, lambda, args...);
+    } 
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -141,21 +154,25 @@ struct Cv_CrateT
         Sz = 1,
     }; 
 
-    typedef  T							Entry;
-    typedef T							Elem;
-	typedef typename Entry::TypeStor    TypeStor;
+    typedef  T								Entry;
+    typedef T								Elem;
+	typedef typename Entry::TypeStor		TypeStor; 
+	typedef typename Entry::Var				Var; 
 
 template < typename X = void>    
-	TypeStor AssignIndex( X *obj)
+	TypeStor	AssignIndex( X *obj)
     { 
 		return obj->m_Type =  Sz;
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, Lambda &lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
+		CV_ERROR_ASSERT( typeStor == Sz)
         return lambda( static_cast< Elem *>( entry), args...); 
     }
+
+	 
 }; 
 
 template<typename T>
@@ -178,6 +195,7 @@ class Cv_CrateRepos  : public Crate
 public: 
     typedef typename Crate::Entry                           Entry; 
 	typedef typename Entry::TypeStor						TypeStor; 
+	typedef typename Crate::Var								Var; 
 
 protected:
 	std::vector< Entry *>				m_Elems;
@@ -199,6 +217,10 @@ public:
 
 	uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
+
+	Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
+
+
 template<  class Object>
     void    Store( Object *x)
     {
@@ -219,7 +241,7 @@ template < typename Lambda, typename... Args>
             Entry     *si = m_Elems[ i]; 
             if ( !si)
                 continue; 
-            if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
+            if ( !accum.Accumulate( Crate::Operate( si, m_Types[ i], lambda, args...)))
                 return accum;
         }
         return accum;

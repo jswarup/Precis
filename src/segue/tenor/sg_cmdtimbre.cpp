@@ -64,7 +64,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
     //AC_API_BEGIN() 
     Test();
     bool    apiErrCode = false;
-    
+     
     {
         using namespace Sg_Timbre;
         
@@ -84,17 +84,19 @@ int     Sg_TimbreCmdProcessor::Execute( void)
         
         Cv_CrateRepos< SynParserCrate>               synCrate ;
         Cv_CrateConstructor< SynParserCrate>		synCnstr( &synCrate);
+		std::ofstream           ostrm( "a.dot");
+		Cv_DotStream            synDotStrm( &ostrm, false); 
+
         auto                    synElem = synCnstr.FetchElem( &regex);
-        std::ofstream           ostrm( "a.dot");
-        Cv_DotStream            synDotStrm( &ostrm, false); 
+		auto					synVar = synCrate.Get( 1);
+		synVar.Operate( [&synDotStrm]( auto k ){
+			k->WriteDot( synDotStrm);
+			return true;
+		});  
         synCrate.OperateAll(  [&synDotStrm]( auto k ){
             k->WriteDot( synDotStrm);
             return true;
-         }); 
-        synElem->Operate<SynParserCrate>( [&synDotStrm]( auto k ){
-            k->WriteDot( synDotStrm);
-            return true;
-         });
+         });  
         synCrate.Clear();
         bool                    t = true; 
     };
