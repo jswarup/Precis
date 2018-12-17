@@ -8,7 +8,7 @@ set( CMAKE_VERBOSE_MAKEFILE ON)
 project(precis VERSION 0.1.0)
 #------------------------------------------------------------------------------------------------------------------------------
 #options [ be sure to remove CMakeCache.txt after editing these lines ]
-OPTION(PR_DBG "Build Library with Malloc Debug option" ON)
+OPTION(PR_DBG "Build Library with Malloc Debug option" OFF)
 OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)  
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
 OPTION(PR_VISUALSTUDIO "Build with visual studio" ON)
