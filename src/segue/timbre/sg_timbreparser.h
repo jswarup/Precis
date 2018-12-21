@@ -149,7 +149,7 @@ struct     StrSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />";
+        strm << "R" << SELF << " [ shape=diamond  label= <<FONT> #" << SELF << " <BR />";
         strm << m_Str;
         strm << " </FONT>>];\n "; 
         return true;
@@ -166,7 +166,7 @@ struct     CSetSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << this << " [ shape=diamond  label= <<FONT> #" << this << " <BR />"; 
+        strm << "R" << SELF << " [ shape=diamond  label= <<FONT> #" << SELF << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     }
@@ -204,9 +204,8 @@ template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
 		auto			*elem = new StrSynElem();            
-		elem->m_Str = m_Str; 
-		cnstr->Store( elem);
-		return elem;
+		elem->m_Str = m_Str;  
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -245,9 +244,8 @@ template < typename Cnstr>
 	{  
 		auto			*elem = new StrSynElem();            
 		elem->m_Str = m_Str; 
-		elem->m_CaselessFlg = true;
-		cnstr->Store( elem);
-		return elem;
+		elem->m_CaselessFlg = true; 
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -279,28 +277,30 @@ template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
 		auto			*elem = new StrSynElem();            
-		elem->m_Str.push_back( m_Char);
-		cnstr->Store( elem);
-		return elem;
+		elem->m_Str.push_back( m_Char); 
+		return cnstr->Store( elem);
 	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
-    
-template <const char C1, const char C2>
-struct RangeNode : public  Node< RangeNode< C1, C2> >
+     
+struct CharRange  : public  Node< CharRange >
 {
+	uint8_t		m_C1;
+	uint8_t		m_C2;
+
 public:
-    RangeNode( void) 
+	CharRange( uint8_t c1, uint8_t c2) 
+		: m_C1( c1), m_C2( c2)
     {
-        this->SetName( std::string( "Range:" + C1 + '-' + C2)) ;
+        this->SetName( std::string( "Range:" + m_C1 + '-' + m_C2)) ;
     }
         
 template < typename Forge>  
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::TParser     *parser = ctxt->GetParser(); 
-        bool                        match = parser->HasMore() && (( C1 <= parser->Curr()) && ( parser->Curr() < C2));
+        bool                        match = parser->HasMore() && (( m_C1 <= parser->Curr()) && ( parser->Curr() < m_C2));
         if ( !match)
             return false;
         parser->Next();
@@ -311,8 +311,7 @@ template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
 		auto			*elem = new CSetSynElem();  
-		cnstr->Store( elem);
-		return elem;
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -336,9 +335,8 @@ template < typename Forge>
 template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
-		auto			*elem = new CSetSynElem();  
-		cnstr->Store( elem);
-		return elem;
+		auto			*elem = new CSetSynElem(); 
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -363,11 +361,11 @@ template < typename Forge>
 template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
-		auto			*elem = new CSetSynElem();  
-		cnstr->Store( elem);
-		return elem;
+		auto			*elem = new CSetSynElem(); 
+		return cnstr->Store( elem);
 	} ;
 };
+
 //_____________________________________________________________________________________________________________________________ 
 
 struct CharSet : public Node< CharSet >
@@ -419,13 +417,13 @@ template < typename Cnstr>
 	{  
 		auto			*elem = new CSetSynElem();  
 		elem->m_Filt = m_Bits;
-		return elem;
+		return cnstr->Store( elem);
 	} 
 };
  
 //_____________________________________________________________________________________________________________________________ 
 
-typedef Cv_Crate< StrSynElem, CSetSynElem, SynCrate>   SynParserCrate; 
+typedef Cv_Crate< StrSynElem, CSetSynElem,  SynCrate>   SynParserCrate; 
  
 };
 //_____________________________________________________________________________________________________________________________ 

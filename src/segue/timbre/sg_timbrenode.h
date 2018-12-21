@@ -112,9 +112,7 @@ template < typename Right>
 
 template < typename Right>
     LexemeNode< Right>                          Lexeme( const Right &p) const { return LexemeNode< Right>( p); }
-
-template <const char C1, const char C2>
-    RangeNode< C1, C2>                          Range( void) const { return RangeNode< C1, C2>(); }
+	  
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -138,10 +136,8 @@ template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
 		SynElem		*elem = new Sg_Timbre::SynElem();
-		elem->m_ErrStr = m_ErrStr;
-
-		m_Crate->Store( elem);
-		return elem;
+		elem->m_ErrStr = m_ErrStr; 
+		return m_Crate->Store( elem);
 	} 
 };
 
@@ -182,9 +178,8 @@ template < typename Cnstr>
 	auto        FetchElem( Cnstr *cnstr)
 	{  
 		auto			*elem = new ActionSynElem();
-		elem->m_Elem = cnstr->FetchElem( &m_Node);  
-		cnstr->Store( elem);
-		return elem;
+		elem->m_Elem = cnstr->FetchElem( &m_Node);   
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -216,8 +211,7 @@ template < typename Cnstr>
 	{  
 		SynElem			*elem = new LexemeSynElem();
 		elem->m_Elem = cnstr->FetchSynTree( &m_LexNode);  
-		m_Crate->Store( elem);
-		return elem;
+		return m_Crate->Store( elem);
 	} 
 };
  
@@ -253,9 +247,8 @@ template < typename Cnstr>
 	{  
 		auto			*elem = new SeqSynElem();            
 		elem->m_SeqList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_SeqList.push_back( cnstr->FetchElem( &m_Right));
-		cnstr->Store( elem);
-		return elem;
+		elem->m_SeqList.push_back( cnstr->FetchElem( &m_Right)); 
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -306,9 +299,8 @@ template < typename Cnstr>
 		auto			*elem = new RepeatSynElem();            
 		elem->m_Elem = cnstr->FetchElem( &m_Target);
 		elem->m_Min = Min;
-		elem->m_Max = Max;
-		cnstr->Store( elem);
-		return elem;
+		elem->m_Max = Max; 
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -344,9 +336,8 @@ template < typename Cnstr>
 	{  
 		auto			*elem = new AltSynElem();            
 		elem->m_AltList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right));
-		cnstr->Store( elem);
-		return elem;
+		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right)); 
+		return cnstr->Store( elem);;
 	} 
      
 };
@@ -383,9 +374,8 @@ template < typename Cnstr>
 	{  
 		auto			*elem = new AltSynElem();            
 		elem->m_AltList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right));
-		cnstr->Store( elem);
-		return elem;
+		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right)); 
+		return cnstr->Store( elem);
 	} 
 };
 

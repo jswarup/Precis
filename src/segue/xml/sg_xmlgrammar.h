@@ -95,7 +95,7 @@ struct XMLElement : public Node< XMLElement>
 
     auto           CData( void) const { return ( Str( "<![CDATA[") >> Lexeme( * (Any() -Str( "]]>")))[ StringListener()] >> Str( "]]>"))[ DataOver()]; }  
 
-    auto           Ident( void) const { return Lexeme( (CharSet( "a-zA-Z_:") | Range<(char) 0x80, (char) 0xFF>()) >> * ( CharSet( "a-zA-Z0-9_.:-") | Range<(char) 0x80, (char) 0xFF>())); }  
+    auto           Ident( void) const { return Lexeme( (CharSet( "a-zA-Z_:") | CharRange(0x80, 0xFF)) >> * ( CharSet( "a-zA-Z0-9_.:-") | CharRange(  0x80, 0xFF))); }  
     
     auto           Attribute( void) const { return ( Ident() [ AttributeNameListener()] >> Char( '=') >> 
                             Lexeme( Char( '\"') >> * ((+ (~CharSet( "\"<&"))) [ StringListener()] | Reference()) >> Char( '\"') |

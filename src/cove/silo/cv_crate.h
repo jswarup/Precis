@@ -22,6 +22,9 @@ public:
 	IPtrStor			m_IPtr; 
 	
 public:
+	Cv_CrateId( void)
+		: m_IPtr( 0)
+	{}
 	Cv_CrateId( IndexStor id, TypeStor type)
 		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
 	{} 
@@ -32,6 +35,12 @@ public:
 
 	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
 	TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+
+	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
+	{ 
+		dotStrm.OStream() << "Id" << x.m_IPtr;
+		return dotStrm;
+	}
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -136,8 +145,7 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     enum {
         Sz = CrateBase::Sz +1,
     };
-    
-
+     
     Cv_Crate( void) 
     {
         
@@ -219,6 +227,7 @@ class Cv_CrateRepos  : public Crate
 public: 
     typedef typename Crate::Entry                           Entry; 
 	typedef typename Entry::TypeStor						TypeStor; 
+	typedef typename Entry::IndexStor						IndexStor;
 	typedef typename Crate::Var								Var; 
 
 protected:
@@ -246,13 +255,15 @@ public:
 
 
 template<  class Object>
-    void    Store( Object *x)
+	Cv_CrateId    Store( Object *x)
     {
-		TypeStor	typeVal = Crate::AssignIndex( x);   
-		x->SetId( m_Elems.size());
+		TypeStor	typeVal = Crate::AssignIndex( x); 
+
+		IndexStor	ind = m_Elems.size();
+		x->SetId( ind);
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
-        return;
+        return Cv_CrateId( ind, typeVal);
     }
  
 template < typename Lambda, typename... Args>
@@ -280,24 +291,24 @@ struct   Cv_CrateConstructor
 {  
 typedef typename Crate::Entry                           Entry; 
 
-	Cv_CrateRepos< Crate>			*m_Crate;
-	std::map< void *, Entry *>      m_CnstrMap;
+	Cv_CrateRepos< Crate>				*m_Crate;
+	std::map< void *, Cv_CrateId>		m_CnstrMap;
 
 	Cv_CrateConstructor( Cv_CrateRepos< Crate>  *crate) 
 		: m_Crate( crate)
 	{}
 
 template<  class Object>
-	void    Store( Object *x) { m_Crate->Store( x); }
+	Cv_CrateId    Store( Object *x) { return m_Crate->Store( x); }
 
 template < typename Node>    
-	Entry     *FetchElem( Node *node)
+	Cv_CrateId	FetchElem( Node *node)
 	{ 
 
-		auto        res  = m_CnstrMap.emplace( node, ( Entry *) NULL); 
+		auto        res  = m_CnstrMap.emplace( node, Cv_CrateId()); 
 		if ( !res.second)
-			return static_cast< Entry *>( res.first->second);  
-		auto		*item = node->FetchElem( this); 
+			return  res.first->second;  
+		Cv_CrateId	item = node->FetchElem( this); 
 		res.first->second = item;
 		return item;
 	}     

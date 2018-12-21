@@ -87,7 +87,12 @@ int     Sg_TimbreCmdProcessor::Execute( void)
 		std::ofstream           ostrm( "a.dot");
 		Cv_DotStream            synDotStrm( &ostrm, false); 
 
-        auto                    synElem = synCnstr.FetchElem( &regex);
+
+		auto                    synElem = synCnstr.FetchElem( &regex);
+
+		synCrate.OperateAll( [&synDotStrm]( auto k ){
+			return k->WriteDot( synDotStrm); 
+		});
 		auto					synVar = synCrate.Get( 1); 
 
 		synVar( [&synDotStrm]( auto k ){
