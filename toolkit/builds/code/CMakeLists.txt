@@ -1,14 +1,13 @@
 #---------------------------------------- CMakeLists.txt --------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.0)
- 
-set( CMAKE_BUILD_TYPE "Debug")
+
 set( CMAKE_VERBOSE_MAKEFILE ON)
 
 project(precis VERSION 0.1.0)
 #------------------------------------------------------------------------------------------------------------------------------
 #options [ be sure to remove CMakeCache.txt after editing these lines ]
-OPTION(PR_DBG "Build Library with Malloc Debug option" OFF)
+OPTION(PR_DBG "Build Library with Malloc Debug option" ON)
 OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)  
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
 OPTION(PR_VISUALSTUDIO "Build with visual studio" ON)
@@ -41,7 +40,9 @@ add_definitions( -DPR_VISUALSTUDIO -std:c++latest)
 
 if(PR_DBG)
 add_definitions( -DEBUG)
+set( CMAKE_BUILD_TYPE "Debug")
 endif(PR_DBG) 
+set( CMAKE_BUILD_TYPE "RelWithDebInfo")
 else()
 
 add_definitions( -std=c++1z)

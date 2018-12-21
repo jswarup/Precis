@@ -31,7 +31,7 @@ public:
 	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
 
 	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
-	TypeStor		SetType( TypeStor k) { return  m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); }
+	TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -75,6 +75,25 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
+template < typename Crate>
+struct	Cv_Var : public Crate::Entry::Var
+{
+	typedef typename Crate::TypeStor	TypeStor;
+	typedef typename Crate::Entry		Entry; 
+
+	Cv_Var( Cv_CrateEntry *entry, TypeStor typeStor)
+		: Cv_CrateEntry::Var( entry, typeStor)
+	{}
+
+template < typename Lambda, typename... Args>
+	auto    operator()( Lambda &lambda,  Args&... args)  
+	{
+		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...);
+	}  
+};
+
+//_____________________________________________________________________________________________________________________________
+
 
 template < typename ValType>
 struct Cv_CrateLambdaAccum
@@ -111,13 +130,14 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< Rest...>          CrateBase;
     typedef T                           Elem;
     typedef typename CrateBase::Entry   Entry; 
-	typedef typename CrateBase::Var		Var; 
+	typedef typename Cv_Var< Crate>		Var; 
 	typedef typename Entry::TypeStor    TypeStor; 
     
     enum {
         Sz = CrateBase::Sz +1,
     };
-       
+    
+
     Cv_Crate( void) 
     {
         
@@ -138,9 +158,11 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
 template <  typename Lambda, typename... Args>
     static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
-        if ( typeStor ==  Sz)
-            return lambda( static_cast< Elem *>( entry), args...); 
-        return CrateBase::Operate( entry, typeStor, lambda, args...);
+        switch ( typeStor)
+		{
+			case Sz : return lambda( static_cast< Elem *>( entry), args...); 
+			default : return CrateBase::Operate( entry, typeStor, lambda, args...);
+		}
     } 
 }; 
 
@@ -154,10 +176,11 @@ struct Cv_CrateT
         Sz = 1,
     }; 
 
+	typedef Cv_CrateT< T,void>			    Crate;
     typedef  T								Entry;
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
-	typedef typename Entry::Var				Var; 
+	typedef typename Cv_Var< Crate>			Var; 
 
 template < typename X = void>    
 	TypeStor	AssignIndex( X *obj)
@@ -168,8 +191,7 @@ template < typename X = void>
 template <  typename Lambda, typename... Args>
     static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
-		CV_ERROR_ASSERT( typeStor == Sz)
-        return lambda( static_cast< Elem *>( entry), args...); 
+		 return lambda( static_cast< Elem *>( entry), args...); 
     }
 
 	 
@@ -186,6 +208,8 @@ template < typename T >
 struct   Cv_Crate< T> : Cv_CrateT< T>
 { 
 }; 
+
+
 
 //_____________________________________________________________________________________________________________________________
 
@@ -280,43 +304,3 @@ template < typename Node>
 };
 
 //_____________________________________________________________________________________________________________________________
-
-template < typename Crate>
-class Cv_CrateStack : public Crate 
-{ 
-public: 
-    typedef typename Crate::Entry                           Entry; 
-
-protected:
-    Cv_Stack< Entry>        *m_Stack;
-
-public: 
-    Cv_CrateStack( Cv_Stack< Entry> *stack)
-        : m_Stack( stack)
-    {}
-
-template<  class Object>
-    void    Store( Object *x)
-    {
-        Crate::AssignIndex( x);  
-        m_Stack->Push( x);
-        return;
-    }
-
- 
-template < typename Lambda, typename... Args>
-    auto    OperateAll(  Lambda &lambda,  Args&... args)  
-    {   
-        typedef Cv_CrateLambdaAccum< decltype( lambda( static_cast<Entry *>( nullptr), args...))>     Accum;
-        Accum                                               accum;
-        for ( Entry    *si = m_Stack->Top(); si; si = si->GetBelow())
-        {  
-            if ( !accum.Accumulate( Crate::Operate( si, lambda, args...)))
-                return accum;
-        }
-        return accum;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
-

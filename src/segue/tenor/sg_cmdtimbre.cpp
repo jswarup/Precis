@@ -88,8 +88,11 @@ int     Sg_TimbreCmdProcessor::Execute( void)
 		Cv_DotStream            synDotStrm( &ostrm, false); 
 
         auto                    synElem = synCnstr.FetchElem( &regex);
-		SynVar					synVar = synCrate.Get( 1); 
-		synVar.WriteDot( synDotStrm);  
+		auto					synVar = synCrate.Get( 1); 
+
+		synVar( [&synDotStrm]( auto k ){
+			return k->WriteDot( synDotStrm); 
+		}); 
         synCrate.Clear();
         bool                    t = true; 
     };

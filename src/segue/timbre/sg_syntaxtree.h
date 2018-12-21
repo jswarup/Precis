@@ -29,19 +29,7 @@ typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynEl
 struct  SynElem   : public Cv_CrateEntry 
 {
 public:
-	struct	 Var : public Cv_CrateEntry::Var
-	{
-		typedef TypeStor	TypeStor;
-		Var( Cv_CrateEntry *entry, TypeStor typeStor)
-			: Cv_CrateEntry::Var( entry, typeStor)
-		{}
-
-	template < typename Lambda, typename... Args>
-		auto    Operate( Lambda &lambda,  Args&... args)  
-		{
-			return SynCrate::Operate( static_cast< SynElem *>( m_Entry), m_Type, lambda, args...);
-		}  
-	};
+	
 
     const char      *GetName( void) const { return "Syn"; } 
 
@@ -187,20 +175,7 @@ struct     RepeatSynElem : public SynElem
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct	 SynVar : public SynElem::Var
-{
-	SynVar(  const SynElem::Var &v)
-		: SynElem::Var( v)
-	{}
-	 
-	bool    WriteDot( Cv_DotStream &strm)   
-	{ 
-		return  Operate( [&strm]( auto k ){
-			return k->WriteDot( strm); 
-		}); 
-	}
-};
-
+ 
  
 //_____________________________________________________________________________________________________________________________ 
 
