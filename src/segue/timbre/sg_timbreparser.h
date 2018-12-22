@@ -201,7 +201,7 @@ template < typename Forge>
     } 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new StrSynElem();            
 		elem->m_Str = m_Str;  
@@ -240,7 +240,7 @@ template < typename Forge>
 	 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new StrSynElem();            
 		elem->m_Str = m_Str; 
@@ -274,7 +274,7 @@ template < typename Forge>
 	  
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new StrSynElem();            
 		elem->m_Str.push_back( m_Char); 
@@ -308,7 +308,7 @@ template < typename Forge>
     }  
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new CSetSynElem();  
 		return cnstr->Store( elem);
@@ -333,7 +333,7 @@ template < typename Forge>
 	 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new CSetSynElem(); 
 		return cnstr->Store( elem);
@@ -359,7 +359,7 @@ template < typename Forge>
 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new CSetSynElem(); 
 		return cnstr->Store( elem);
@@ -413,7 +413,7 @@ template < typename Forge>
     } 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new CSetSynElem();  
 		elem->m_Filt = m_Bits;

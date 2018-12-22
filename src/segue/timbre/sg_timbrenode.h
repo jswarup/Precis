@@ -133,7 +133,7 @@ template <typename ParentForge>
     } 
 	  
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		SynElem		*elem = new Sg_Timbre::SynElem();
 		elem->m_ErrStr = m_ErrStr; 
@@ -175,10 +175,10 @@ template <typename ParentForge>
     } 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new ActionSynElem();
-		elem->m_Elem = cnstr->FetchElem( &m_Node);   
+		elem->m_Elem = cnstr->FetchElemId( &m_Node);   
 		return cnstr->Store( elem);
 	} 
 };
@@ -207,7 +207,7 @@ template <typename ParentForge>
 	 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		SynElem			*elem = new LexemeSynElem();
 		elem->m_Elem = cnstr->FetchSynTree( &m_LexNode);  
@@ -243,11 +243,38 @@ template < typename Forge>
     }
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
+		auto		seqType = Cnstr::Crate::TypeOf<SeqSynElem>();	
+		auto		leftId = cnstr->FetchElemId( &m_Left);
+		auto		rightId = cnstr->FetchElemId( &m_Right);
+		
+		bool		lSeqFlg = ( leftId.GetType() == seqType);
+		bool		rSeqFlg = ( rightId.GetType() == seqType);
+		if ( lSeqFlg && !rSeqFlg)
+		{
+			SeqSynElem	*lSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
+			lSeq->m_SeqList.push_back( rightId);
+			return leftId;
+		}
+		if ( !lSeqFlg && rSeqFlg)
+		{
+			SeqSynElem	*rSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
+			rSeq->m_SeqList.insert( rSeq->m_SeqList.begin(), leftId);
+			return rightId;
+		}
+		if ( lSeqFlg && rSeqFlg)
+		{
+			SeqSynElem	*lSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
+			SeqSynElem	*rSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
+			lSeq->m_SeqList.reserve( lSeq->m_SeqList.size() + rSeq->m_SeqList.size() ); 
+			lSeq->m_SeqList.insert( lSeq->m_SeqList.end(), rSeq->m_SeqList.begin(), rSeq->m_SeqList.end() );
+			cnstr->Repos()->Destroy( rightId.GetId());
+			return leftId;
+		}
 		auto			*elem = new SeqSynElem();            
-		elem->m_SeqList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_SeqList.push_back( cnstr->FetchElem( &m_Right)); 
+		elem->m_SeqList.push_back( leftId); 
+		elem->m_SeqList.push_back( rightId); 
 		return cnstr->Store( elem);
 	} 
 };
@@ -294,10 +321,10 @@ template < typename Forge>
     } 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new RepeatSynElem();            
-		elem->m_Elem = cnstr->FetchElem( &m_Target);
+		elem->m_Elem = cnstr->FetchElemId( &m_Target);
 		elem->m_Min = Min;
 		elem->m_Max = Max; 
 		return cnstr->Store( elem);
@@ -332,11 +359,11 @@ template < typename Forge>
     } 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new AltSynElem();            
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right)); 
+		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Left)); 
+		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Right)); 
 		return cnstr->Store( elem);;
 	} 
      
@@ -370,11 +397,11 @@ struct Diff : public Node< Diff< Left, Right> >
 	 
 
 template < typename Cnstr>
-	auto        FetchElem( Cnstr *cnstr)
+	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new AltSynElem();            
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Left)); 
-		elem->m_AltList.push_back( cnstr->FetchElem( &m_Right)); 
+		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Left)); 
+		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Right)); 
 		return cnstr->Store( elem);
 	} 
 };

@@ -58,6 +58,9 @@ public:
 			: m_Entry( entry), m_Type( typeStor)
 		{}  
 
+		TypeStor        GetType( void) const { return m_Type; }
+		Cv_CrateEntry	*GetEntry( void) const { return m_Entry; }
+
 	template <  typename Crate, typename Lambda, typename... Args>
 		auto    Operate( Lambda &lambda,  Args&... args)  
 		{
@@ -172,6 +175,18 @@ template <  typename Lambda, typename... Args>
 			default : return CrateBase::Operate( entry, typeStor, lambda, args...);
 		}
     } 
+	 
+template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>::value, void>::type * = nullptr>
+	static constexpr  TypeStor TypeOf( void)  
+	{
+		return Sz;
+	}
+
+template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
+	static constexpr  TypeStor TypeOf( void)  
+	{
+		return CrateBase::TypeOf<Entity>();
+	}
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -202,7 +217,17 @@ template <  typename Lambda, typename... Args>
 		 return lambda( static_cast< Elem *>( entry), args...); 
     }
 
-	 
+template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>::value, void>::type * = nullptr>
+	static constexpr  TypeStor TypeOf( void)  
+	{
+		return Sz;
+	}	 
+
+template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
+	static constexpr  TypeStor TypeOf( void)  
+	{
+		return 0;
+	}	
 }; 
 
 template<typename T>
@@ -250,9 +275,19 @@ public:
 
 	uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
+	Var			ToVar( Cv_CrateId id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
 	Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
 
+	void        Destroy( uint32_t k)
+	{ 
+		Entry       *&elem = m_Elems[ k];
+		TypeStor	&type = m_Types[ k];
+		Crate::Operate( elem, type, []( auto x) { delete x; });
+		type = 0; 
+		elem = NULL; 
+		return;
+	}
 
 template<  class Object>
 	Cv_CrateId    Store( Object *x)
@@ -289,7 +324,9 @@ template < typename Lambda, typename... Args>
 template < typename Crate>
 struct   Cv_CrateConstructor 
 {  
-typedef typename Crate::Entry                           Entry; 
+	typedef Crate 						Crate; 	
+	typedef typename Crate::Entry		Entry; 
+	typedef typename Crate::Var			Var; 
 
 	Cv_CrateRepos< Crate>				*m_Crate;
 	std::map< void *, Cv_CrateId>		m_CnstrMap;
@@ -298,17 +335,19 @@ typedef typename Crate::Entry                           Entry;
 		: m_Crate( crate)
 	{}
 
+	auto			Repos( void) { return m_Crate; }
+
 template<  class Object>
-	Cv_CrateId    Store( Object *x) { return m_Crate->Store( x); }
+	Cv_CrateId		Store( Object *x) { return m_Crate->Store( x); }
 
 template < typename Node>    
-	Cv_CrateId	FetchElem( Node *node)
+	Cv_CrateId	FetchElemId( Node *node)
 	{ 
 
 		auto        res  = m_CnstrMap.emplace( node, Cv_CrateId()); 
 		if ( !res.second)
 			return  res.first->second;  
-		Cv_CrateId	item = node->FetchElem( this); 
+		Cv_CrateId	item = node->FetchElemId( this); 
 		res.first->second = item;
 		return item;
 	}     
