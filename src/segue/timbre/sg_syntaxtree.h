@@ -29,9 +29,8 @@ typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynEl
 struct  SynElem   : public Cv_CrateEntry 
 {
 public:
-	
-
-    const char      *GetName( void) const { return "Syn"; } 
+	 
+    std::string		GetName( void) const { return "Syn"; } 
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
@@ -45,14 +44,14 @@ struct     RefSynElem : public SynElem
 {
     Cv_CrateId		m_Elem;
     
-    const char      *GetName( void) const { return "Ref"; }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Ref", GetId()); }
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << SELF << " [ shape=parallelogram  label= <<FONT> #" << SELF << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
-        strm << 'R' << SELF << " -> " << 'R' << m_Elem << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
  
@@ -64,14 +63,14 @@ struct     LexemeSynElem : public SynElem
 {
 	Cv_CrateId		m_Elem;
 
-    const char      *GetName( void) const { return "Ref"; }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << SELF << " [ shape=parallelogram  label= <<FONT> #" << SELF << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
-        strm << 'R' << SELF << " -> " << 'R' << m_Elem << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
 
@@ -82,14 +81,14 @@ struct     LexemeSynElem : public SynElem
 struct     ActionSynElem : public RefSynElem 
 { 
 
-    const char      *GetName( void) const { return "Act"; }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Act", GetId()); } 
 
     bool    WriteDot( Cv_DotStream &strm)   
     {
-        strm << 'R' << SELF << " [ shape=parallelogram  label= <<FONT> #" << SELF << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
-        strm << 'R' << SELF << " -> " << 'R' << m_Elem << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
     
@@ -102,18 +101,18 @@ struct     SeqSynElem : public SynElem
 {
     std::vector< Cv_CrateId>     m_SeqList; 
 
-    const char                  *GetName( void) const { return "Seq"; } 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq", GetId()); }  
     
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << SELF << " [ shape=parallelogram  label= <<FONT> #" << SELF << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
 		Cv_CrateId	fRegex = SELF;
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
 			Cv_CrateId		regex = m_SeqList[ k];
-            strm << 'R' << fRegex << " -> " << 'R' << regex << " [ arrowhead=tee color=black] ; \n";
+            strm << 'R' << fRegex.m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
             regex = fRegex;
         }
         return true;
@@ -127,18 +126,18 @@ struct     SeqSynElem : public SynElem
 struct     AltSynElem : public SynElem 
 {
     std::vector< Cv_CrateId>     m_AltList; 
-
-    const char      *GetName( void) const { return "Alt"; } 
+	 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Alt", GetId()); }  
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << SELF << " [ shape=parallelogram  label= <<FONT> #" << SELF << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
         for ( uint32_t k = 0; k < m_AltList.size(); ++k)
         {
 			Cv_CrateId		regex = m_AltList[ k];
-            strm << 'R' << SELF << " -> " << 'R' << regex << " [ arrowhead=tee color=black] ; \n";
+            strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
         }
         return true;
     }
@@ -152,12 +151,12 @@ struct     RepeatSynElem : public SynElem
     Cv_CrateId			m_Elem;
     uint32_t            m_Min;
     uint32_t            m_Max;
-
-    const char      *GetName( void) const { return "Rep"; }
+	 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Rep", GetId()); } 
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << SELF << " [ shape=hexagon  label= <<FONT> #" << SELF << "  <BR />";
+        strm << 'R' << m_IPtr << " [ shape=hexagon  label= <<FONT> #" << GetName() << "  <BR />";
         strm.OStream() << "( " << uint32_t( m_Min) << ", ";
         if ( m_Max == CV_UINT32_MAX)
             strm << "Inf";
@@ -165,7 +164,7 @@ struct     RepeatSynElem : public SynElem
             strm << m_Max;
         strm  << ")" << " </FONT>>];\n "; 
 
-        strm << 'R' << SELF << " -> " << 'R' << m_Elem << " [ arrowhead=dot  color=black] ; \n"; 
+        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=dot  color=black] ; \n"; 
         return true;
     }
 

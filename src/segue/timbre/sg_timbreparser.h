@@ -141,7 +141,7 @@ struct     StrSynElem : public SynElem
     bool            m_CaselessFlg;
 
 
-    const char      *GetName( void) const { return "Seq"; }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Str", GetId()); }
 
     StrSynElem( void)
         :   m_CaselessFlg( false)
@@ -149,7 +149,7 @@ struct     StrSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << SELF << " [ shape=diamond  label= <<FONT> #" << SELF << " <BR />";
+        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />";
         strm << m_Str;
         strm << " </FONT>>];\n "; 
         return true;
@@ -161,12 +161,12 @@ struct     StrSynElem : public SynElem
 struct     CSetSynElem : public SynElem 
 {
     Sg_ChSet     m_Filt;
-
-    const char      *GetName( void) const { return "CSet"; }
+	 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "CSet", GetId()); } 
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << SELF << " [ shape=diamond  label= <<FONT> #" << SELF << " <BR />"; 
+        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     }
@@ -396,7 +396,7 @@ struct CharSet : public Node< CharSet >
     
     CharSet operator ~( void) const 
     {
-        CharSet     neg( SELF);
+        CharSet     neg( GetName());
         neg.m_Bits.Negate();
         return neg;
     }

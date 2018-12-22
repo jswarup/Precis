@@ -83,6 +83,24 @@ template < class T>
 
     static std::string          Format( const char *fmt, ...);
     
+template <typename T>
+	static std::ostream			&OutStrm( std::ostream &out, T t) { return out << t; }
+
+template <typename T, typename U, typename... Args>
+	static std::ostream			&OutStrm( std::ostream &out, T t, U u, Args... args)
+	{
+		out << t << '_';
+		return OutStrm( out, u, args...);
+	}
+
+template <typename... Args>
+	static	std::string			ToStr( Args... args)
+	{
+		std::ostringstream	sstrm;
+		OutStrm( sstrm, args...);
+		return sstrm.str();
+	}
+
     //_____________________________________________________________________________________________________________________________
 };
 

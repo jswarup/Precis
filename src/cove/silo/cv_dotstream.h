@@ -36,7 +36,7 @@ public:
     
     Cv_DotStream   &operator<<( const std::string &y)
     {
-        SELF << y.c_str();
+		*m_OStrm << y.c_str();
         return SELF;
     }
 
@@ -49,6 +49,12 @@ public:
         }
         return SELF;
     }
+
+	Cv_DotStream   &operator<<( const uint32_t &x)
+	{
+		*m_OStrm <<  x;  
+		return SELF;
+	}
 
     void    HtmlDump( const std::string &y)
     {
