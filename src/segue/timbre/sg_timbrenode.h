@@ -31,6 +31,9 @@ struct Diff;
 template < typename Right>
 struct LexemeNode;
 
+template < typename Right>
+struct RefNode;
+
 template <const char C1, const char C2>
 struct RangeNode;
 
@@ -59,7 +62,12 @@ struct Node
 { 
     typedef  TNode          GrammarNode;
     
-    std::string             m_Name;
+    std::string             m_Name; 
+
+public:
+	Node( void)  
+	{}
+
 
     GrammarNode             *GetNode( void)  { return static_cast< GrammarNode *>( this); }
     const GrammarNode       *GetNode( void) const  { return static_cast< const GrammarNode *>( this); }
@@ -113,6 +121,8 @@ template < typename Right>
 template < typename Right>
     LexemeNode< Right>                          Lexeme( const Right &p) const { return LexemeNode< Right>( p); }
 	  
+template < typename Right>
+	RefNode< Right>								Ref( const Right &p) const { return RefNode< Right>( p); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -135,9 +145,48 @@ template <typename ParentForge>
 template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
-		SynElem		*elem = new Sg_Timbre::SynElem();
+		auto elem = new Sg_Timbre::ErrorSynElem();
 		elem->m_ErrStr = m_ErrStr; 
-		return m_Crate->Store( elem);
+		return cnstr->Store( elem);
+	} 
+};
+
+
+//_____________________________________________________________________________________________________________________________ 
+
+template <typename TNode>
+struct RefNode  : public  Node< RefNode< TNode> >
+{
+	typedef typename TNode::GrammarNode     Target;
+
+	Target          *m_Node; 
+
+public: 
+	RefNode( const TNode &node)
+		: m_Node( const_cast< Target *>( node.GetNode()))
+	{} 
+
+template <typename ParentForge>
+	bool DoMatch( ParentForge *ctxt) const
+	{
+		typename ForgeType< TNode, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+
+		bool        match = m_Node->DoMatch( &forge);
+		if ( match)  
+		{
+			forge.ProcessMatch(); 
+			ctxt->NotifyChildMatch( &forge); 
+		}
+
+		return match;
+	} 
+
+template < typename Cnstr>
+	auto        FetchElemId( Cnstr *cnstr)
+	{  
+		auto			*elem = new RefSynElem();
+		elem->m_Elem = cnstr->FetchElemId( m_Node); 
+		return cnstr->Store( elem);
 	} 
 };
 
@@ -178,7 +227,8 @@ template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new ActionSynElem();
-		elem->m_Elem = cnstr->FetchElemId( &m_Node);   
+		elem->m_Elem = cnstr->FetchElemId( &m_Node); 
+		cnstr->Repos()->ToVar( elem->m_Elem).GetEntry()->m_LockFlg = true;
 		return cnstr->Store( elem);
 	} 
 };
@@ -209,9 +259,9 @@ template <typename ParentForge>
 template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
-		SynElem			*elem = new LexemeSynElem();
-		elem->m_Elem = cnstr->FetchSynTree( &m_LexNode);  
-		return m_Crate->Store( elem);
+		auto	elem = new LexemeSynElem();
+		elem->m_Elem = cnstr->FetchElemId( &m_LexNode);  
+		return cnstr->Store( elem);
 	} 
 };
  
@@ -254,23 +304,32 @@ template < typename Cnstr>
 		if ( lSeqFlg && !rSeqFlg)
 		{
 			SeqSynElem	*lSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
-			lSeq->m_SeqList.push_back( rightId);
-			return leftId;
+			if ( !lSeq->IsLocked())
+			{
+				lSeq->m_SeqList.push_back( rightId);
+				return leftId;
+			}
 		}
 		if ( !lSeqFlg && rSeqFlg)
 		{
 			SeqSynElem	*rSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
-			rSeq->m_SeqList.insert( rSeq->m_SeqList.begin(), leftId);
-			return rightId;
+			if ( !rSeq->IsLocked())
+			{
+				rSeq->m_SeqList.insert( rSeq->m_SeqList.begin(), leftId);
+				return rightId;
+			}
 		}
 		if ( lSeqFlg && rSeqFlg)
 		{
 			SeqSynElem	*lSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
 			SeqSynElem	*rSeq = static_cast< SeqSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
-			lSeq->m_SeqList.reserve( lSeq->m_SeqList.size() + rSeq->m_SeqList.size() ); 
-			lSeq->m_SeqList.insert( lSeq->m_SeqList.end(), rSeq->m_SeqList.begin(), rSeq->m_SeqList.end() );
-			cnstr->Repos()->Destroy( rightId.GetId());
-			return leftId;
+			if ( !rSeq->IsLocked() && !rSeq->IsLocked())
+			{
+				lSeq->m_SeqList.reserve( lSeq->m_SeqList.size() + rSeq->m_SeqList.size() ); 
+				lSeq->m_SeqList.insert( lSeq->m_SeqList.end(), rSeq->m_SeqList.begin(), rSeq->m_SeqList.end() );
+				cnstr->Repos()->Destroy( rightId.GetId());
+				return leftId;
+			}
 		}
 		auto			*elem = new SeqSynElem();            
 		elem->m_SeqList.push_back( leftId); 
@@ -358,15 +417,50 @@ template < typename Forge>
         return match;
     } 
 
-template < typename Cnstr>
+template < typename Cnstr>  
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
+		auto		altType = Cnstr::Crate::TypeOf<AltSynElem>();	
+		auto		leftId = cnstr->FetchElemId( &m_Left);
+		auto		rightId = cnstr->FetchElemId( &m_Right);
+
+		bool		lAltFlg = ( leftId.GetType() == altType);
+		bool		rAltFlg = ( rightId.GetType() == altType);
+		if ( lAltFlg && !rAltFlg)
+		{
+			AltSynElem	*lSeq = static_cast< AltSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
+			if ( !lSeq->IsLocked())
+			{
+				lSeq->m_AltList.push_back( rightId);
+				return leftId;
+			}
+		}
+		if ( !lAltFlg && rAltFlg)
+		{
+			AltSynElem	*rSeq = static_cast< AltSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
+			if ( !rSeq->IsLocked())
+			{
+				rSeq->m_AltList.insert( rSeq->m_AltList.begin(), leftId);
+				return rightId;
+			}
+		}
+		if ( lAltFlg && rAltFlg)
+		{
+			AltSynElem	*lSeq = static_cast< AltSynElem*>( cnstr->Repos()->ToVar( leftId).GetEntry());
+			AltSynElem	*rSeq = static_cast< AltSynElem*>( cnstr->Repos()->ToVar( rightId).GetEntry());
+			if ( !rSeq->IsLocked() && !rSeq->IsLocked())
+			{
+				lSeq->m_AltList.reserve( lSeq->m_AltList.size() + rSeq->m_AltList.size() ); 
+				lSeq->m_AltList.insert( lSeq->m_AltList.end(), rSeq->m_AltList.begin(), rSeq->m_AltList.end() );
+				cnstr->Repos()->Destroy( rightId.GetId());
+				return leftId;
+			}
+		}
 		auto			*elem = new AltSynElem();            
-		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Left)); 
-		elem->m_AltList.push_back( cnstr->FetchElemId( &m_Right)); 
-		return cnstr->Store( elem);;
+		elem->m_AltList.push_back( leftId); 
+		elem->m_AltList.push_back( rightId); 
+		return cnstr->Store( elem);
 	} 
-     
 };
 
 //_____________________________________________________________________________________________________________________________ 

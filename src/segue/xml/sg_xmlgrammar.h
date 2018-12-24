@@ -12,6 +12,40 @@ using namespace Sg_Timbre;
 
 //_____________________________________________________________________________________________________________________________
 
+struct      XMLSynElem : public SynElem 
+{ 
+	Cv_CrateId		m_Item;
+
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "XMLElem", GetId()); } 
+
+	bool    WriteDot( Cv_DotStream &strm)  
+	{
+		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
+		strm << " </FONT>>];\n "; 
+		return true;
+	}
+
+};
+
+
+//_____________________________________________________________________________________________________________________________
+
+struct      XDocSynElem : public SynElem 
+{ 
+	Cv_CrateId		m_Item;
+
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "XDocElem", GetId()); } 
+
+	bool    WriteDot( Cv_DotStream &strm)  
+	{
+		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
+		strm << " </FONT>>];\n "; 
+		return true;
+	}
+
+};
+//_____________________________________________________________________________________________________________________________
+
 struct XMLElement : public Node< XMLElement>
 {
 
@@ -105,39 +139,42 @@ struct XMLElement : public Node< XMLElement>
     
     auto           ElementEnd( void) const { return ( Str( "</") >>  OptBlankSpace() >> Ident()[ ElementNameListener()] >>  OptBlankSpace() >> Char( '>'))[ ElementBranchOver()]; }
     auto           ElementBegin( void) const { return ( Char( '<') >>  OptBlankSpace() >> Ident()[ ElementNameListener()] >> * (  OptBlankSpace() >> Attribute() ) >> OptBlankSpace() >> Char( '>'))[ ElementBranchBegin()]; }
+
+	auto			Elem( void) const { return  ( LeafElement() | Comment() |  CData()) | ( ElementBegin() >> *(  OptBlankSpace() >> Ref( SELF) ) >> OptBlankSpace() >> ElementEnd()); }
+
  
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {    
-        auto    elem = ( LeafElement() | Comment() |  CData()) | ( ElementBegin() >> *(  OptBlankSpace() >> XMLElement() ) >> OptBlankSpace() >> ElementEnd());
+        auto    elem = Elem();
         if (  !elem.DoMatch( ctxt))
             return false;  
         return true;
     }
-    
-    struct     SynElem : public Sg_Timbre::SynElem
-    {
-     
-    };
+
+template < typename Cnstr>
+	auto        FetchElemId( Cnstr *cnstr)
+	{  
+		auto		elem = new XMLSynElem();  
+		elem->m_LockFlg = 0;
+		Cv_CrateId	crateId = cnstr->Store( elem);
+		auto		node = Elem();
+		elem->m_Item = cnstr->FetchElemId( &node);
+		return crateId;
+	} 
 };
 
 //_____________________________________________________________________________________________________________________________
 
 struct XMLDoc  : public Node< XMLDoc>
 {  
-    Cv_CrateRepos < SynParserCrate>					m_SynCrate;
-    Cv_CrateConstructor< SynParserCrate>			m_SynCnstr; 
+   
+    XMLDoc( void) 
+    {}
 
-    XMLDoc( void)
-        :  m_SynCrate( ), m_SynCnstr( &m_SynCrate)
-    {
-    }
-
-    
     auto           DocumentOver( void) const { return []( auto ctxt) {  
                                                             std::cout << ctxt.MatchStr() << "\n";
                                                         return true;  };  } 
-
 
     auto           PI( void) const { return Str( "<?") >> *( Any() - Str( "?>")) >> Str( "?>"); } 
  
@@ -150,13 +187,21 @@ template < typename Forge>
         if (  !doc.DoMatch( ctxt))
             return false;  
         return true;
-    }
-    
-    struct     SynElem : public Sg_Timbre::SynElem
-    {
-     
-    };
+    } 
+
+template < typename Cnstr>
+	auto        FetchElemId( Cnstr *cnstr)
+	{  
+		auto	elem = new XDocSynElem();  
+		auto	node = Document();
+		elem->m_Item = cnstr->FetchElemId( &node);
+		return cnstr->Store( elem);
+	} 
 };
+
+//_____________________________________________________________________________________________________________________________ 
+
+typedef Cv_Crate< XDocSynElem, XMLSynElem,  SynParserCrate>   XmlParserCrate; 
 
 //_____________________________________________________________________________________________________________________________
 };

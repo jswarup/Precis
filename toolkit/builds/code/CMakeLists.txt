@@ -35,20 +35,24 @@ include_directories(
 #------------------------------------------------------------------------------------------------------------------------------ 
 
 if(PR_VISUALSTUDIO)
-
 add_definitions( -DPR_VISUALSTUDIO -std:c++latest)  
 
-if(PR_DBG)
-add_definitions( -DEBUG)
-set( CMAKE_BUILD_TYPE "Debug")
-endif(PR_DBG) 
-set( CMAKE_BUILD_TYPE "RelWithDebInfo")
-else()
-
+else(PR_VISUALSTUDIO)	 
 add_definitions( -std=c++1z)
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -no-pie" )
 
 endif(PR_VISUALSTUDIO)
+
+
+
+if(PR_DBG)
+add_definitions( -DEBUG)
+set( CMAKE_BUILD_TYPE "Debug")
+
+else(PR_DBG)
+set( CMAKE_BUILD_TYPE "RelWithDebInfo")
+
+endif(PR_DBG) 
 
 #------------------------------------------------------------------------------------------------------------------------------ 
 # the commit's SHA1, and whether the building workspace was dirty or not

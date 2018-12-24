@@ -48,26 +48,7 @@ public:
 class  Cv_CrateEntry : public Cv_CrateId
 {
 public:   
-	struct	 Var
-	{    
-
-		Cv_CrateEntry		*m_Entry;
-		TypeStor			m_Type; 
-
-		Var( Cv_CrateEntry *entry, TypeStor typeStor)
-			: m_Entry( entry), m_Type( typeStor)
-		{}  
-
-		TypeStor        GetType( void) const { return m_Type; }
-		Cv_CrateEntry	*GetEntry( void) const { return m_Entry; }
-
-	template <  typename Crate, typename Lambda, typename... Args>
-		auto    Operate( Lambda &lambda,  Args&... args)  
-		{
-			return Crate::Operate( static_cast< typename Crate::Entry *>( m_Entry), m_Type, lambda, args...);
-		}
-
-	};
+	
 public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
         :  Cv_CrateId( id, 0)
@@ -88,14 +69,20 @@ public:
 //_____________________________________________________________________________________________________________________________
 
 template < typename Crate>
-struct	Cv_Var : public Crate::Entry::Var
+struct	Cv_Var 
 {
 	typedef typename Crate::TypeStor	TypeStor;
 	typedef typename Crate::Entry		Entry; 
 
-	Cv_Var( Cv_CrateEntry *entry, TypeStor typeStor)
-		: Cv_CrateEntry::Var( entry, typeStor)
-	{}
+	Entry				*m_Entry;
+	TypeStor			m_Type; 
+
+	Cv_Var( Entry *entry, TypeStor typeStor)
+		: m_Entry( entry), m_Type( typeStor)
+	{} 
+		 
+	TypeStor        GetType( void) const { return m_Type; }
+	Entry			*GetEntry( void) const { return m_Entry; } 
 
 template < typename Lambda, typename... Args>
 	auto    operator()( Lambda &lambda,  Args&... args)  

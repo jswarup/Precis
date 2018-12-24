@@ -149,8 +149,7 @@ struct     StrSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />";
-        strm << m_Str;
+        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     } 

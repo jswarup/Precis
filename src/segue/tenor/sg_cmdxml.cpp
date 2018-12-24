@@ -53,11 +53,21 @@ CV_CMD_DEFINE( Sg_XmlCmdProcessor, "xml", "xml", s_XmlIfcOptions)
 int     Sg_XmlCmdProcessor::Test(void)
 {
     using namespace Sg_Timbre;
-    
+	using namespace Sg_Xml;    
     const char  *str = "<  A a=\"1\" >< B></B></ A>"; 
 
-    Sg_Xml::XMLDoc   xmlDoc; 
+    XMLDoc   xmlDoc; 
     bool            apiErrCode = StrParser( str).Match( &xmlDoc);
+	Cv_CrateRepos< XmlParserCrate>				synCrate ;
+	Cv_CrateConstructor< XmlParserCrate>		synCnstr( &synCrate);
+	auto										synElem = synCnstr.FetchElemId( &xmlDoc);
+	std::ofstream								ostrm( "b.dot");
+	Cv_DotStream								synDotStrm( &ostrm, false); 
+	synCrate.OperateAll( [&synDotStrm]( auto k ){
+		return k->WriteDot( synDotStrm); 
+	});
+	synCrate.Clear();
+	bool                    t = true; 
     return 0;
 }
 

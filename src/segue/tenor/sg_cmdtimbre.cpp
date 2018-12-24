@@ -74,7 +74,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
             std::cout << ctxt.MatchStr() << "\n"; 
             return true; 
         }) ];  
-        auto        regex = Str( "a") >> (( *lRgx | IStr("te")) >> Str( "test"))[ ( []( auto ctxt) { 
+        auto        regex = Str( "a") >> (( *lRgx | IStr("te") | Str("open") | Str("close")) >> Str( "test") >> Str( "suc") >> Str( "fail"))[ ( []( auto ctxt) { 
             std::cout << ctxt.MatchStr() << "\n";  
             return true; 
         }) ];   

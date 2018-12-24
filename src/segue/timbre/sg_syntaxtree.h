@@ -18,18 +18,27 @@ struct     SeqSynElem;
 struct     AltSynElem;
 struct     RepeatSynElem;
 struct     RefSynElem;
+struct	   LexemeSynElem;
+struct	   ErrorSynElem;
 struct     Cv_SynCrate; 
 
 //_____________________________________________________________________________________________________________________________ 
 
-typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynElem, RefSynElem, SynElem>   SynCrate; 
+typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynElem, RefSynElem, LexemeSynElem, ErrorSynElem, SynElem>   SynCrate; 
 
 //_____________________________________________________________________________________________________________________________ 
     
 struct  SynElem   : public Cv_CrateEntry 
 {
+	bool	m_LockFlg;
+
 public:
-	 
+	SynElem( void) 
+		: m_LockFlg( false)
+	{}
+
+	bool			IsLocked( void) const { return m_LockFlg; }
+
     std::string		GetName( void) const { return "Syn"; } 
 
     bool    WriteDot( Cv_DotStream &strm)  
@@ -44,6 +53,9 @@ struct     RefSynElem : public SynElem
 {
     Cv_CrateId		m_Elem;
     
+	RefSynElem( void)
+	{}
+
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Ref", GetId()); }
 
     bool    WriteDot( Cv_DotStream &strm)  
@@ -78,6 +90,23 @@ struct     LexemeSynElem : public SynElem
 
 //_____________________________________________________________________________________________________________________________ 
 
+struct     ErrorSynElem : public SynElem 
+{
+	std::string     m_ErrStr;
+
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
+
+	bool    WriteDot( Cv_DotStream &strm)  
+	{
+		strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << m_ErrStr << " " << "<BR />" ; 
+		strm << " </FONT>>];\n "; 
+		 
+		return true;
+	} 
+
+};
+//_____________________________________________________________________________________________________________________________ 
+
 struct     ActionSynElem : public RefSynElem 
 { 
 
@@ -103,17 +132,15 @@ struct     SeqSynElem : public SynElem
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq", GetId()); }  
     
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool			WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=rectangle  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
-
-		Cv_CrateId	fRegex = SELF;
+		 
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
 			Cv_CrateId		regex = m_SeqList[ k];
-            strm << 'R' << fRegex.m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
-            regex = fRegex;
+            strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         }
         return true;
     }
