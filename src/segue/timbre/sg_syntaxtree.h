@@ -94,7 +94,7 @@ struct     ErrorSynElem : public SynElem
 {
 	std::string     m_ErrStr;
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Error", GetId()); }
 
 	bool    WriteDot( Cv_DotStream &strm)  
 	{
@@ -120,8 +120,7 @@ struct     ActionSynElem : public RefSynElem
         strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
-    
- 
+     
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -143,9 +142,7 @@ struct     SeqSynElem : public SynElem
             strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         }
         return true;
-    }
-    
- 
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 

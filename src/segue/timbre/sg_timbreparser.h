@@ -3,7 +3,7 @@
 
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_stack.h"
-#include    "segue/timbre/sg_timbrenode.h"
+#include    "segue/timbre/sg_timbreshard.h"
   
 namespace Sg_Timbre
 {
@@ -112,8 +112,8 @@ public:
     uint32_t        SzFrom( const Mark &mark) { return m_InStream->SzFrom( mark); }
     Cv_CStr         Region( const Mark &m1, const Mark &m2) { return m_InStream->Region( m1, m2); }
     
-template < typename Node>    
-    bool            Match( Node *node)
+template < typename Shard>    
+    bool            Match( Shard *node)
     {
         Forge  forge( this);
         
@@ -173,7 +173,7 @@ struct     CSetSynElem : public SynElem
 };
 //_____________________________________________________________________________________________________________________________ 
 
-struct Str : public Node< Str >
+struct Str : public Shard< Str >
 {     
     std::string     m_Str;
     
@@ -210,7 +210,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct IStr : public Node< IStr >
+struct IStr : public Shard< IStr >
 {     
     std::string     m_Str;
     
@@ -250,7 +250,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct Char : public Node< Char >
+struct Char : public Shard< Char >
 {
     const char      m_Char;
 
@@ -283,7 +283,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
      
-struct CharRange  : public  Node< CharRange >
+struct CharRange  : public  Shard< CharRange >
 {
 	uint8_t		m_C1;
 	uint8_t		m_C2;
@@ -316,7 +316,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct EoS : public Node< EoS >
+struct EoS : public Shard< EoS >
 {
     EoS( void)
     {
@@ -341,7 +341,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct Any : public Node< Any>
+struct Any : public Shard< Any>
 {
     Any( void)
     {
@@ -367,7 +367,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct CharSet : public Node< CharSet >
+struct CharSet : public Shard< CharSet >
 {
      
     Sg_ChSet     m_Bits;

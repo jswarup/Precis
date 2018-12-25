@@ -1,4 +1,4 @@
-//  sg_timbrenode.h ___________________________________________________________________________________________________________________
+//  sg_timbreshard.h ___________________________________________________________________________________________________________________
 #pragma once
 
 #include    "cove/barn/cv_cexpr.h"
@@ -16,7 +16,7 @@ namespace Sg_Timbre
 template <typename Left, typename Right>
 struct Seq;
 
-template <typename TNode, typename Actor>
+template <typename TShard, typename Actor>
 struct Action;
 
 template <typename Child, uint32_t Min, uint32_t Max>
@@ -29,48 +29,48 @@ template <typename Left, typename Right>
 struct Diff;
 
 template < typename Right>
-struct LexemeNode;
+struct LexemeShard;
 
 template < typename Right>
-struct RefNode;
+struct RefShard;
 
 template <const char C1, const char C2>
-struct RangeNode;
+struct RangeShard;
 
 //_____________________________________________________________________________________________________________________________  
 
-template < typename TimbreNode, typename Parser, typename = void>
+template < typename TimbreShard, typename Parser, typename = void>
 struct ForgeType 
 { 
     typedef typename Parser::Forge          Forge;
     typedef typename Parser::SynElem        SynElem;
 };
 
-template <typename TimbreNode, typename Parser>
-struct ForgeType< TimbreNode, Parser, typename Cv_TypeEngage::Exist< typename TimbreNode::Forge>::Note> 
+template <typename TimbreShard, typename Parser>
+struct ForgeType< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Forge>::Note> 
 { 
-    typedef typename TimbreNode::Forge      Forge;
-    typedef typename TimbreNode::SynElem    SynElem;
+    typedef typename TimbreShard::Forge      Forge;
+    typedef typename TimbreShard::SynElem    SynElem;
 }; 
 
  
 
 //_____________________________________________________________________________________________________________________________  
  
-template < typename TNode>
-struct Node 
+template < typename TShard>
+struct Shard 
 { 
-    typedef  TNode          GrammarNode;
+    typedef  TShard          GrammarShard;
     
     std::string             m_Name; 
 
 public:
-	Node( void)  
+	Shard( void)  
 	{}
 
 
-    GrammarNode             *GetNode( void)  { return static_cast< GrammarNode *>( this); }
-    const GrammarNode       *GetNode( void) const  { return static_cast< const GrammarNode *>( this); }
+    GrammarShard             *GetShard( void)  { return static_cast< GrammarShard *>( this); }
+    const GrammarShard       *GetShard( void) const  { return static_cast< const GrammarShard *>( this); }
  
 
     const std::string       &GetName( void) const { return m_Name; }
@@ -85,9 +85,9 @@ template <typename  Forge>
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
-        typename ForgeType< GrammarNode, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+        typename ForgeType< GrammarShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
         
-        bool        match = this->GetNode()->DoParse( &forge);
+        bool        match = this->GetShard()->DoParse( &forge);
         if ( match)  
         {
             forge.ProcessMatch(); 
@@ -98,10 +98,10 @@ template <typename ParentForge>
     }  
 
 template < typename Right>
-    Seq< GrammarNode, Right>                    operator>>( const Right & r) const;
+    Seq< GrammarShard, Right>                    operator>>( const Right & r) const;
 
 template <typename Actor>
-    Action< GrammarNode, Actor >                operator[ ] ( const Actor &actor) const;     
+    Action< GrammarShard, Actor >                operator[ ] ( const Actor &actor) const;     
     
     auto                                        operator!( void) const;
     auto                                        operator!( void);
@@ -113,21 +113,21 @@ template <typename Actor>
     auto                                        operator*( void);
     
 template < typename Right>
-    Alt< GrammarNode, Right>                    operator|( const Right & r) const;
+    Alt< GrammarShard, Right>                    operator|( const Right & r) const;
 
 template < typename Right>
-    Diff< GrammarNode, Right>                   operator-( const Right & r) const; 
+    Diff< GrammarShard, Right>                   operator-( const Right & r) const; 
 
 template < typename Right>
-    LexemeNode< Right>                          Lexeme( const Right &p) const { return LexemeNode< Right>( p); }
+    LexemeShard< Right>                          Lexeme( const Right &p) const { return LexemeShard< Right>( p); }
 	  
 template < typename Right>
-	RefNode< Right>								Ref( const Right &p) const { return RefNode< Right>( p); }
+	RefShard< Right>								Ref( const Right &p) const { return RefShard< Right>( p); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct Error : public  Node< Error >
+struct Error : public  Shard< Error >
 { 
     std::string     m_ErrStr;
 
@@ -154,24 +154,24 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-template <typename TNode>
-struct RefNode  : public  Node< RefNode< TNode> >
+template <typename TShard>
+struct RefShard  : public  Shard< RefShard< TShard> >
 {
-	typedef typename TNode::GrammarNode     Target;
+	typedef typename TShard::GrammarShard     Target;
 
-	Target          *m_Node; 
+	Target          *m_Shard; 
 
 public: 
-	RefNode( const TNode &node)
-		: m_Node( const_cast< Target *>( node.GetNode()))
+	RefShard( const TShard &node)
+		: m_Shard( const_cast< Target *>( node.GetShard()))
 	{} 
 
 template <typename ParentForge>
 	bool DoMatch( ParentForge *ctxt) const
 	{
-		typename ForgeType< TNode, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+		typename ForgeType< TShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
 
-		bool        match = m_Node->DoMatch( &forge);
+		bool        match = m_Shard->DoMatch( &forge);
 		if ( match)  
 		{
 			forge.ProcessMatch(); 
@@ -185,34 +185,34 @@ template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new RefSynElem();
-		elem->m_Elem = cnstr->FetchElemId( m_Node); 
+		elem->m_Elem = cnstr->FetchElemId( m_Shard); 
 		return cnstr->Store( elem);
 	} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
-template <typename TNode, typename Actor>
-struct Action  : public  Node< Action< TNode, Actor> >
+template <typename TShard, typename Actor>
+struct Action  : public  Shard< Action< TShard, Actor> >
 {
-    typedef typename TNode::GrammarNode     Target;
+    typedef typename TShard::GrammarShard     Target;
     
-    Target          m_Node;
+    Target          m_Shard;
     Actor           m_Actor;
 
 public:
     
-   Action( const TNode &node, const Actor & right)
-        : m_Node( *node.GetNode()),  m_Actor( right)
+   Action( const TShard &node, const Actor & right)
+        : m_Shard( *node.GetShard()),  m_Actor( right)
     { }
  
  
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
-        typename ForgeType< TNode, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+        typename ForgeType< TShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
         
-        bool        match = m_Node.DoMatch( &forge);
+        bool        match = m_Shard.DoMatch( &forge);
         if ( match)  
         {
             forge.ProcessMatch(); 
@@ -227,7 +227,7 @@ template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto			*elem = new ActionSynElem();
-		elem->m_Elem = cnstr->FetchElemId( &m_Node); 
+		elem->m_Elem = cnstr->FetchElemId( &m_Shard); 
 		cnstr->Repos()->ToVar( elem->m_Elem).GetEntry()->m_LockFlg = true;
 		return cnstr->Store( elem);
 	} 
@@ -237,22 +237,22 @@ template < typename Cnstr>
 //_____________________________________________________________________________________________________________________________ 
 ///  Lexeme class defines a new grammar terminator. 
 
-template < typename TNode>
-struct LexemeNode : public  Node< LexemeNode< TNode> >
+template < typename TShard>
+struct LexemeShard : public  Shard< LexemeShard< TShard> >
 {
-    typedef typename TNode::GrammarNode     Target;
+    typedef typename TShard::GrammarShard     Target;
 
-    Target          m_LexNode;
+    Target          m_LexShard;
 
 public:
-    LexemeNode( const TNode &node)
-        : m_LexNode( *node.GetNode()) 
+    LexemeShard( const TShard &node)
+        : m_LexShard( *node.GetShard()) 
     {}
 
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     { 
-        return m_LexNode.DoMatch( ctxt);  
+        return m_LexShard.DoMatch( ctxt);  
     } 
 	 
 
@@ -260,7 +260,7 @@ template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
 		auto	elem = new LexemeSynElem();
-		elem->m_Elem = cnstr->FetchElemId( &m_LexNode);  
+		elem->m_Elem = cnstr->FetchElemId( &m_LexShard);  
 		return cnstr->Store( elem);
 	} 
 };
@@ -269,16 +269,16 @@ template < typename Cnstr>
 // sequence
 
 template <typename Left, typename Right>
-struct Seq : public  Node< Seq< Left, Right> >
+struct Seq : public  Shard< Seq< Left, Right> >
 {
-    typedef typename    Left::GrammarNode    TargetLeft;
-    typedef typename    Right::GrammarNode   TargetRight;
+    typedef typename    Left::GrammarShard    TargetLeft;
+    typedef typename    Right::GrammarShard   TargetRight;
     
     TargetLeft          m_Left;
     TargetRight         m_Right;
     
     Seq( const Left & left, const Right & right)
-        : m_Left( *left.GetNode()),  m_Right( *right.GetNode())
+        : m_Left( *left.GetShard()),  m_Right( *right.GetShard())
     { }
 
 template < typename Forge>
@@ -342,9 +342,9 @@ template < typename Cnstr>
 
 
 template <typename Child, uint32_t Min, uint32_t Max>
-struct Repeat  : public  Node< Repeat< Child, Min, Max> >
+struct Repeat  : public  Shard< Repeat< Child, Min, Max> >
 { 
-    typedef typename Child::GrammarNode     Target;
+    typedef typename Child::GrammarShard     Target;
     
     Target                                  m_Target;
     
@@ -394,10 +394,10 @@ template < typename Cnstr>
 // Alternative, left First match
 
 template <typename Left, typename Right>
-struct Alt : public Node< Alt< Left, Right> >
+struct Alt : public Shard< Alt< Left, Right> >
 {
-    typedef typename    Left::GrammarNode    TargetLeft;
-    typedef typename    Right::GrammarNode   TargetRight;
+    typedef typename    Left::GrammarShard    TargetLeft;
+    typedef typename    Right::GrammarShard   TargetRight;
     
     TargetLeft      m_Left;
     TargetRight     m_Right; 
@@ -466,10 +466,10 @@ template < typename Cnstr>
 //_____________________________________________________________________________________________________________________________ 
 
 template <typename Left, typename Right>
-struct Diff : public Node< Diff< Left, Right> >
+struct Diff : public Shard< Diff< Left, Right> >
 {
-    typedef typename    Left::GrammarNode    TargetLeft;
-    typedef typename    Right::GrammarNode   TargetRight;
+    typedef typename    Left::GrammarShard    TargetLeft;
+    typedef typename    Right::GrammarShard   TargetRight;
 
     TargetLeft      m_Left;
     TargetRight     m_Right; 
@@ -502,79 +502,79 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________ 
 
-template <typename TNode>
+template <typename TShard>
 template <typename Actor>
-Action< TNode, Actor>               Node< TNode>::operator[ ] ( const Actor &actor) const
+Action< TShard, Actor>               Shard< TShard>::operator[ ] ( const Actor &actor) const
 {
-    return Action<TNode, Actor>( * (const TNode *) this, actor);
+    return Action<TShard, Actor>( * (const TShard *) this, actor);
 }
 
 //_____________________________________________________________________________________________________________________________
 
-template <typename TNode>
+template <typename TShard>
 template <typename Right>
-Seq< TNode, Right>                  Node< TNode>::operator>>( const Right &r) const
+Seq< TShard, Right>                  Shard< TShard>::operator>>( const Right &r) const
 {
-    return Seq< TNode, Right>(* (const TNode *) this, r);
+    return Seq< TShard, Right>(* (const TShard *) this, r);
 }
 
 //_____________________________________________________________________________________________________________________________
 
-template <typename TNode>
-auto               Node< TNode>::operator!( void) const
+template <typename TShard>
+auto               Shard< TShard>::operator!( void) const
 {
-    return Repeat< TNode, 0, 1>(* (const TNode *) this);
+    return Repeat< TShard, 0, 1>(* (const TShard *) this);
 }
 
-template <typename TNode>
-auto               Node< TNode>::operator!( void) 
+template <typename TShard>
+auto               Shard< TShard>::operator!( void) 
 {
-    return Repeat< TNode, 0, 1>(* ( TNode *) this);
-}
-
-//_____________________________________________________________________________________________________________________________
-
-template <typename TNode>
-auto                                Node< TNode>::operator+( void) const
-{
-    return Repeat< TNode, 1, CV_UINT32_MAX>(* (const TNode *) this);
-}
-
-template <typename TNode>
-auto                                Node< TNode>::operator+( void) 
-{
-    return Repeat< TNode, 1, CV_UINT32_MAX>(* ( TNode *) this);
+    return Repeat< TShard, 0, 1>(* ( TShard *) this);
 }
 
 //_____________________________________________________________________________________________________________________________
 
-template <typename TNode>
-auto                                Node< TNode>::operator*( void) const
+template <typename TShard>
+auto                                Shard< TShard>::operator+( void) const
 {
-    return Repeat< TNode, 0, CV_UINT32_MAX>(* (const TNode *) this);
+    return Repeat< TShard, 1, CV_UINT32_MAX>(* (const TShard *) this);
 }
 
-template <typename TNode>
-auto                                Node< TNode>::operator*( void)
+template <typename TShard>
+auto                                Shard< TShard>::operator+( void) 
 {
-    return Repeat< TNode, 0, CV_UINT32_MAX>( * ( TNode *) this);
+    return Repeat< TShard, 1, CV_UINT32_MAX>(* ( TShard *) this);
+}
+
+//_____________________________________________________________________________________________________________________________
+
+template <typename TShard>
+auto                                Shard< TShard>::operator*( void) const
+{
+    return Repeat< TShard, 0, CV_UINT32_MAX>(* (const TShard *) this);
+}
+
+template <typename TShard>
+auto                                Shard< TShard>::operator*( void)
+{
+    return Repeat< TShard, 0, CV_UINT32_MAX>( * ( TShard *) this);
 }
  
 //_____________________________________________________________________________________________________________________________ 
 
-template <typename TNode>
+template <typename TShard>
 template <typename Right>
-Alt< TNode, Right>                  Node< TNode>::operator|( const Right & r) const
+Alt< TShard, Right>                  Shard< TShard>::operator|( const Right & r) const
 {
-    return Alt< TNode, Right>(* (const TNode *) this, r);
+    return Alt< TShard, Right>(* (const TShard *) this, r);
 }
 
 
-template <typename TNode>
+template <typename TShard>
 template <typename Right>
-Diff< TNode, Right>                  Node< TNode>::operator-( const Right & r) const
+Diff< TShard, Right>                  Shard< TShard>::operator-( const Right & r) const
 {
-    return Diff< TNode, Right>(* (const TNode *) this, r);
+    return Diff< TShard, Right>(* (const TShard *) this, r);
 }
 
 //_____________________________________________________________________________________________________________________________ 

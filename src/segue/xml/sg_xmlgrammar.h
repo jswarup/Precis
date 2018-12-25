@@ -3,7 +3,7 @@
 
 
 #include    "segue/timbre/sg_timbreparser.h"
-#include 	"segue/xml/sg_xmlnode.h" 
+#include 	"segue/xml/sg_xmlshard.h" 
 
 namespace Sg_Xml
 {
@@ -46,7 +46,7 @@ struct      XDocSynElem : public SynElem
 };
 //_____________________________________________________________________________________________________________________________
 
-struct XMLElement : public Node< XMLElement>
+struct XMLElement : public Shard< XMLElement>
 {
 
     XMLElement( void)
@@ -166,7 +166,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________
 
-struct XMLDoc  : public Node< XMLDoc>
+struct XMLDoc  : public Shard< XMLDoc>
 {  
    
     XMLDoc( void) 
