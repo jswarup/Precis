@@ -4,12 +4,7 @@
 #include    "cove/silo/cv_repos.h"
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_dotstream.h"
-
-//_____________________________________________________________________________________________________________________________
-
-
-
-
+  
 //_____________________________________________________________________________________________________________________________
 
 template < typename Crate>
@@ -173,7 +168,6 @@ struct   Cv_Crate< T> : Cv_CrateT< T>
 { 
 }; 
 
-
 //_____________________________________________________________________________________________________________________________
 
 
@@ -240,14 +234,14 @@ template < typename Crate>
 class Cv_CrateRepos  : public Crate
 { 
 public: 
-    typedef typename Crate::Entry                           Entry; 
-	typedef typename Entry::TypeStor						TypeStor; 
-	typedef typename Entry::IndexStor						IndexStor;
-	typedef typename Crate::Var								Var; 
+    typedef typename Crate::Entry           Entry; 
+	typedef typename Entry::TypeStor		TypeStor; 
+	typedef typename Entry::IndexStor		IndexStor;
+	typedef typename Crate::Var				Var; 
 
 protected:
-	std::vector< Entry *>				m_Elems;
-	std::vector< TypeStor>				m_Types;
+	std::vector< Entry *>					m_Elems;
+	std::vector< TypeStor>					m_Types;
    
 public: 
     Cv_CrateRepos( void) 
