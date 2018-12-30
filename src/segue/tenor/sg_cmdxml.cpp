@@ -53,15 +53,19 @@ int     Sg_XmlCmdProcessor::Test(void)
 {
     using namespace Sg_Timbre;
 	using namespace Sg_Xml;    
-    const char  *str = "<  A a=\"1\" >< B></B></ A>"; 
 
-    XMLDoc   xmlDoc; 
-    bool            apiErrCode = StrParser( str).Match( &xmlDoc);
+    const char				*str = "<  A a=\"1\" >< B></B></ A>"; 
+	StrInStream				strInStrm( str);
+	Parser< StrInStream>	parsr( &strInStrm);
+	XMLDoc					xmlDoc; 
+    bool					apiErrCode = parsr.Match( &xmlDoc);
+
 	Cv_CrateRepos< XmlParserCrate>				synCrate ;
 	Cv_CrateConstructor< XmlParserCrate>		synCnstr( &synCrate);
 	auto										synElem = synCnstr.FetchElemId( &xmlDoc);
 	std::ofstream								ostrm( "b.dot");
 	Cv_DotStream								synDotStrm( &ostrm, false); 
+
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
 		return k->WriteDot( synDotStrm); 
 	});

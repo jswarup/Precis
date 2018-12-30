@@ -44,6 +44,8 @@ template < class X>
         	*b = X( 0);
     }
     static bool                 FileExists( const char *fileName);
+	
+	static uint64_t				FileSize( FILE *fp);
     
     static std::string          Basename( const std::string &path);
 
@@ -102,8 +104,24 @@ template <typename... Args>
 	}
 
     //_____________________________________________________________________________________________________________________________
-};
 
+template <typename T>
+	static bool		ReadVec( std::vector< T> *pVec, const char *pathname) 
+	{
+		FILE                    *infile = fopen( pathname, "r");
+		uint64_t                infileSz = Cv_Aid::FileSize( infile);
+		if ( !infileSz)
+			return false;
+		pVec->resize( ( infileSz + sizeof( T) -1)/sizeof( T));
+		uint64_t    sz = fread( &(*pVec)[ 0], 1, infileSz, infile);
+		CV_ERROR_ASSERT( sz == infileSz )	
+		fclose( infile);
+		return true;
+	}  
+
+	//_____________________________________________________________________________________________________________________________
+};
+ 
 //_____________________________________________________________________________________________________________________________
 
 template< class X> 

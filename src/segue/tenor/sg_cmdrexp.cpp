@@ -52,11 +52,14 @@ CV_CMD_DEFINE( Sg_RExpCmdProcessor, "rexp", "rexp", s_RExpIfcOptions)
 int     Sg_RExpCmdProcessor::Test(void)
 {
     using namespace Sg_Timbre;
-	using namespace Sg_RExp;    
-    const char  *str = "<  A a=\"1\" >< B></B></ A>"; 
+	using namespace Sg_RExp;   
+
+	std::vector< uint8_t>	memVector;
+	bool	res = Cv_Aid::ReadVec( &memVector, "ip.rules");
 
 	RExpDoc   xmlDoc; 
-    bool            apiErrCode = StrParser( str).Match( &xmlDoc);
+
+    bool            apiErrCode = 0; // StrParser( str).Match( &xmlDoc);
 	Cv_CrateRepos< RExpParserCrate>				synCrate ;
 	Cv_CrateConstructor< RExpParserCrate>		synCnstr( &synCrate);
 	auto										synElem = synCnstr.FetchElemId( &xmlDoc);

@@ -10,13 +10,13 @@ namespace Sg_Timbre
    
 //_____________________________________________________________________________________________________________________________ 
 
-struct  InStream
+struct  StrInStream
 {
     
     std::vector< char>          m_StrVec;
     uint32_t                    m_Cursor;
         
-    InStream( const std::string &str)
+	StrInStream( const std::string &str)
         : m_StrVec( str.size() +1), m_Cursor( 0)
     {
         std::copy( str.begin(), str.end(), m_StrVec.begin());
@@ -36,6 +36,7 @@ struct  InStream
 
 //_____________________________________________________________________________________________________________________________ 
 
+template < typename InStream>
 class Parser 
 {
 public: 
@@ -120,18 +121,7 @@ template < typename Shard>
         return node->DoMatch( &forge);
     } 
 }; 
-
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct StrParser : public Parser
-{
-    InStream        m_InStrm;
-
-    StrParser(  const std::string &str)
-        : Parser( &m_InStrm), m_InStrm( str)
-    {}
-};
+ 
 
 //_____________________________________________________________________________________________________________________________ 
 

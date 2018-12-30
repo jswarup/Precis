@@ -20,7 +20,25 @@ bool Cv_Aid::FileExists(const char *fileName)
 	return true;
 }
 
-//-------------------------------------------------------------------------------------------------
+//_____________________________________________________________________________________________________________________________
+
+uint64_t    Cv_Aid::FileSize( FILE *fp)
+{
+#if defined( _WIN32) || defined( _WIN64)
+	uint64_t    pos = _ftelli64( fp);
+	_fseeki64( fp, 0, SEEK_END );
+	uint64_t    sz = _ftelli64( fp );
+	_fseeki64( fp, pos, SEEK_SET );
+#else
+	uint64_t    pos = ftell( fp);
+	fseek( fp, 0, SEEK_END );
+	uint64_t    sz = ftell( fp );
+	fseek( fp, pos, SEEK_SET );
+#endif
+	return sz;
+} 
+
+//_____________________________________________________________________________________________________________________________
 
 std::string  Cv_Aid::Basename( const std::string &path)
 {
@@ -33,7 +51,7 @@ std::string  Cv_Aid::Basename( const std::string &path)
 	return filename;
 }
 
-//-------------------------------------------------------------------------------------------------
+//_____________________________________________________________________________________________________________________________
 
 std::string  Cv_Aid::Extension( const std::string &path)
 {

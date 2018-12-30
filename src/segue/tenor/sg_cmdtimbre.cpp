@@ -67,9 +67,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
      
     {
         using namespace Sg_Timbre;
-        
-        InStream    inStream( "alltelltest");
-        Parser      parser( &inStream);
+ 
         auto        lRgx = Str( "l") [( []( auto ctxt) {  
             std::cout << ctxt.MatchStr() << "\n"; 
             return true; 
@@ -79,8 +77,9 @@ int     Sg_TimbreCmdProcessor::Execute( void)
             return true; 
         }) ];   
             
-
-        apiErrCode = StrParser( "alltest").Match( &regex);
+		StrInStream				strInstrm( "alltest");
+		Parser< StrInStream>	parser( &strInstrm);
+        apiErrCode = parser.Match( &regex);
         
         Cv_CrateRepos< SynParserCrate>               synCrate ;
         Cv_CrateConstructor< SynParserCrate>		synCnstr( &synCrate);
