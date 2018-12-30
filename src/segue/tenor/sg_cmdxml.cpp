@@ -3,17 +3,16 @@
 
 #include    "segue/tenor/sg_include.h" 
 #include    "cove/snip/cv_cmdexec.h"
-#include    "segue/xml/sg_xmlgrammar.h"
+#include    "segue/grammar/sg_xmlgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
 
-#include <utility>
-#include  <tuple>
+#include	<utility>
+#include	<tuple>
 
 ///_____________________________________________________________________________________________________________________________ 
 
 static Cv_CmdOption     s_XmlIfcOptions[] = 
-{
-     
+{     
     { 0, 0,  0},
 };
 
@@ -32,7 +31,7 @@ public:
 
     bool    ProcessProgArgs( std::istream &cmdStrm)
     {
-        std::string             tok;
+        std::string		tok;
         return !( cmdStrm >> tok) && tok.empty();
     }
 

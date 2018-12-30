@@ -28,7 +28,7 @@ class Sg_TrellisCmdProcessor : public Cv_CmdExecutor
 
 public:
     Sg_TrellisCmdProcessor( void)  
-    {   }
+    {}
 
     int     Execute( void);
     int     Test(void);

@@ -7,62 +7,6 @@
 
 //_____________________________________________________________________________________________________________________________
 
-class  Cv_CrateId 
-{
-public:	
-	typedef uint32_t	IPtrStor;	
-	typedef uint32_t	IndexStor;	
-	typedef uint32_t	TypeStor;	 
-	enum {
-		SzTypeBits	= 8,
-		SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
-		MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
-	};
-
-	IPtrStor			m_IPtr; 
-	
-public:
-	Cv_CrateId( void)
-		: m_IPtr( 0)
-	{}
-	Cv_CrateId( IndexStor id, TypeStor type)
-		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
-	{} 
-
-
-	IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
-	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
-
-	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
-	TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
-
-	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
-	{ 
-		dotStrm.OStream() << "Id" << x.m_IPtr;
-		return dotStrm;
-	}
-};
-
-//_____________________________________________________________________________________________________________________________
-
-class  Cv_CrateEntry : public Cv_CrateId
-{
-public:   
-	
-public:
-    Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
-        :  Cv_CrateId( id, 0)
-    {} 
-	
-	const char		*GetName( void) const { return "Entry"; }
-	 
-
-	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
-	{ 
-		dotStrm.OStream() << x->GetName() << '_' <<  x->GetId();
-		return dotStrm;
-	} 
-};  
 
 
 
@@ -230,6 +174,65 @@ struct   Cv_Crate< T> : Cv_CrateT< T>
 }; 
 
 
+//_____________________________________________________________________________________________________________________________
+
+
+class  Cv_CrateId 
+{
+public:	
+	typedef uint32_t	IPtrStor;	
+	typedef uint32_t	IndexStor;	
+	typedef uint32_t	TypeStor;	 
+	enum {
+		SzTypeBits	= 8,
+		SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
+		MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
+	};
+
+	IPtrStor			m_IPtr; 
+
+public:
+	Cv_CrateId( void)
+		: m_IPtr( 0)
+	{}
+	Cv_CrateId( IndexStor id, TypeStor type)
+		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
+	{} 
+
+
+	IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
+	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
+
+	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
+	TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+
+	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
+	{ 
+		dotStrm.OStream() << "Id" << x.m_IPtr;
+		return dotStrm;
+	}
+};
+
+//_____________________________________________________________________________________________________________________________
+
+class  Cv_CrateEntry : public Cv_CrateId
+{
+public:   
+
+public:
+	Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
+		:  Cv_CrateId( id, 0)
+	{} 
+
+	const char		*GetName( void) const { return "Entry"; }
+
+
+	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
+	{ 
+		dotStrm.OStream() << x->GetName() << '_' <<  x->GetId();
+		return dotStrm;
+	} 
+};  
 
 //_____________________________________________________________________________________________________________________________
 
