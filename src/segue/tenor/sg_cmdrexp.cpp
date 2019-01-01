@@ -47,22 +47,31 @@ public:
  
 CV_CMD_DEFINE( Sg_RExpCmdProcessor, "rexp", "rexp", s_RExpIfcOptions)
 
+using namespace Sg_Timbre;
+using namespace Sg_RExp; 
+
 //_____________________________________________________________________________________________________________________________ 
 
 int     Sg_RExpCmdProcessor::Test(void)
 {
-    using namespace Sg_Timbre;
-	using namespace Sg_RExp;   
+  
 
-	std::vector< uint8_t>	memVector;
+	StrInStream					memVector;
 	bool	res = Cv_Aid::ReadVec( &memVector, "ip.rules");
 
-	RExpDoc   xmlDoc; 
 
-    bool            apiErrCode = 0; // StrParser( str).Match( &xmlDoc);
+	Parser< StrInStream>	parser( &memVector);
+	ParseInt< >				iprs; 
+
+	bool					a1 = parser.Match( &iprs);
+
+	RExpDoc   rexpDoc; 
+
+    bool					apiErrCode = parser.Match( &rexpDoc);
+
 	Cv_CrateRepos< RExpParserCrate>				synCrate ;
 	Cv_CrateConstructor< RExpParserCrate>		synCnstr( &synCrate);
-	auto										synElem = synCnstr.FetchElemId( &xmlDoc);
+	auto										synElem = synCnstr.FetchElemId( &rexpDoc);
 	std::ofstream								ostrm( "b.dot");
 	Cv_DotStream								synDotStrm( &ostrm, false); 
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
@@ -79,9 +88,13 @@ int     Sg_RExpCmdProcessor::Execute( void)
 {
     int     apiErrCode = 0;
     //AC_API_BEGIN() 
-    Test();
- 
-        
+	//Test();
+	StrInStream				strInstrm( "100");
+	Parser< StrInStream>	parser( &strInstrm);
+
+	ParseInt< >				iprs; 
+
+	bool					a1 = parser.Match( &iprs);      
     //AC_API_END()
     return apiErrCode;
 }

@@ -4,10 +4,12 @@
 
 #include    "segue/timbre/sg_timbreparser.h"
 #include 	"segue/grammar/sg_xmlshard.h" 
+#include 	"segue/timbre/sg_parsenumerics.h" 
+
+//_____________________________________________________________________________________________________________________________
 
 namespace Sg_RExp
 {
-
 using namespace Sg_Timbre; 
 
 //_____________________________________________________________________________________________________________________________
@@ -63,7 +65,11 @@ struct RExpEntry : public Shard< RExpEntry>
 	auto           OptBlankSpace( void) const { return *(WhiteChars() | NL()); }
 	auto           BlankLine( void) const { return OptWhiteSpace() >> (NL() | EoS()); }
 	auto           Comment( void) const { return Str( "<!--") >> *( Any() - Str( "-->")) >> Str( "-->"); } 
-	 
+	
+
+	auto           RExpEnd( void) const { return Char( '/')  ; }
+	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
+
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
@@ -90,10 +96,8 @@ struct RExpDoc  : public Shard< RExpDoc>
 	auto           DocumentOver( void) const { return []( auto ctxt) {  
 		std::cout << ctxt.MatchStr() << "\n";
 		return true;  };  } 
-
-	auto           PI( void) const { return Str( "<?") >> *( Any() - Str( "?>")) >> Str( "?>"); } 
-
-	auto           Document( void) const { return +( RExpEntry() | PI() )[ DocumentOver()]; } 
+	 
+	auto           Document( void) const { return +RExpEntry()[ DocumentOver()]; } 
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const

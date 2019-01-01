@@ -10,28 +10,32 @@ namespace Sg_Timbre
    
 //_____________________________________________________________________________________________________________________________ 
 
-struct  StrInStream
-{
-    
-    std::vector< char>          m_StrVec;
+struct  StrInStream : public std::vector< char>
+{ 
     uint32_t                    m_Cursor;
         
+	StrInStream( void)
+		: m_Cursor( 0)
+	{}
+
 	StrInStream( const std::string &str)
-        : m_StrVec( str.size() +1), m_Cursor( 0)
+        : std::vector< char>( str.size() +1), m_Cursor( 0)
     {
-        std::copy( str.begin(), str.end(), m_StrVec.begin());
-        m_StrVec[ str.size()] = 0;
+        std::copy( str.begin(), str.end(), begin());
+        SELF[ str.size()] = 0;
     }
+
+
     
-    bool                HasMore( void) { return m_Cursor < m_StrVec.size(); }
-    bool                Next( void) { return ++m_Cursor < m_StrVec.size(); } 
-    char                Curr( void) { return m_StrVec[ m_Cursor]; }
+    bool                HasMore( void) { return m_Cursor < size(); }
+    bool                Next( void) { return ++m_Cursor < size(); } 
+    char                Curr( void) { return SELF[ m_Cursor]; }
     uint32_t            Marker( void) const { return m_Cursor; } 
     
     void                RollTo( uint32_t mark) { m_Cursor = mark; }
     uint32_t            SzFrom( uint32_t mark) { return m_Cursor -mark; }
 
-    Cv_CStr             Region( uint32_t m1, uint32_t m2) { return Cv_CStr( &m_StrVec[ m1], m2 -m1); }
+    Cv_CStr             Region( uint32_t m1, uint32_t m2) { return Cv_CStr( &SELF[ m1], m2 -m1); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
