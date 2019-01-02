@@ -57,15 +57,11 @@ int     Sg_RExpCmdProcessor::Test(void)
   
 
 	StrInStream					memVector;
-	bool	res = Cv_Aid::ReadVec( &memVector, "ip.rules");
+	bool	res = Cv_Aid::ReadVec( &memVector, "ip.rules"); 
+	Parser< StrInStream>	parser( &memVector); 
+	 
 
-
-	Parser< StrInStream>	parser( &memVector);
-	ParseInt< >				iprs; 
-
-	bool					a1 = parser.Match( &iprs);
-
-	RExpDoc   rexpDoc; 
+	RExpDoc					rexpDoc; 
 
     bool					apiErrCode = parser.Match( &rexpDoc);
 
@@ -88,13 +84,19 @@ int     Sg_RExpCmdProcessor::Execute( void)
 {
     int     apiErrCode = 0;
     //AC_API_BEGIN() 
-	//Test();
+	Test();
+	/*
 	StrInStream				strInstrm( "100");
 	Parser< StrInStream>	parser( &strInstrm);
 
-	ParseInt< >				iprs; 
+	auto					lmbda = []( auto ctxt) {
+		std::cout << ctxt.MatchStr() << "\n";
+		return true;  
+	};
+	auto				iprs = ParseInt< >()[ lmbda];
 
 	bool					a1 = parser.Match( &iprs);      
+	*/
     //AC_API_END()
     return apiErrCode;
 }

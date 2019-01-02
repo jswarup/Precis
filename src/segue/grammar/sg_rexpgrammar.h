@@ -56,7 +56,16 @@ struct RExpEntry : public Shard< RExpEntry>
 	{
 	}
 	 
-
+	auto           RExpressionListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto          IndexListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
 	auto           Blank( void) const { return CharSet(" \t\v\r\n"); }
 	auto           WhiteChars( void) const { return CharSet(" \t\v\r"); }
 	auto           WhiteSpace( void) const { return +WhiteChars(); }
@@ -66,14 +75,17 @@ struct RExpEntry : public Shard< RExpEntry>
 	auto           BlankLine( void) const { return OptWhiteSpace() >> (NL() | EoS()); }
 	auto           Comment( void) const { return Str( "<!--") >> *( Any() - Str( "-->")) >> Str( "-->"); } 
 	
-
+	auto           RExpression(void) const { return (+( Any() - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
-
+	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{    
+		auto	rexpLine = RExpLine(); 
+		if (!rexpLine.DoMatch(ctxt))
+			return false;
 		return true;
 	}
 	 
@@ -97,7 +109,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 		std::cout << ctxt.MatchStr() << "\n";
 		return true;  };  } 
 	 
-	auto           Document( void) const { return +RExpEntry()[ DocumentOver()]; } 
+	auto           Document( void) const { return (+RExpEntry())[ DocumentOver()]; } 
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const

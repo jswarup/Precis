@@ -109,6 +109,8 @@ template <typename T>
 	static bool		ReadVec( std::vector< T> *pVec, const char *pathname) 
 	{
 		FILE                    *infile = fopen( pathname, "r");
+		if (!infile)
+			return false;
 		uint64_t                infileSz = Cv_Aid::FileSize( infile);
 		if ( !infileSz)
 			return false;

@@ -40,6 +40,53 @@ struct  StrInStream : public std::vector< char>
 
 //_____________________________________________________________________________________________________________________________ 
 
+template < typename TP>
+struct   Forge :  public Cv_StackVar< Forge< TP> >
+{  
+	typedef TP 						Parser; 
+	typedef typename Parser::Mark	Mark; 
+
+protected:
+	Parser          *m_Parser; 
+	Mark            m_Marker;
+	bool            m_MatchFlg;
+
+public:
+	Forge( Parser *parser )
+		:   m_Parser( parser), m_Marker( parser->Marker()), m_MatchFlg( false)
+	{
+		m_Parser->PushForge( this);
+	}
+
+	~Forge( void)
+	{
+		Forge      *popForge = m_Parser->PopForge();    
+		if ( !m_MatchFlg) 
+			m_Parser->RollTo( m_Marker); 
+	}
+
+	Parser      *GetParser( void) const { return m_Parser; }
+
+	bool        IsMatch( void) const { return m_MatchFlg; }
+
+	Forge       *Parent( void) const { return  this->GetBelow(); }
+
+	void        NotifyFromChildMatch( Forge *child)
+	{}
+
+	void        ProcessMatch( void)
+	{        
+		m_MatchFlg = true;
+		return;
+	}
+
+	uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
+	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
+
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 template < typename InStream>
 class Parser 
 {
@@ -47,48 +94,8 @@ public:
     typedef uint32_t                    Mark;  
     typedef char                        Item; 
     typedef Sg_Timbre::SynElem          SynElem; 
+	typedef Forge< Parser>				Forge;
     
-    struct   Forge :  public Cv_StackVar< Forge >
-    {  
-        typedef  Parser                         TParser;
-    protected:
-        Parser          *m_Parser; 
-        Mark            m_Marker;
-        bool            m_MatchFlg;
-
-    public:
-        Forge( Parser *parser )
-            :   m_Parser( parser), m_Marker( parser->Marker()), m_MatchFlg( false)
-        {
-            m_Parser->PushForge( this);
-        }
-
-        ~Forge( void)
-        {
-            Forge      *popForge = m_Parser->PopForge();    
-            if ( !m_MatchFlg) 
-                m_Parser->RollTo( m_Marker); 
-        }
-
-        Parser      *GetParser( void) const { return m_Parser; }
-
-        bool        IsMatch( void) const { return m_MatchFlg; }
-
-        Forge       *Parent( void) const { return  this->GetBelow(); }
-
-        void        NotifyChildMatch( Forge *child)
-        {}
-
-        void        ProcessMatch( void)
-        {        
-            m_MatchFlg = true;
-            return;
-        }
-        
-        uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
-        Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
-        
-    };
 protected:
     
     Cv_Stack< Forge>        m_ForgeStack;
@@ -124,6 +131,7 @@ template < typename Shard>
         
         return node->DoMatch( &forge);
     } 
+
 }; 
  
 
@@ -180,7 +188,7 @@ struct Str : public Shard< Str >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser();
+        typename Forge::Parser      *parser = ctxt->GetParser();
         const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
@@ -218,7 +226,7 @@ struct IStr : public Shard< IStr >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser();
+        typename Forge::Parser      *parser = ctxt->GetParser();
         const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
@@ -229,8 +237,7 @@ template < typename Forge>
             ++pCh;
         }
         return true;
-    }
-	 
+    } 
 
 template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
@@ -257,7 +264,7 @@ struct Char : public Shard< Char >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser(); 
+        typename Forge::Parser      *parser = ctxt->GetParser(); 
         bool    match = parser->HasMore() && ( parser->Curr() == m_Char);
         if ( !match)
             return false;
@@ -292,7 +299,7 @@ public:
 template < typename Forge>  
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser(); 
+        typename Forge::Parser     *parser = ctxt->GetParser(); 
         bool                        match = parser->HasMore() && (( m_C1 <= parser->Curr()) && ( parser->Curr() < m_C2));
         if ( !match)
             return false;
@@ -320,7 +327,7 @@ struct EoS : public Shard< EoS >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser(); 
+        typename Forge::Parser      *parser = ctxt->GetParser(); 
         return  !parser->HasMore();
     }   
 	 
@@ -345,7 +352,7 @@ struct Any : public Shard< Any>
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser      *parser = ctxt->GetParser();         
+        typename Forge::Parser      *parser = ctxt->GetParser();         
         parser->Next();
         return  true;
     }   
@@ -397,7 +404,7 @@ struct CharSet : public Shard< CharSet >
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser();  
+        typename Forge::Parser     *parser = ctxt->GetParser();  
         bool                        match = parser->HasMore() && m_Bits.Get( parser->Curr());
         if ( ! match)
             return false;

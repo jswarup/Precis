@@ -86,16 +86,22 @@ template < typename Parser>
 template <typename Int = uint64_t, const int Radix = 10, const int MinDigits = 1, const int MaxDigits = 200>
 struct ParseInt : public Shard< ParseInt< Int, Radix, MinDigits, MaxDigits> >
 {
-	   
+	struct	Whorl
+	{
+		Int             num;
+		Whorl( void)
+			: num( 0)
+		{}
+	};
+
 template < typename Forge>    
 	bool    DoParse( Forge *ctxt) const
 	{
-		typename Forge::TParser      *parser = ctxt->GetParser();
+		typename Forge::Parser      *parser = ctxt->GetParser();
 		
 		bool            match = true; 
         int             digit_nb = 0;
-        Int             num = 0;
-        
+		Int				&num = ctxt->num;
         // Check mandatory digits
         while (digit_nb < MinDigits)
         {
@@ -104,7 +110,7 @@ template < typename Forge>
             if ( !match)
                 break;
             
-            num = num * Radix + d;
+			num = num * Radix + d;
             ++digit_nb;
             parser->Next();
         }  
@@ -114,7 +120,7 @@ template < typename Forge>
             int     d = ParseDigit< Radix>()( parser);
             if ( d < 0)
                 break;
-            num = num * Radix + d;
+			num = num * Radix + d;
             ++digit_nb; 
             parser->Next();
         } 

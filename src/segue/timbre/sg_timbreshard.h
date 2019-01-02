@@ -40,20 +40,29 @@ struct RangeShard;
 //_____________________________________________________________________________________________________________________________  
 
 template < typename TimbreShard, typename Parser, typename = void>
-struct ForgeType 
-{ 
-    typedef typename Parser::Forge          Forge;
-    typedef typename Parser::SynElem        SynElem;
+struct ShardForge : public  Parser::Forge
+{   
+	ShardForge( Parser *parser)
+		: Parser::Forge(parser) 
+	{ }
 };
 
 template <typename TimbreShard, typename Parser>
-struct ForgeType< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Forge>::Note> 
-{ 
-    typedef typename TimbreShard::Forge      Forge;
-    typedef typename TimbreShard::SynElem    SynElem;
-}; 
+struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Forge>::Note> : public  TimbreShard::Forge
+{  
+	ShardForge(Parser *parser)
+		: TimbreShard::Forge(parser)
+	{ }
+};
 
- 
+
+template <typename TimbreShard, typename Parser>
+struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::Forge, public  TimbreShard::Whorl
+{
+	ShardForge(Parser *parser)
+		: Parser::Forge(parser)
+	{ }
+}; 
 
 //_____________________________________________________________________________________________________________________________  
  
@@ -85,13 +94,13 @@ template <typename  Forge>
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
-        typename ForgeType< GrammarShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+        ShardForge< GrammarShard, typename ParentForge::Parser>      forge( ctxt->GetParser());
         
         bool        match = this->GetShard()->DoParse( &forge);
         if ( match)  
         {
             forge.ProcessMatch(); 
-            ctxt->NotifyChildMatch( &forge);
+            ctxt->NotifyFromChildMatch( &forge);
         }
         
         return match;
@@ -122,7 +131,7 @@ template < typename Right>
     LexemeShard< Right>                          Lexeme( const Right &p) const { return LexemeShard< Right>( p); }
 	  
 template < typename Right>
-	RefShard< Right>								Ref( const Right &p) const { return RefShard< Right>( p); }
+	RefShard< Right>							 Ref( const Right &p) const { return RefShard< Right>( p); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -169,13 +178,13 @@ public:
 template <typename ParentForge>
 	bool DoMatch( ParentForge *ctxt) const
 	{
-		typename ForgeType< TShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+		ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
 
 		bool        match = m_Shard->DoMatch( &forge);
 		if ( match)  
 		{
 			forge.ProcessMatch(); 
-			ctxt->NotifyChildMatch( &forge); 
+			ctxt->NotifyFromChildMatch( &forge); 
 		}
 
 		return match;
@@ -210,13 +219,13 @@ public:
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
-        typename ForgeType< TShard, typename ParentForge::TParser>::Forge      forge( ctxt->GetParser());
+        ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
         
-        bool        match = m_Shard.DoMatch( &forge);
+        bool        match = m_Shard.DoParse( &forge);
         if ( match)  
         {
             forge.ProcessMatch(); 
-            ctxt->NotifyChildMatch( &forge);
+            ctxt->NotifyFromChildMatch( &forge);
             match = m_Actor( forge);
         }
         
@@ -284,7 +293,7 @@ struct Seq : public  Shard< Seq< Left, Right> >
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser  *parser = ctxt->GetParser(); 
+        typename Forge::Parser	*parser = ctxt->GetParser(); 
         bool                    match = false; 
         
         if ( m_Left.DoMatch( ctxt)) 
@@ -356,7 +365,7 @@ struct Repeat  : public  Shard< Repeat< Child, Min, Max> >
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser(); 
+        typename Forge::Parser		*parser = ctxt->GetParser(); 
 
         if ( !parser->HasMore())
             return false;
@@ -409,7 +418,7 @@ struct Alt : public Shard< Alt< Left, Right> >
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser(); 
+        typename Forge::Parser     *parser = ctxt->GetParser(); 
          
         bool    match = m_Left.DoMatch( ctxt);
         if ( !match) 
@@ -481,12 +490,12 @@ struct Diff : public Shard< Diff< Left, Right> >
     template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::TParser     *parser = ctxt->GetParser(); 
+        typename Forge::Parser     *parser = ctxt->GetParser(); 
 
-        bool    match = m_Left.DoMatch( ctxt);
+        bool    match = m_Right.DoMatch( ctxt);
         if ( !match) 
-            match = m_Right.DoMatch( ctxt);
-        return match;
+            return m_Left.DoMatch( ctxt);
+        return false;
     }
 	 
 
