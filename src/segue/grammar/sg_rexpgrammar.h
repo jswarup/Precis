@@ -73,8 +73,9 @@ struct RExpEntry : public Shard< RExpEntry>
 	}
 
 	auto          IndexListener(void) const {
-		return [this](auto ctxt) { 
-			std::cout << ctxt.MatchStr() << "\n";
+		return [this](auto ctxt) {   
+			Whorl	*whorl = ctxt.GetParser()->TopWhorl< RExpEntry>();
+			whorl->m_Index = ctxt.num; 
 			return true;  };
 	}
 
@@ -95,9 +96,11 @@ struct RExpEntry : public Shard< RExpEntry>
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{     
+		ctxt->Push();
 		auto	rexpLine = RExpLine( ); 
 		if (!rexpLine.DoMatch(ctxt))
 			return false;
+		std::cout << ctxt->m_Index << "\n";
 		return true;
 	}
 	 

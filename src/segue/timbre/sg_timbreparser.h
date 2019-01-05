@@ -81,7 +81,7 @@ public:
 	Forge       *Parent( void) const { return  this->GetBelow(); }
 
 	void        NotifyFromChildMatch( Forge *child)
-	{}
+	{} 
 
 	void        ProcessMatch( void)
 	{        
@@ -91,6 +91,10 @@ public:
 
 	uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
 	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
+
+template < typename TimbreShard>
+	auto		*Whorl(void) { return static_cast<ShardForge < TimbreShard, Parser> *>(this);  }
+
 
 };
 
@@ -141,7 +145,9 @@ template < typename Shard>
         
         return node->DoMatch( &forge);
     } 
-
+	 
+template < typename TimbreShard>
+	auto		*TopWhorl(void) { return TopForge()->Whorl< TimbreShard>(); }
 }; 
  
 

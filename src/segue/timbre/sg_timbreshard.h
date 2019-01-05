@@ -46,15 +46,7 @@ struct ShardForge : public  Parser::Forge
 		: Parser::Forge(parser) 
 	{ }
 };
-
-template <typename TimbreShard, typename Parser>
-struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Forge>::Note> : public  TimbreShard::Forge
-{  
-	ShardForge(Parser *parser)
-		: TimbreShard::Forge(parser)
-	{ }
-};
-
+ 
 
 template <typename TimbreShard, typename Parser>
 struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::Forge, public  TimbreShard::Whorl
