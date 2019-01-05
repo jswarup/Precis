@@ -36,7 +36,9 @@ struct  StrInStream : public std::vector< char>
     uint32_t            SzFrom( uint32_t mark) { return m_Cursor -mark; }
 
     Cv_CStr             Region( uint32_t m1, uint32_t m2) { return Cv_CStr( &SELF[ m1], m2 -m1); }
-};
+}; 
+
+
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -49,21 +51,28 @@ struct   Forge :  public Cv_StackVar< Forge< TP> >
 protected:
 	Parser          *m_Parser; 
 	Mark            m_Marker;
+	bool			m_PushedFlg;
 	bool            m_MatchFlg;
 
 public:
 	Forge( Parser *parser )
-		:   m_Parser( parser), m_Marker( parser->Marker()), m_MatchFlg( false)
+		:   m_Parser( parser), m_Marker( parser->Marker()), m_PushedFlg( false), m_MatchFlg( false)
 	{
-		m_Parser->PushForge( this);
+		
 	}
 
-	~Forge( void)
+	~Forge(void)
 	{
-		Forge      *popForge = m_Parser->PopForge();    
+		if (m_PushedFlg)
+		{
+			Forge      *popForge = m_Parser->PopForge();
+			CV_ERROR_ASSERT(popForge == this)
+		}
 		if ( !m_MatchFlg) 
 			m_Parser->RollTo( m_Marker); 
 	}
+
+	void		Push(void) { m_Parser->PushForge(this); m_PushedFlg = true; }
 
 	Parser      *GetParser( void) const { return m_Parser; }
 
@@ -84,6 +93,7 @@ public:
 	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
 
 };
+
 
 //_____________________________________________________________________________________________________________________________ 
 

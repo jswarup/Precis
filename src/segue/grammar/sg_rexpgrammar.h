@@ -31,7 +31,7 @@ struct      RExpSynElem : public SynElem
 
 //_____________________________________________________________________________________________________________________________
 
-struct      RExpDocSynElem : public SynElem 
+struct      RExpDocSynElem : public AltSynElem
 { 
 	Cv_CrateId		m_Item;
 
@@ -51,21 +51,33 @@ struct      RExpDocSynElem : public SynElem
 
 struct RExpEntry : public Shard< RExpEntry>
 {
+	struct Whorl
+	{
+		uint64_t	m_Index;
+		SeqSynElem	m_Rules;
+
+		Whorl( void)
+			: m_Index( 0)
+		{}
+	};
+	Whorl		*m_CurWhorl;
 
 	RExpEntry( void)
-	{
-	}
+		: m_CurWhorl( NULL)
+	{}
 	 
 	auto           RExpressionListener(void) const {
 		return [](auto ctxt) {
 			std::cout << ctxt.MatchStr() << "\n";
 			return true;  };
 	}
+
 	auto          IndexListener(void) const {
-		return [](auto ctxt) {
+		return [this](auto ctxt) { 
 			std::cout << ctxt.MatchStr() << "\n";
 			return true;  };
 	}
+
 	auto           Blank( void) const { return CharSet(" \t\v\r\n"); }
 	auto           WhiteChars( void) const { return CharSet(" \t\v\r"); }
 	auto           WhiteSpace( void) const { return +WhiteChars(); }
@@ -78,12 +90,12 @@ struct RExpEntry : public Shard< RExpEntry>
 	auto           RExpression(void) const { return (+( Any() - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
-	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
+	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
-	{    
-		auto	rexpLine = RExpLine(); 
+	{     
+		auto	rexpLine = RExpLine( ); 
 		if (!rexpLine.DoMatch(ctxt))
 			return false;
 		return true;
@@ -101,6 +113,10 @@ template < typename Cnstr>
 
 struct RExpDoc  : public Shard< RExpDoc>
 {  
+	struct Whorl
+	{
+		AltSynElem	m_AllRules;
+	};
 
 	RExpDoc( void) 
 	{}
@@ -114,6 +130,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{   
+		ctxt->Push();
 		auto    doc = Document();
 		if (  !doc.DoMatch( ctxt))
 			return false;  
