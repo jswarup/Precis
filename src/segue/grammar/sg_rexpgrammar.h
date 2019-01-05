@@ -68,39 +68,47 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 {
 	struct Whorl
 	{
-		CSetSynElem		m_Syn; 
+		Sg_ChSet		m_ChSet;
+
+		Whorl(void)
+		{}
+		~Whorl(void)
+		{}
 	}; 
 
 	static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
 
 	auto		CharListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			Whorl	*whorl = ctxt->Pred< RExpUnit>();
+			whorl->m_ChSet.Set( ctxt->MatchStr()[0], true);
 			return true;  };
 	}
 	auto		CtrlCharListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			Whorl	*whorl = ctxt->Pred< RExpUnit>();
+			whorl->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
 			return true;  };
 	}
 	auto		EscCharListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			Whorl	*whorl = ctxt->Pred< RExpUnit>();
+			whorl->m_ChSet.Set( ctxt->MatchStr()[0], true);
 			return true;  };
 	}
 	auto		OctalListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			std::cout << ctxt->MatchStr() << "\n";
 			return true;  };
 	}
 	auto		BackrefListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			std::cout << ctxt->MatchStr() << "\n";
 			return true;  };
 	}
 	auto		HexListener(void) const {
 		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+			std::cout << ctxt->MatchStr() << "\n";
 			return true;  };
 	}
 
@@ -128,35 +136,41 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 {
 	struct Whorl
 	{
-		uint64_t	m_Index;
-		SeqSynElem	m_Rules;
+		uint64_t					m_Index;
+		std::vector< Sg_ChSet>		m_ChSets;
 
 		Whorl( void)
 			: m_Index( 0)
 		{}
-	};
-	Whorl		*m_CurWhorl;
 
-	RExpEntry( void)
-		: m_CurWhorl( NULL)
-	{}
-	 
+		~Whorl(void)
+		{}
+	};
+
+	RExpEntry( void) 
+	{} 
+
 	auto           RExpressionListener(void) const {
-		return [](auto ctxt) {
-			std::cout << ctxt.MatchStr() << "\n";
+		return []( auto ctxt) {
+			std::cout << ctxt->MatchStr() << "\n";
 			return true;  };
 	}
 
 	auto          IndexListener(void) const {
-		return [this](auto ctxt) {   
-			Whorl	*whorl = ctxt.GetParser()->TopWhorl< RExpEntry>();
-			whorl->m_Index = ctxt.num; 
+		return [this]( auto ctxt) {   
+			Whorl	*whorl = ctxt->Pred< RExpEntry>();
+			whorl->m_Index = ctxt->num;
 			return true;  };
 	}
 
+	auto          UnitListener(void) const {
+		return [this]( auto ctxt) {
+			Whorl	*whorl = ctxt->Pred< RExpEntry>();
+			whorl->m_ChSets.push_back( ctxt->m_ChSet);
+			return true;  };
+	}
 
-	
-	auto           RExpression(void) const { return (+(RExpUnit() - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpUnit()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
@@ -193,7 +207,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 	{}
 
 	auto           DocumentOver( void) const { return []( auto ctxt) {  
-		std::cout << ctxt.MatchStr() << "\n";
+		std::cout << ctxt->MatchStr() << "\n";
 		return true;  };  } 
 	 
 	auto           Document( void) const { return (+RExpEntry())[ DocumentOver()]; } 

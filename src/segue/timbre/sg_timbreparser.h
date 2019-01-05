@@ -96,6 +96,9 @@ template < typename TimbreShard>
 	auto		*Whorl(void) { return static_cast<ShardForge < TimbreShard, Parser> *>(this);  }
 
 
+
+template < typename TimbreShard>
+	auto		*Pred(void) { return m_PushedFlg ? Parent()->Whorl< TimbreShard>() : m_Parser->TopForge()->Whorl< TimbreShard>(); }
 };
 
 
@@ -145,9 +148,6 @@ template < typename Shard>
         
         return node->DoMatch( &forge);
     } 
-	 
-template < typename TimbreShard>
-	auto		*TopWhorl(void) { return TopForge()->Whorl< TimbreShard>(); }
 }; 
  
 

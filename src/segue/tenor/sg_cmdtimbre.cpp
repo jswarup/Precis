@@ -69,11 +69,11 @@ int     Sg_TimbreCmdProcessor::Execute( void)
         using namespace Sg_Timbre;
  
         auto        lRgx = Str( "l") [( []( auto ctxt) {  
-            std::cout << ctxt.MatchStr() << "\n"; 
+            std::cout << ctxt->MatchStr() << "\n";
             return true; 
         }) ];  
         auto        regex = Str( "a") >> (( *lRgx | IStr("te") | Str("open") | Str("close")) >> Str( "test") >> Str( "suc") >> Str( "fail"))[ ( []( auto ctxt) { 
-            std::cout << ctxt.MatchStr() << "\n";  
+            std::cout << ctxt->MatchStr() << "\n";  
             return true; 
         }) ];   
             

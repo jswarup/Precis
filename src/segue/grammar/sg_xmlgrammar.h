@@ -54,57 +54,57 @@ struct XMLElement : public Shard< XMLElement>
     }
 
     auto           ElementNameListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           ElementLeafOver( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           ElementBranchOver( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           ElementBranchBegin( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           AttributeNameListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
     
     auto           StringListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           QuotListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     
     auto           AttributeListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           AposListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           AmpListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           LtListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
     auto           GtListener( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
 
 
     auto           DataOver( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n"; 
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  }
  
 
@@ -173,7 +173,7 @@ struct XMLDoc  : public Shard< XMLDoc>
     {}
 
     auto           DocumentOver( void) const { return []( auto ctxt) {  
-                                                            std::cout << ctxt.MatchStr() << "\n";
+                                                            std::cout << ctxt->MatchStr() << "\n";
                                                         return true;  };  } 
 
     auto           PI( void) const { return Str( "<?") >> *( Any() - Str( "?>")) >> Str( "?>"); } 

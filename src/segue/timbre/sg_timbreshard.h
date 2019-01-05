@@ -218,7 +218,7 @@ template <typename ParentForge>
         {
             forge.ProcessMatch(); 
             ctxt->NotifyFromChildMatch( &forge);
-            match = m_Actor( forge);
+            match = m_Actor( &forge);
         }
         
         return match;
