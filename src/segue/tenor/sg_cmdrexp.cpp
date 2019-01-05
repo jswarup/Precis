@@ -19,9 +19,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_RExpCmdProcessor : public Cv_CmdExecutor
-{
-     
-
+{ 
 public:
     Sg_RExpCmdProcessor( void)  
     {}

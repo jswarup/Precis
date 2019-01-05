@@ -99,12 +99,12 @@ template <typename ParentForge>
     }  
 
 template < typename Right>
-    Seq< GrammarShard, Right>                    operator>>( const Right & r) const;
+    Seq< GrammarShard, Right>                   operator>>( const Right & r) const;
 
 template <typename Actor>
-    Action< GrammarShard, Actor >                operator[ ] ( const Actor &actor) const;     
+    Action< GrammarShard, Actor >               operator[ ] ( const Actor &actor) const;     
     
-    auto                                        operator!( void) const;
+    auto										operator!( void) const;
     auto                                        operator!( void);
     
     auto                                        operator+( void) const;
@@ -114,16 +114,16 @@ template <typename Actor>
     auto                                        operator*( void);
     
 template < typename Right>
-    Alt< GrammarShard, Right>                    operator|( const Right & r) const;
+    Alt< GrammarShard, Right>                   operator|( const Right & r) const;
 
 template < typename Right>
-    Diff< GrammarShard, Right>                   operator-( const Right & r) const; 
+    Diff< GrammarShard, Right>                  operator-( const Right & r) const; 
 
 template < typename Right>
-    LexemeShard< Right>                          Lexeme( const Right &p) const { return LexemeShard< Right>( p); }
+    LexemeShard< Right>                         Lexeme( const Right &p) const { return LexemeShard< Right>( p); }
 	  
 template < typename Right>
-	RefShard< Right>							 Ref( const Right &p) const { return RefShard< Right>( p); }
+	RefShard< Right>							Ref( const Right &p) const { return RefShard< Right>( p); } 
 };
 
 //_____________________________________________________________________________________________________________________________ 

@@ -437,6 +437,7 @@ template < typename Cnstr>
 	} 
 };
  
+ 
 //_____________________________________________________________________________________________________________________________ 
 
 typedef Cv_Crate< StrSynElem, CSetSynElem,  SynCrate>   SynParserCrate; 

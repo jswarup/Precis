@@ -14,6 +14,21 @@ using namespace Sg_Timbre;
 
 //_____________________________________________________________________________________________________________________________
 
+struct RExpPrimitive
+{
+	auto           Blank(void) const { return CharSet(" \t\v\r\n"); }
+	auto           WhiteChars(void) const { return CharSet(" \t\v\r"); }
+	auto           WhiteSpace(void) const { return +WhiteChars(); }
+	auto           OptWhiteSpace(void) const { return *WhiteChars(); }
+	auto           NL(void) const { return !(Char('\r')) >> Char('\n'); }
+	auto           OptBlankSpace(void) const { return *(WhiteChars() | NL()); }
+	auto           BlankLine(void) const { return OptWhiteSpace() >> (NL() | EoS()); }
+	auto           Comment(void) const { return Str("<!--") >> *(Any() - Str("-->")) >> Str("-->"); }
+	auto		   AlphaNum(void) const { return CharSet("a-zA-Z0-9"); }
+};
+
+//_____________________________________________________________________________________________________________________________
+
 struct      RExpSynElem : public SynElem 
 { 
 	Cv_CrateId		m_Item;
@@ -45,11 +60,71 @@ struct      RExpDocSynElem : public AltSynElem
 	}
 
 };  
- 
+
 
 //_____________________________________________________________________________________________________________________________
 
-struct RExpEntry : public Shard< RExpEntry>
+struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
+{
+	struct Whorl
+	{
+		CSetSynElem		m_Syn; 
+	}; 
+
+	static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
+
+	auto		CharListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto		CtrlCharListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto		EscCharListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto		OctalListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto		BackrefListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+	auto		HexListener(void) const {
+		return [](auto ctxt) {
+			std::cout << ctxt.MatchStr() << "\n";
+			return true;  };
+	}
+
+	auto           Unit(void) const { return AlphaNum()[CharListener()] | 
+											 ( Char('\\') >> ( CharSet("abfnrtv")[ CtrlCharListener()] |
+												  CharSet( EscapedCharset )[ EscCharListener()]  | 
+	 												ParseInt< uint8_t, 8, 2, 3>()[ OctalListener()] |
+													ParseInt< uint16_t, 10, 1, 3>()[ BackrefListener()] |
+													(IStr( "x") >> ParseInt< uint8_t, 16, 0, 2>()[ HexListener()]))); }
+
+template < typename Forge>
+	bool    DoParse( Forge *ctxt) const
+	{
+		ctxt->Push();
+		auto	unit = Unit();
+		if ( !unit.DoMatch( ctxt))
+			return false; 
+		return true;
+	}
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 {
 	struct Whorl
 	{
@@ -79,16 +154,9 @@ struct RExpEntry : public Shard< RExpEntry>
 			return true;  };
 	}
 
-	auto           Blank( void) const { return CharSet(" \t\v\r\n"); }
-	auto           WhiteChars( void) const { return CharSet(" \t\v\r"); }
-	auto           WhiteSpace( void) const { return +WhiteChars(); }
-	auto           OptWhiteSpace( void) const { return *WhiteChars(); }
-	auto           NL( void) const { return !(Char('\r')) >> Char('\n'); }
-	auto           OptBlankSpace( void) const { return *(WhiteChars() | NL()); }
-	auto           BlankLine( void) const { return OptWhiteSpace() >> (NL() | EoS()); }
-	auto           Comment( void) const { return Str( "<!--") >> *( Any() - Str( "-->")) >> Str( "-->"); } 
+
 	
-	auto           RExpression(void) const { return (+( Any() - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpUnit() - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
