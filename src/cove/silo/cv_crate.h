@@ -278,7 +278,7 @@ template<  class Object>
     {
 		TypeStor	typeVal = Crate::AssignIndex( x); 
 
-		IndexStor	ind = m_Elems.size();
+		IndexStor	ind = IndexStor( m_Elems.size());
 		x->SetId( ind);
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
