@@ -43,9 +43,9 @@ const Sg_ChSet    &Sg_ChSet::Word( void)
 
     // Word Class
     s_WordCCL.Set( '_', true);
-    s_WordCCL.SetByteRange( 'a','z',1);
-    s_WordCCL.SetByteRange( 'A','Z',1);
-    s_WordCCL.SetByteRange( '0','9',1);
+    s_WordCCL.SetByteRange( 'a','z', true);
+    s_WordCCL.SetByteRange( 'A','Z', true);
+    s_WordCCL.SetByteRange( '0','9', true);
     return s_WordCCL;
 }
 
@@ -203,6 +203,14 @@ const Sg_ChSet    &Sg_ChSet::DotAll( void)
     return s_CCL;
 }
 
+//_____________________________________________________________________________________________________________________________
+
+void   Sg_ChSet::SetByteRange(uint32_t start, uint32_t stop, bool value)
+{
+	for (uint32_t i = start; i <= stop; ++i)
+		Set( i, value);
+	return;
+}
 
 //_____________________________________________________________________________________________________________________________
 

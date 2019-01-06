@@ -80,40 +80,84 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
 	auto		CharListener(void) const {
 		return [](auto ctxt) {
-			Whorl	*whorl = ctxt->Pred< RExpUnit>();
-			whorl->m_ChSet.Set( ctxt->MatchStr()[0], true);
-			return true;  };
-	}
+			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+			return true;  }; }
+
 	auto		CtrlCharListener(void) const {
 		return [](auto ctxt) {
-			Whorl	*whorl = ctxt->Pred< RExpUnit>();
-			whorl->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
-			return true;  };
-	}
+			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
+			return true;  }; }
+
 	auto		EscCharListener(void) const {
 		return [](auto ctxt) {
-			Whorl	*whorl = ctxt->Pred< RExpUnit>();
-			whorl->m_ChSet.Set( ctxt->MatchStr()[0], true);
-			return true;  };
-	}
+			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+			return true;  }; }
+
 	auto		OctalListener(void) const {
 		return [](auto ctxt) {
 			std::cout << ctxt->MatchStr() << "\n";
-			return true;  };
-	}
+			return true;  }; }
+
 	auto		BackrefListener(void) const {
 		return [](auto ctxt) {
 			std::cout << ctxt->MatchStr() << "\n";
-			return true;  };
-	}
+			return true;  }; }
+
 	auto		HexListener(void) const {
 		return [](auto ctxt) {
 			std::cout << ctxt->MatchStr() << "\n";
-			return true;  };
-	}
+			return true;  }; }
+
+	auto		WhiteSpaceListener(void) const {
+		return [](auto ctxt) {
+			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Space();
+			return true;  }; }
+
+	auto		NonWhiteSpaceListener(void) const {
+		return [](auto ctxt) {
+			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonSpace();
+			return true;  }; }
+
+    auto		DigitListener(void) const {
+		return [](auto ctxt) {
+			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Digit();
+			return true;  }; }
+
+    auto		NonDigitListener(void) const {
+		return [](auto ctxt) {
+ 			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonDigit();
+			return true;  }; }
+
+    auto		WordListener(void) const {
+		return [](auto ctxt) {
+			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Word();
+			return true;  }; } 
+
+    auto		NonWordListener(void) const {
+		return [](auto ctxt) {
+			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
+			return true;  }; }
+    
+    auto		WordBdyListener(void) const {
+		return [](auto ctxt) {
+			return true;  }; }
+
+    auto		NonWordBdyListener(void) const {
+		return [](auto ctxt) {
+			return true;  }; } 
+
+    auto           KeyChar( void) const {
+        return  Char('s')[ WhiteSpaceListener()] |
+		        Char('S')[ NonWhiteSpaceListener()] |
+		        Char('d')[ DigitListener()] |
+		        Char('D')[ NonDigitListener()] |
+		        Char('w')[ WordListener()] |
+		        Char('W')[ NonWordListener()] |
+		        Char('b')[ WordBdyListener()] |
+		        Char('B')[ NonWordBdyListener()];  }
 
 	auto           Unit(void) const { return AlphaNum()[CharListener()] | 
-											 ( Char('\\') >> ( CharSet("abfnrtv")[ CtrlCharListener()] |
+											 ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] |
 												  CharSet( EscapedCharset )[ EscCharListener()]  | 
 	 												ParseInt< uint8_t, 8, 2, 3>()[ OctalListener()] |
 													ParseInt< uint16_t, 10, 1, 3>()[ BackrefListener()] |
@@ -158,15 +202,13 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
 	auto          IndexListener(void) const {
 		return [this]( auto ctxt) {   
-			Whorl	*whorl = ctxt->Pred< RExpEntry>();
-			whorl->m_Index = ctxt->num;
+			ctxt->Pred< RExpEntry>()->m_Index = ctxt->num;
 			return true;  };
 	}
 
 	auto          UnitListener(void) const {
 		return [this]( auto ctxt) {
-			Whorl	*whorl = ctxt->Pred< RExpEntry>();
-			whorl->m_ChSets.push_back( ctxt->m_ChSet);
+			ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
 			return true;  };
 	}
 

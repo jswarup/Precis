@@ -87,7 +87,7 @@ public:
     bool            IsEqual( const Sg_ChSet &cs) const  {  return ( m_ChSet[ 0] == cs.m_ChSet[ 0]) && ( m_ChSet[ 1] == cs.m_ChSet[ 1]) && 
                                                                     ( m_ChSet[ 2] == cs.m_ChSet[ 2])  && ( m_ChSet[ 3] == cs.m_ChSet[ 3]) ; }
 
-    void            SetByteRange( int start, int stop, bool value); // Start and Stop are inclusive
+    void            SetByteRange( uint32_t start, uint32_t stop, bool value); // Start and Stop are inclusive
 
     int             ListChars( int *list) const;
 
