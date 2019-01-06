@@ -10,11 +10,18 @@ namespace Sg_Xml
 
 using namespace Sg_Timbre; 
 
+struct      XMLSynElem;
+struct      XDocSynElem;
+struct      XMLSynElem;
+//_____________________________________________________________________________________________________________________________ 
+
+typedef Cv_Crate< XDocSynElem, XMLSynElem,  SynParserCrate>   XmlCrate; 
+
 //_____________________________________________________________________________________________________________________________
 
 struct      XMLSynElem : public SynElem 
 { 
-	Cv_CrateId		m_Item;
+    XmlCrate::Id		m_Item;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "XMLElem", GetId()); } 
 
@@ -23,8 +30,7 @@ struct      XMLSynElem : public SynElem
 		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
 		strm << " </FONT>>];\n "; 
 		return true;
-	}
-
+	} 
 };
 
 
@@ -32,7 +38,7 @@ struct      XMLSynElem : public SynElem
 
 struct      XDocSynElem : public SynElem 
 { 
-	Cv_CrateId		m_Item;
+    XmlCrate::Id		m_Item;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "XDocElem", GetId()); } 
 
@@ -155,9 +161,9 @@ template < typename Forge>
 template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
-		auto		elem = new XMLSynElem();  
+		auto		    elem = new XMLSynElem();  
 		elem->m_LockFlg = 0;
-		Cv_CrateId	crateId = cnstr->Store( elem);
+        XmlCrate::Id	crateId = cnstr->Store( elem);
 		auto		node = Elem();
 		elem->m_Item = cnstr->FetchElemId( &node);
 		return crateId;
@@ -169,8 +175,7 @@ template < typename Cnstr>
 struct XMLDoc  : public Shard< XMLDoc>
 {  
    
-    XMLDoc( void) 
-    {}
+    XMLDoc( void)  {}
 
     auto           DocumentOver( void) const { return []( auto ctxt) {  
                                                             std::cout << ctxt->MatchStr() << "\n";
@@ -198,10 +203,6 @@ template < typename Cnstr>
 		return cnstr->Store( elem);
 	} 
 };
-
-//_____________________________________________________________________________________________________________________________ 
-
-typedef Cv_Crate< XDocSynElem, XMLSynElem,  SynParserCrate>   XmlParserCrate; 
 
 //_____________________________________________________________________________________________________________________________
 };

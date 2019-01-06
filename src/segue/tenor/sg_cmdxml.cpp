@@ -60,8 +60,8 @@ int     Sg_XmlCmdProcessor::Test(void)
 	XMLDoc					xmlDoc; 
     bool					apiErrCode = parsr.Match( &xmlDoc);
 
-	Cv_CrateRepos< XmlParserCrate>				synCrate ;
-	Cv_CrateConstructor< XmlParserCrate>		synCnstr( &synCrate);
+	Cv_CrateRepos< XmlCrate>				synCrate ;
+	Cv_CrateConstructor< XmlCrate>		synCnstr( &synCrate);
 	auto										synElem = synCnstr.FetchElemId( &xmlDoc);
 	std::ofstream								ostrm( "b.dot");
 	Cv_DotStream								synDotStrm( &ostrm, false); 

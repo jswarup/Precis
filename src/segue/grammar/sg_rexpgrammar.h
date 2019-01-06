@@ -58,16 +58,15 @@ struct      RExpDocSynElem : public AltSynElem
 		strm << " </FONT>>];\n "; 
 		return true;
 	}
-
 };  
-
-
+ 
 //_____________________________________________________________________________________________________________________________
 
 struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 {
 	struct Whorl
 	{
+
 		Sg_ChSet		m_ChSet;
 		uint32_t		m_Min;
 		uint32_t		m_Max;
@@ -159,8 +158,14 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 		        Char('b')[ WordBdyListener()] |
 		        Char('B')[ NonWordBdyListener()];  }
 
-	auto        Unit( void) const { return AlphaNum()[CharListener()] | 
-											 ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] |
+    auto          UnitListener(void) const {
+        return [this]( auto ctxt) {
+            //ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
+            return true;  }; }
+
+	auto        Singleton( const RExpUnit *re) const { return AlphaNum()[ CharListener()] | 
+                                            ( Char('(') >> (*re)[ UnitListener()] >> Char(')')) |
+											( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] |
 												  CharSet( EscapedCharset )[ EscCharListener()]  | 
 	 												ParseInt< uint8_t, 8, 2, 3>()[ OctalListener()] |
 													ParseInt< uint16_t, 10, 1, 3>()[ BackrefListener()] |
@@ -178,30 +183,30 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 			return true;  }; }
 
 	auto		ZeroToMaxListener(void) const {
-		return [](auto ctxt) {
+		return []( auto ctxt) {
 			return true;  }; }
 
 	auto		QuestionListener(void) const {
-		return [](auto ctxt) {
+		return []( auto ctxt) {
 			return true;  }; }
 
 	auto		StarListener(void) const {
-		return [](auto ctxt) {
+		return []( auto ctxt) {
 			return true;  }; }
 
 	auto		PlusListener(void) const {
-		return [](auto ctxt) {
+		return []( auto ctxt) {
 			return true;  }; }
 
 	auto		StingyListener(void) const {
 		return [](auto ctxt) {
 			return true;  }; }
 
-	auto		Quanta( void) const {
+	auto		Quanta( const RExpUnit *re) const {
 		ParseInt< uint32_t, 10>	spinMin;
 		ParseInt< uint32_t, 10>	spinMax;
 
-		return Unit() >> !(( Char('{') >> spinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(spinMax[ MaxSpinListener()])) >> Char('}')) |
+		return Singleton( re) >> !(( Char('{') >> spinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(spinMax[ MaxSpinListener()])) >> Char('}')) |
 			              ( Char('{') >> Char(',') >> (spinMax[ZeroToMaxListener()]) >> Char('}')) |
 		                  ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
 
@@ -209,7 +214,7 @@ template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{
 		ctxt->Push();
-		auto	unit = Unit();
+		auto	unit = Quanta( this);
 		if ( !unit.DoMatch( ctxt))
 			return false; 
 		return true;
@@ -239,20 +244,17 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	auto           RExpressionListener(void) const {
 		return []( auto ctxt) {
 			std::cout << ctxt->MatchStr() << "\n";
-			return true;  };
-	}
+			return true;  }; }
 
 	auto          IndexListener(void) const {
 		return [this]( auto ctxt) {   
 			ctxt->Pred< RExpEntry>()->m_Index = ctxt->num;
-			return true;  };
-	}
+			return true;  }; }
 
 	auto          UnitListener(void) const {
 		return [this]( auto ctxt) {
 			ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
-			return true;  };
-	}
+			return true;  }; }
 
 	auto           RExpression(void) const { return (+(RExpUnit()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }

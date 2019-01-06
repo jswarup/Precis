@@ -5,6 +5,54 @@
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_dotstream.h"
   
+
+//_____________________________________________________________________________________________________________________________
+
+class  Cv_CrateId 
+{
+public:	
+    typedef uint32_t	IPtrStor;	
+    typedef uint32_t	IndexStor;	
+    typedef uint32_t	TypeStor;	 
+    enum {
+        SzTypeBits	= 8,
+        SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
+        MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
+    };
+
+    IPtrStor			m_IPtr; 
+
+public:
+    Cv_CrateId( void)
+        : m_IPtr( 0)
+    {}
+    Cv_CrateId( IndexStor id, TypeStor type)
+        :  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
+    {} 
+    
+    Cv_CrateId( const Cv_CrateId &id)
+        :  m_IPtr( id.m_IPtr)
+    {}
+
+    Cv_CrateId( Cv_CrateId &&id)
+        :  m_IPtr( id.m_IPtr)
+    {}
+
+    Cv_CrateId  &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
+
+    IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
+    void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
+
+    TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
+    TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+
+    friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
+    { 
+        dotStrm.OStream() << "Id" << x.m_IPtr;
+        return dotStrm;
+    }
+};
+
 //_____________________________________________________________________________________________________________________________
 
 template < typename Crate>
@@ -70,7 +118,11 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef typename CrateBase::Entry   Entry; 
 	typedef typename Cv_Var< Crate>		Var; 
 	typedef typename Entry::TypeStor    TypeStor; 
+    typedef typename Entry::IndexStor   IndexStor;
+    typedef typename CrateBase::Id      Id;
     
+
+
     enum {
         Sz = CrateBase::Sz +1,
     };
@@ -130,6 +182,13 @@ struct Cv_CrateT
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
 	typedef typename Cv_Var< Crate>			Var; 
+    struct Id : public Cv_CrateId 
+    {
+        typedef Crate       Crate;
+        Id( void) {}
+        Id( IndexStor id, TypeStor type) :  Cv_CrateId( id, type) {} 
+    };
+
 
 template < typename X = void>    
 	TypeStor	AssignIndex( X *obj)
@@ -167,45 +226,6 @@ template < typename T >
 struct   Cv_Crate< T> : Cv_CrateT< T>
 { 
 }; 
-
-//_____________________________________________________________________________________________________________________________
-
-
-class  Cv_CrateId 
-{
-public:	
-	typedef uint32_t	IPtrStor;	
-	typedef uint32_t	IndexStor;	
-	typedef uint32_t	TypeStor;	 
-	enum {
-		SzTypeBits	= 8,
-		SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
-		MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
-	};
-
-	IPtrStor			m_IPtr; 
-
-public:
-	Cv_CrateId( void)
-		: m_IPtr( 0)
-	{}
-	Cv_CrateId( IndexStor id, TypeStor type)
-		:  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
-	{} 
-
-
-	IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
-	void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
-
-	TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
-	TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
-
-	friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
-	{ 
-		dotStrm.OStream() << "Id" << x.m_IPtr;
-		return dotStrm;
-	}
-};
 
 //_____________________________________________________________________________________________________________________________
 
@@ -259,7 +279,7 @@ public:
 
 	uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
-	Var			ToVar( Cv_CrateId id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
+	Var			ToVar( Cv_Crate::Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
 	Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
 
@@ -274,7 +294,7 @@ public:
 	}
 
 template<  class Object>
-	Cv_CrateId    Store( Object *x)
+	Cv_Crate::Id    Store( Object *x)
     {
 		TypeStor	typeVal = Crate::AssignIndex( x); 
 
@@ -282,7 +302,7 @@ template<  class Object>
 		x->SetId( ind);
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
-        return Cv_CrateId( ind, typeVal);
+        return Cv_Crate::Id( ind, typeVal);
     }
  
 template < typename Lambda, typename... Args>
@@ -311,9 +331,10 @@ struct   Cv_CrateConstructor
 	typedef Crate 						Crate; 	
 	typedef typename Crate::Entry		Entry; 
 	typedef typename Crate::Var			Var; 
+    typedef typename Crate::Id			Id; 
 
 	Cv_CrateRepos< Crate>				*m_Crate;
-	std::map< void *, Cv_CrateId>		m_CnstrMap;
+	std::map< void *, Id>		m_CnstrMap;
 
 	Cv_CrateConstructor( Cv_CrateRepos< Crate>  *crate) 
 		: m_Crate( crate)
@@ -322,16 +343,16 @@ struct   Cv_CrateConstructor
 	auto			Repos( void) { return m_Crate; }
 
 template<  class Object>
-	Cv_CrateId		Store( Object *x) { return m_Crate->Store( x); }
+	Id		        Store( Object *x) { return m_Crate->Store( x); }
 
 template < typename Node>    
-	Cv_CrateId	FetchElemId( Node *node)
+	Id	            FetchElemId( Node *node)
 	{ 
 
-		auto        res  = m_CnstrMap.emplace( node, Cv_CrateId()); 
+		auto            res  = m_CnstrMap.emplace( node, Id()); 
 		if ( !res.second)
 			return  res.first->second;  
-		Cv_CrateId	item = node->FetchElemId( this); 
+		Id          item = node->FetchElemId( this); 
 		res.first->second = item;
 		return item;
 	}     

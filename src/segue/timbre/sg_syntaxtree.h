@@ -51,7 +51,7 @@ public:
 
 struct     RefSynElem : public SynElem 
 {
-    Cv_CrateId		m_Elem;
+    SynCrate::Id		m_Elem;
     
 	RefSynElem( void)
 	{}
@@ -73,7 +73,7 @@ struct     RefSynElem : public SynElem
 
 struct     LexemeSynElem : public SynElem 
 {
-	Cv_CrateId		m_Elem;
+    SynCrate::Id		m_Elem;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
 
@@ -127,7 +127,7 @@ struct     ActionSynElem : public RefSynElem
 
 struct     SeqSynElem : public SynElem 
 {
-    std::vector< Cv_CrateId>     m_SeqList; 
+    std::vector< SynCrate::Id>     m_SeqList; 
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq", GetId()); }  
     
@@ -138,7 +138,7 @@ struct     SeqSynElem : public SynElem
 		 
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
-			Cv_CrateId		regex = m_SeqList[ k];
+            SynCrate::Id		regex = m_SeqList[ k];
             strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         }
         return true;
@@ -149,7 +149,7 @@ struct     SeqSynElem : public SynElem
 
 struct     AltSynElem : public SynElem 
 {
-    std::vector< Cv_CrateId>     m_AltList; 
+    std::vector< SynCrate::Id>     m_AltList; 
 	 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Alt", GetId()); }  
 
@@ -160,7 +160,7 @@ struct     AltSynElem : public SynElem
 
         for ( uint32_t k = 0; k < m_AltList.size(); ++k)
         {
-			Cv_CrateId		regex = m_AltList[ k];
+            SynCrate::Id		regex = m_AltList[ k];
             strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
         }
         return true;
@@ -172,7 +172,7 @@ struct     AltSynElem : public SynElem
 
 struct     RepeatSynElem : public SynElem 
 {
-    Cv_CrateId			m_Elem;
+    SynCrate::Id	    m_Elem;
     uint32_t            m_Min;
     uint32_t            m_Max;
 	 
