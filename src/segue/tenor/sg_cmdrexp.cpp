@@ -63,11 +63,11 @@ int     Sg_RExpCmdProcessor::Test(void)
 
     bool					apiErrCode = parser.Match( &rexpDoc);
 
-	Cv_CrateRepos< RExpParserCrate>				synCrate ;
-	Cv_CrateConstructor< RExpParserCrate>		synCnstr( &synCrate);
-	auto										synElem = synCnstr.FetchElemId( &rexpDoc);
-	std::ofstream								ostrm( "b.dot");
-	Cv_DotStream								synDotStrm( &ostrm, false); 
+	Cv_CrateRepos< RExpCrate>				synCrate ;
+	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
+	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);
+	std::ofstream							ostrm( "b.dot");
+	Cv_DotStream						    synDotStrm( &ostrm, false); 
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
 		return k->WriteDot( synDotStrm); 
 	});

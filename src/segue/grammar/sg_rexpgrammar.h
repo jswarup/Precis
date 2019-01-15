@@ -12,6 +12,13 @@ namespace Sg_RExp
 {
 using namespace Sg_Timbre; 
 
+//_____________________________________________________________________________________________________________________________ 
+
+struct      RExpDocSynElem;
+struct      RExpSynElem;
+
+typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>   RExpCrate; 
+
 //_____________________________________________________________________________________________________________________________
 
 struct RExpPrimitive
@@ -60,154 +67,224 @@ struct      RExpDocSynElem : public AltSynElem
 	}
 };  
  
+
 //_____________________________________________________________________________________________________________________________
 
 struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 {
-	struct Whorl
-	{
+    typedef ParseInt< uint8_t, 8, 2, 3>     Oct;
+    typedef ParseInt< uint16_t, 10, 1, 3>   Dec;
+    typedef ParseInt< uint8_t, 16, 0, 2>    Hex;
 
-		Sg_ChSet		m_ChSet;
-		uint32_t		m_Min;
-		uint32_t		m_Max;
+    CharSet     m_AlphaNum;
+    CharSet     m_EscapedCharset;
+    Oct         m_Octal;
+    Hex         m_Hex;
+    Dec         m_BackRef;
 
-		Whorl(void)
-			: m_Min( 1), m_Max( 1)
-		{}
-		~Whorl(void)
-		{}
-	}; 
+    static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
 
-	static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
+    struct Whorl
+    {
 
-	auto		CharListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
-			return true;  }; }
+        Sg_ChSet		m_ChSet;
+    }; 
+    
+    RExpUnit( void)
+        :  m_AlphaNum( AlphaNum()), m_EscapedCharset( EscapedCharset ), m_Octal()
+    {}
+    
+    auto		CharListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+            return true;  }; }
 
-	auto		CtrlCharListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
-			return true;  }; }
+    auto		CtrlCharListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
+            return true;  }; }
 
-	auto		EscCharListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
-			return true;  }; }
+    auto		EscCharListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+            return true;  }; }
 
-	auto		OctalListener(void) const {
-		return [](auto ctxt) {
-			std::cout << ctxt->MatchStr() << "\n";
-			return true;  }; }
+    auto		OctalListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+            return true;  }; }
 
-	auto		BackrefListener(void) const {
-		return [](auto ctxt) {
-			std::cout << ctxt->MatchStr() << "\n";
-			return true;  }; }
+    auto		BackrefListener(void) const {
+        return [](auto ctxt) {
+            std::cout << ctxt->MatchStr() << "\n";
+            return true;  }; }
 
-	auto		HexListener(void) const {
-		return [](auto ctxt) {
-			std::cout << ctxt->MatchStr() << "\n";
-			return true;  }; }
+    auto		HexListener(void) const {
+        return [](auto ctxt) {
+            std::cout << ctxt->MatchStr() << "\n";
+            return true;  }; }
 
-	auto		WhiteSpaceListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Space();
-			return true;  }; }
+    auto		WhiteSpaceListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Space();
+            return true;  }; }
 
-	auto		NonWhiteSpaceListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonSpace();
-			return true;  }; }
+    auto		NonWhiteSpaceListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonSpace();
+            return true;  }; }
 
     auto		DigitListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Digit();
-			return true;  }; }
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Digit();
+            return true;  }; }
 
     auto		NonDigitListener(void) const {
-		return [](auto ctxt) {
- 			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonDigit();
-			return true;  }; }
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonDigit();
+            return true;  }; }
 
     auto		WordListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Word();
-			return true;  }; } 
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Word();
+            return true;  }; } 
 
     auto		NonWordListener(void) const {
-		return [](auto ctxt) {
-			ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
-			return true;  }; }
-    
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
+            return true;  }; }
+
     auto		WordBdyListener(void) const {
-		return [](auto ctxt) {
-			return true;  }; }
+        return [](auto ctxt) {
+            return true;  }; }
 
     auto		NonWordBdyListener(void) const {
-		return [](auto ctxt) {
-			return true;  }; } 
+        return [](auto ctxt) {
+            return true;  }; } 
 
     auto           KeyChar( void) const {
         return  Char('s')[ WhiteSpaceListener()] |
-		        Char('S')[ NonWhiteSpaceListener()] |
-		        Char('d')[ DigitListener()] |
-		        Char('D')[ NonDigitListener()] |
-		        Char('w')[ WordListener()] |
-		        Char('W')[ NonWordListener()] |
-		        Char('b')[ WordBdyListener()] |
-		        Char('B')[ NonWordBdyListener()];  }
+            Char('S')[ NonWhiteSpaceListener()] |
+            Char('d')[ DigitListener()] |
+            Char('D')[ NonDigitListener()] |
+            Char('w')[ WordListener()] |
+            Char('W')[ NonWordListener()] |
+            Char('b')[ WordBdyListener()] |
+            Char('B')[ NonWordBdyListener()];  }
 
     auto          UnitListener(void) const {
         return [this]( auto ctxt) {
-            //ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
+            ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
             return true;  }; }
 
-	auto        Singleton( const RExpUnit *re) const { return AlphaNum()[ CharListener()] | 
-                                            ( Char('(') >> (*re)[ UnitListener()] >> Char(')')) |
-											( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] |
-												  CharSet( EscapedCharset )[ EscCharListener()]  | 
-	 												ParseInt< uint8_t, 8, 2, 3>()[ OctalListener()] |
-													ParseInt< uint16_t, 10, 1, 3>()[ BackrefListener()] |
-													(IStr( "x") >> ParseInt< uint8_t, 16, 0, 2>()[ HexListener()]))); }
+    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | 
+        ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
+            m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
+
+template < typename Forge>
+    bool    DoParse( Forge *ctxt) const
+    {
+        ctxt->Push();
+        auto	unit = Unit();
+        if ( !unit.DoMatch( ctxt))
+            return false; 
+        return true;
+    }
+};
+//_____________________________________________________________________________________________________________________________
+
+struct RExpSingleton : public Shard< RExpSingleton>, public RExpPrimitive
+{
+    RExpUnit                    m_RExpUnit;
+    ParseInt< uint32_t, 10>	    m_SpinMin;
+    ParseInt< uint32_t, 10>     m_SpinMax;
+
+    struct Whorl
+    { 
+        std::vector< Sg_ChSet>		m_ChSets;
+        uint32_t		            m_Min;
+        uint32_t		            m_Max;
+        bool                        m_Infinite;
+        bool                        m_Stingy;
+        
+
+        Whorl(void)
+            : m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false)
+        {}
+        ~Whorl(void)
+        {}
+ 
+    };
+
+    auto        UnitListener(void) const {
+        return [this]( auto ctxt) {
+            ctxt->Pred< RExpSingleton>()->m_ChSets.push_back( ctxt->m_ChSet);
+            return true;  }; }
+
+	auto        Singleton( const RExpSingleton *re) const { return  ( Char('(') >> (*re) >> Char(')')) | m_RExpUnit[ UnitListener()]; }
+
 	auto		MinSpinListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Min = ctxt->num;
+            whorl->m_Max = ctxt->num;
 			return true;  }; }
 
 	auto		MaxSpinListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Max = ctxt->num;
+            whorl->m_Infinite = false;
 			return true;  }; }
 
 	auto		CommaListener(void) const {
 		return [](auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Max = 0;
+            whorl->m_Infinite = true;
 			return true;  }; }
 
 	auto		ZeroToMaxListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Min = 0;
+            whorl->m_Max = ctxt->num; 
 			return true;  }; }
 
 	auto		QuestionListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Min = 0;
+            whorl->m_Max = 1;
+            whorl->m_Infinite = false;
 			return true;  }; }
 
 	auto		StarListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Min = 0;
+            whorl->m_Max = 0;
+            whorl->m_Infinite = true;
 			return true;  }; }
 
 	auto		PlusListener(void) const {
 		return []( auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Min = 1;
+            whorl->m_Max = 0;
+            whorl->m_Infinite = true;
 			return true;  }; }
 
 	auto		StingyListener(void) const {
 		return [](auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            whorl->m_Stingy = true;
 			return true;  }; }
 
-	auto		Quanta( const RExpUnit *re) const {
-		ParseInt< uint32_t, 10>	spinMin;
-		ParseInt< uint32_t, 10>	spinMax;
+	auto		Quanta( const RExpSingleton *re) const {
 
-		return Singleton( re) >> !(( Char('{') >> spinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(spinMax[ MaxSpinListener()])) >> Char('}')) |
-			              ( Char('{') >> Char(',') >> (spinMax[ZeroToMaxListener()]) >> Char('}')) |
+		return Singleton( re) >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
+			              ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
 		                  ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
 
 template < typename Forge>
@@ -253,10 +330,10 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
 	auto          UnitListener(void) const {
 		return [this]( auto ctxt) {
-			ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
+			//ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
 			return true;  }; }
 
-	auto           RExpression(void) const { return (+(RExpUnit()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpSingleton()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
@@ -317,9 +394,6 @@ template < typename Cnstr>
 		return cnstr->Store( elem);
 	} 
 };
-//_____________________________________________________________________________________________________________________________ 
-
-typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>   RExpParserCrate; 
 
 //_____________________________________________________________________________________________________________________________
 };
