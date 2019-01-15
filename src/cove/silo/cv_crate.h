@@ -38,6 +38,8 @@ public:
         :  m_IPtr( id.m_IPtr)
     {}
 
+    bool            IsValid( void) const { return !!m_IPtr; }
+
     Cv_CrateId  &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
 
     IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
@@ -303,6 +305,15 @@ template<  class Object>
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
         return Cv_Crate::Id( ind, typeVal);
+    }
+
+    void            Shrivel( uint32_t m)
+    { 
+        CV_ERROR_ASSERT( m <= Size())
+        for ( ; m < Size(); ++m)
+            Destroy( m);
+        m_Elems.resize( m);
+        return;
     }
  
 template < typename Lambda, typename... Args>

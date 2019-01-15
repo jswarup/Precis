@@ -23,10 +23,8 @@ struct  StrInStream : public std::vector< char>
     {
         std::copy( str.begin(), str.end(), begin());
         SELF[ str.size()] = 0;
-    }
+    } 
 
-
-    
     bool                HasMore( void) { return m_Cursor < size(); }
     bool                Next( void) { return ++m_Cursor < size(); } 
     char                Curr( void) { return SELF[ m_Cursor]; }
@@ -88,6 +86,9 @@ public:
 		m_MatchFlg = true;
 		return;
 	}
+    
+
+    bool        DoScavenge( void)  { return false; } 
 
 	uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
 	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
@@ -145,12 +146,21 @@ public:
     uint32_t        SzFrom( const Mark &mark) { return m_InStream->SzFrom( mark); }
     Cv_CStr         Region( const Mark &m1, const Mark &m2) { return m_InStream->Region( m1, m2); }
     
+
+template < typename TimbreShard>
+    auto		    *Bottom(void) { return BottomForge()->Whorl< TimbreShard>(); }
+
+template < typename TimbreShard>
+    auto		    *Top(void) { return TopForge()->Whorl< TimbreShard>(); }
+
 template < typename Shard>    
     bool            Match( Shard *node)
     {
         Forge  forge( this);
-        
-        return node->DoMatch( &forge);
+       
+        bool    res = node->DoMatch( &forge);
+        forge.DoScavenge();
+        return res;
     } 
 }; 
  

@@ -19,7 +19,8 @@ struct      RExpDoc;
 struct      RExpDocSynElem;
 struct      RExpSynElem;
 
-typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>   RExpCrate; 
+typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>     RExpCrate; 
+typedef Cv_CrateRepos< RExpCrate>                                   RExpRepos;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -88,7 +89,6 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
     struct Whorl
     {
-
         Sg_ChSet		m_ChSet;
     }; 
     
@@ -113,15 +113,15 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
     auto		OctalListener(void) const {
         return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
-            return true;  }; }
-
-    auto		BackrefListener(void) const {
-        return [](auto ctxt) {
-            std::cout << ctxt->MatchStr() << "\n";
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->num, true);
             return true;  }; }
 
     auto		HexListener(void) const {
+        return [](auto ctxt) {
+            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->num, true);
+            return true;  }; }
+
+    auto		BackrefListener(void) const {
         return [](auto ctxt) {
             std::cout << ctxt->MatchStr() << "\n";
             return true;  }; }
@@ -202,32 +202,54 @@ struct RExpSingleton : public Shard< RExpSingleton>, public RExpPrimitive
     ParseInt< uint32_t, 10>     m_SpinMax;
     
     struct Whorl
-    { 
-        std::vector< Sg_ChSet>		m_ChSets;
-        uint32_t		            m_Min;
-        uint32_t		            m_Max;
-        bool                        m_Infinite;
-        bool                        m_Stingy;
-        
+    {  
+        RExpRepos               *m_Repos;  
+        Sg_ChSet                m_ChSet;
+        uint32_t		        m_Min;
+        uint32_t		        m_Max;
+        bool                    m_Infinite;
+        bool                    m_Stingy;
+        RExpCrate::Id           m_Id; 
 
         Whorl(void)
-            : m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false)
-        {}
-        ~Whorl(void)
-        { 
-        } 
-  
-template < typename Parser>
-        void Finalize( Parser *parser)
+            : m_Repos( NULL), m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false) 
         {
-            auto    docWhorl = parser->BottomForge()->Whorl< RExpDoc>();
+        } 
+
+template < typename Parser>
+        void Initialize( Parser *parser)
+        {
+            auto    docWhorl = parser->Bottom< RExpDoc>();
+            m_Repos  = &docWhorl->m_Repos; 
+        }
+
+template < typename Parser>
+        void Scavenge( Parser *parser)
+        {
+            auto    docWhorl = parser->Bottom< RExpDoc>();
+            docWhorl->m_Repos.Shrivel( m_ReposSz);
             return;
+        }
+
+        bool            IsBasic( void) const 
+            { return ( m_Min == CV_UINT32_MAX) && ( m_Max == CV_UINT32_MAX) && !m_Infinite && !m_Stingy; }
+
+        RExpCrate::Id           FetchId( void) 
+        {
+            if ( !m_Id.IsValid()) 
+            {
+                auto    synElem = new CSetSynElem();
+                synElem->m_Filt = m_ChSet; 
+                m_Id = m_Repos->Store( synElem);
+            }
+            CV_ERROR_ASSERT( IsBasic())
+            return m_Id;
         }
     };
 
     auto        UnitListener(void) const {
         return [this]( auto ctxt) {
-            ctxt->Pred< RExpSingleton>()->m_ChSets.push_back( ctxt->m_ChSet);
+            ctxt->Pred< RExpSingleton>()->m_ChSet = ctxt->m_ChSet;
             return true;  }; }
 
 	auto        Singleton( const RExpSingleton *re) const { return  ( Char('(') >> (*re) >> Char(')')) | m_RExpUnit[ UnitListener()]; }
@@ -313,8 +335,8 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 {
 	struct Whorl
 	{
-		uint64_t					m_Index;
-		std::vector< Sg_ChSet>		m_ChSets;
+		uint64_t					    m_Index;
+		std::vector< RExpCrate::Id>		m_RExps;
 
 		Whorl( void)
 			: m_Index( 0)
@@ -341,7 +363,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
 	auto          UnitListener(void) const {
 		return [this]( auto ctxt) {
-			//ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
+	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId());
 			return true;  }; }
 
 	auto           RExpression(void) const { return (+(RExpSingleton()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
@@ -374,7 +396,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 {  
 	struct Whorl
 	{
-        Cv_CrateRepos< RExpCrate>       m_Crate;
+        Cv_CrateRepos< RExpCrate>       m_Repos;
 		AltSynElem	                    m_AllRules;
 	};
 

@@ -45,6 +45,7 @@ struct ShardForge : public  Parser::Forge
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser) 
 	{ }
+
 };
  
 
@@ -53,20 +54,27 @@ struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename 
 {
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser)
-	{ }
- 
-    ~ShardForge( void)
-    {
-        DoFinalize<TimbreShard::Whorl>();
+	{
+        DoInitialize<TimbreShard::Whorl>(); 
     }
  
+    ~ShardForge( void)
+    { 
+    }
+ 
+template<typename T>
+    auto DoInitialize( void) -> decltype(std::declval<T>().TimbreShard::Whorl::Initialize( GetParser())) { return this->TimbreShard::Whorl::Initialize( GetParser());  }
+
 
 template<typename T>
-    auto DoFinalize( void) -> decltype(std::declval<T>().Finalize( GetParser())) { return this->Finalize( GetParser());  }
+    bool DoInitialize(...) { return false; } 
+
+template<typename T>
+    auto DoScavenge( void) -> decltype(std::declval<T>().Scavenge( GetParser())) { return this->Scavenge( GetParser());  }
 
  
 template<typename T>
-    bool DoFinalize(...) { return false; } 
+    bool DoScavenge(...) { return false; } 
 }; 
 
 //_____________________________________________________________________________________________________________________________  
