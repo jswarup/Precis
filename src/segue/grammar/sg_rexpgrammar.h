@@ -12,7 +12,9 @@ namespace Sg_RExp
 {
 using namespace Sg_Timbre; 
 
-//_____________________________________________________________________________________________________________________________ 
+//_____________________________________________________________________________________________________________________________  
+
+struct      RExpDoc;
 
 struct      RExpDocSynElem;
 struct      RExpSynElem;
@@ -198,7 +200,7 @@ struct RExpSingleton : public Shard< RExpSingleton>, public RExpPrimitive
     RExpUnit                    m_RExpUnit;
     ParseInt< uint32_t, 10>	    m_SpinMin;
     ParseInt< uint32_t, 10>     m_SpinMax;
-
+    
     struct Whorl
     { 
         std::vector< Sg_ChSet>		m_ChSets;
@@ -212,8 +214,15 @@ struct RExpSingleton : public Shard< RExpSingleton>, public RExpPrimitive
             : m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false)
         {}
         ~Whorl(void)
-        {}
- 
+        { 
+        } 
+  
+template < typename Parser>
+        void Finalize( Parser *parser)
+        {
+            auto    docWhorl = parser->BottomForge()->Whorl< RExpDoc>();
+            return;
+        }
     };
 
     auto        UnitListener(void) const {
@@ -312,7 +321,9 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 		{}
 
 		~Whorl(void)
-		{}
+		{
+            
+        }
 	};
 
 	RExpEntry( void) 
@@ -363,7 +374,8 @@ struct RExpDoc  : public Shard< RExpDoc>
 {  
 	struct Whorl
 	{
-		AltSynElem	m_AllRules;
+        Cv_CrateRepos< RExpCrate>       m_Crate;
+		AltSynElem	                    m_AllRules;
 	};
 
 	RExpDoc( void) 

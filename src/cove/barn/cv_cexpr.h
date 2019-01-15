@@ -28,6 +28,17 @@ template < uint32_t>
 
 template < class X>    
     static constexpr const X    &Min( const X &x1, const X &x2) { return x1 < x2 ? x1 : x2; }
+ 
+template<typename T>
+    constexpr auto IsFinalizeable(int) -> decltype(std::declval<T>().Finalize, bool())
+    {
+        return true;
+    }
+  
+template<typename T> constexpr bool IsFinalizeable(...)
+    {
+        return false;
+    }
 
 };
 

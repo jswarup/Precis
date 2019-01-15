@@ -99,6 +99,10 @@ template < typename TimbreShard>
 
 template < typename TimbreShard>
 	auto		*Pred(void) { return m_PushedFlg ? Parent()->Whorl< TimbreShard>() : m_Parser->TopForge()->Whorl< TimbreShard>(); }
+
+
+template < typename TimbreShard>
+    auto		*Bottom(void) { return m_Parser->BottomForge()->Whorl< TimbreShard>(); }
 };
 
 
