@@ -7,21 +7,23 @@ set( CMAKE_VERBOSE_MAKEFILE ON)
 project(precis VERSION 0.1.0)
 #------------------------------------------------------------------------------------------------------------------------------
 #options [ be sure to remove CMakeCache.txt after editing these lines ]
+
 OPTION(PR_DBG "Build Library with Malloc Debug option" ON)
 OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)  
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
 OPTION(PR_VISUALSTUDIO "Build with visual studio" ON)
  
 #------------------------------------------------------------------------------------------------------------------------------
-
 #source path
+
 set(ROOT_PATH "${CMAKE_SOURCE_DIR}/../../../")  
 set(SOURCE_PATH "${ROOT_PATH}src/")
 set(BUILD_PATH "${ROOT_PATH}delivery/")
 set(CMAKE_BUILD_DIRECTORY "${ROOT_PATH}delivery/")
 
-
+#------------------------------------------------------------------------------------------------------------------------------
 # Set default locations
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_PATH}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_PATH}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PATH}/lib)
@@ -58,7 +60,7 @@ endif(PR_DBG)
 # the commit's SHA1, and whether the building workspace was dirty or not
 
 EXECUTE_PROCESS( 
-  COMMAND /bin/rm "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cv_version.h" 
+  COMMAND /bin/rm -f "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cv_version.h" 
 ) 
 
 execute_process(COMMAND

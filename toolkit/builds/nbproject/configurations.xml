@@ -18,6 +18,7 @@
       <df name="segue">
         <df name="tenor">
           <in>sg_cmdfilt.cpp</in>
+          <in>sg_cmdrexp.cpp</in>
           <in>sg_cmdtimbre.cpp</in>
           <in>sg_cmdxml.cpp</in>
           <in>sg_include.cpp</in>
@@ -119,6 +120,16 @@
         <ccTool flags="0">
         </ccTool>
       </item>
+      <item path="../../src/segue/tenor/sg_cmdrexp.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+          <preprocessorList>
+            <Elem>EBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
       <item path="../../src/segue/tenor/sg_cmdtimbre.cpp"
             ex="false"
             tool="1"
@@ -175,6 +186,13 @@
         <ccTool flags="0">
         </ccTool>
       </item>
+      <folder path="0/cove">
+        <ccTool>
+          <preprocessorList>
+            <Elem>EBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
     </conf>
   </confs>
 </configurationDescriptor>

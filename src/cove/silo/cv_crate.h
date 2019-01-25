@@ -118,15 +118,15 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< Rest...>          CrateBase;
     typedef T                           Elem;
     typedef typename CrateBase::Entry   Entry; 
-	typedef typename Cv_Var< Crate>		Var; 
+	typedef  Cv_Var< Crate>		Var; 
 	typedef typename Entry::TypeStor    TypeStor; 
     typedef typename Entry::IndexStor   IndexStor;
     typedef typename CrateBase::Id      Id;
     
-
-
+    
     enum {
-        Sz = CrateBase::Sz +1,
+        
+        Sz = CrateBase::Sz +1
     };
      
     Cv_Crate( void) 
@@ -165,7 +165,7 @@ template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>:
 template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
-		return CrateBase::TypeOf<Entity>();
+		return CrateBase::TypeOf<Entity> ();
 	}
 }; 
 
@@ -183,10 +183,10 @@ struct Cv_CrateT
     typedef  T								Entry;
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
-	typedef typename Cv_Var< Crate>			Var; 
+	typedef  Cv_Var< Crate>			Var; 
     struct Id : public Cv_CrateId 
     {
-        typedef Crate       Crate;
+        typedef Cv_CrateT< T,void>      Crate;
         Id( void) {}
         Id( IndexStor id, TypeStor type) :  Cv_CrateId( id, type) {} 
     };
@@ -260,6 +260,7 @@ public:
 	typedef typename Entry::TypeStor		TypeStor; 
 	typedef typename Entry::IndexStor		IndexStor;
 	typedef typename Crate::Var				Var; 
+	typedef typename Crate::Id				Id; 
 
 protected:
 	std::vector< Entry *>					m_Elems;
@@ -281,7 +282,7 @@ public:
 
 	uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
-	Var			ToVar( Cv_Crate::Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
+	Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
 	Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
 
@@ -296,7 +297,7 @@ public:
 	}
 
 template<  class Object>
-	Cv_Crate::Id    Store( Object *x)
+	Id    Store( Object *x)
     {
 		TypeStor	typeVal = Crate::AssignIndex( x); 
 
@@ -304,7 +305,7 @@ template<  class Object>
 		x->SetId( ind);
 		m_Elems.push_back( x); 
 		m_Types.push_back( typeVal); 
-        return Cv_Crate::Id( ind, typeVal);
+        return Id( ind, typeVal);
     }
 
     void            Shrivel( uint32_t m)
@@ -336,10 +337,10 @@ template < typename Lambda, typename... Args>
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Crate>
+template < typename CrateT>
 struct   Cv_CrateConstructor 
 {  
-	typedef Crate 						Crate; 	
+	typedef CrateT 						Crate; 	
 	typedef typename Crate::Entry		Entry; 
 	typedef typename Crate::Var			Var; 
     typedef typename Crate::Id			Id; 

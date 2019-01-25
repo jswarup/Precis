@@ -52,10 +52,12 @@ struct ShardForge : public  Parser::Forge
 template <typename TimbreShard, typename Parser>
 struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::Forge, public  TimbreShard::Whorl
 {
+    typedef typename TimbreShard::Whorl  Whorl;
+    
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser)
 	{
-        DoInitialize<TimbreShard::Whorl>(); 
+        DoInitialize<Whorl>(); 
     }
  
     ~ShardForge( void)
@@ -123,7 +125,7 @@ template < typename Right>
     Seq< GrammarShard, Right>                   operator>>( const Right & r) const;
 
 template <typename Actor>
-    Action< GrammarShard, Actor >               operator[ ] ( const Actor &actor) const;     
+    Action< GrammarShard, Actor >               operator[]( const Actor &actor) const;     
     
     auto										operator!( void) const;
     auto                                        operator!( void);
@@ -317,7 +319,9 @@ template < typename Forge>
 template < typename Cnstr>
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
-		auto		seqType = Cnstr::Crate::TypeOf<SeqSynElem>();	
+        typedef typename Cnstr::Crate Crate;
+        
+		auto		seqType = Crate::TypeOf<SeqSynElem>();	
 		auto		leftId = cnstr->FetchElemId( &m_Left);
 		auto		rightId = cnstr->FetchElemId( &m_Right);
 		

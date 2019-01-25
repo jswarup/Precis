@@ -24,7 +24,7 @@ bool Cv_Aid::FileExists(const char *fileName)
 
 uint64_t    Cv_Aid::FileSize( FILE *fp)
 {
-#if defined( _WIN32) || defined( _WIN64)
+#if defined( PR_VISUALSTUDIO) 
 	uint64_t    pos = _ftelli64( fp);
 	_fseeki64( fp, 0, SEEK_END );
 	uint64_t    sz = _ftelli64( fp );

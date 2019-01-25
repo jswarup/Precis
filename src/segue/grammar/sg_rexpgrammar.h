@@ -15,7 +15,7 @@ using namespace Sg_Timbre;
 //_____________________________________________________________________________________________________________________________  
 
 struct      RExpDoc;
-
+struct      RExpAtom;
 struct      RExpDocSynElem;
 struct      RExpSynElem;
 
@@ -193,9 +193,45 @@ template < typename Forge>
         return true;
     }
 };
+
 //_____________________________________________________________________________________________________________________________
 
-struct RExpSingleton : public Shard< RExpSingleton>, public RExpPrimitive
+//_____________________________________________________________________________________________________________________________
+
+struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
+{
+ 
+    struct Whorl
+    {  
+        RExpRepos               *m_Repos;  
+        RExpCrate::Id           m_Id; 
+
+        Whorl(void)
+            : m_Repos( NULL)  
+        {}
+
+        template < typename Parser>
+        void Initialize( Parser *parser)
+        {
+            auto    docWhorl = parser->Bottom< RExpDoc>();
+            m_Repos  = &docWhorl->m_Repos; 
+        }
+
+        template < typename Parser>
+        void Scavenge( Parser *parser)
+        {
+            auto    docWhorl = parser->Bottom< RExpDoc>();
+            docWhorl->m_Repos.Shrivel( m_ReposSz);
+            return;
+        }
+
+        RExpCrate::Id           FetchId( void) 
+        {
+            return m_Id;
+        }
+    };
+
+struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 {
     RExpUnit                    m_RExpUnit;
     ParseInt< uint32_t, 10>	    m_SpinMin;
@@ -249,42 +285,40 @@ template < typename Parser>
 
     auto        UnitListener(void) const {
         return [this]( auto ctxt) {
-            ctxt->Pred< RExpSingleton>()->m_ChSet = ctxt->m_ChSet;
-            return true;  }; }
-
-	auto        Singleton( const RExpSingleton *re) const { return  ( Char('(') >> (*re) >> Char(')')) | m_RExpUnit[ UnitListener()]; }
+            ctxt->Pred< RExpQuanta>()->m_ChSet = ctxt->m_ChSet;
+            return true;  }; } 
 
 	auto		MinSpinListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = ctxt->num;
             whorl->m_Max = ctxt->num;
 			return true;  }; }
 
 	auto		MaxSpinListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Max = ctxt->num;
             whorl->m_Infinite = false;
 			return true;  }; }
 
 	auto		CommaListener(void) const {
 		return [](auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
 			return true;  }; }
 
 	auto		ZeroToMaxListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = ctxt->num; 
 			return true;  }; }
 
 	auto		QuestionListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 1;
             whorl->m_Infinite = false;
@@ -292,7 +326,7 @@ template < typename Parser>
 
 	auto		StarListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
@@ -300,7 +334,7 @@ template < typename Parser>
 
 	auto		PlusListener(void) const {
 		return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 1;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
@@ -308,16 +342,17 @@ template < typename Parser>
 
 	auto		StingyListener(void) const {
 		return [](auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpSingleton>();
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Stingy = true;
 			return true;  }; }
 
-	auto		Quanta( const RExpSingleton *re) const {
-
-		return Singleton( re) >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
+	auto		Quanta( const RExpAtom *re) const { 
+		return ( Char('(') >> (*re) >> Char(')')) | m_RExpUnit[ UnitListener()]  >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
 			              ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
 		                  ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
 
+    
+    
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{
@@ -327,6 +362,22 @@ template < typename Forge>
 			return false; 
 		return true;
 	}
+};
+
+ 
+
+    auto		Atom( const RExpAtom *re) const { 
+        return RExpQuanta().Quanta( re); } 
+
+template < typename Forge>
+    bool    DoParse( Forge *ctxt) const
+    {
+        ctxt->Push();
+        auto	unit = Atom( this);
+        if ( !unit.DoMatch( ctxt))
+            return false; 
+        return true;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -341,11 +392,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 		Whorl( void)
 			: m_Index( 0)
 		{}
-
-		~Whorl(void)
-		{
-            
-        }
+  
 	};
 
 	RExpEntry( void) 
@@ -366,7 +413,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId());
 			return true;  }; }
 
-	auto           RExpression(void) const { return (+(RExpSingleton()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpAtom()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
