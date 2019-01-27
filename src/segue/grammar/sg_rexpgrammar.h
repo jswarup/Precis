@@ -15,7 +15,7 @@ using namespace Sg_Timbre;
 //_____________________________________________________________________________________________________________________________  
 
 struct      RExpDoc;
-struct      RExpAtom;
+struct      RExpQuanta;
 struct      RExpDocSynElem;
 struct      RExpSynElem;
 
@@ -174,10 +174,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             Char('b')[ WordBdyListener()] |
             Char('B')[ NonWordBdyListener()];  }
 
-    auto          UnitListener(void) const {
-        return [this]( auto ctxt) {
-            ctxt->Pred< RExpEntry>()->m_ChSets.push_back( ctxt->m_ChSet);
-            return true;  }; }
+ 
 
     auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | 
         ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
@@ -192,51 +189,16 @@ template < typename Forge>
             return false; 
         return true;
     }
-};
+}; 
 
 //_____________________________________________________________________________________________________________________________
-
-//_____________________________________________________________________________________________________________________________
-
-struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
-{
- 
-    struct Whorl
-    {  
-        RExpRepos               *m_Repos;  
-        RExpCrate::Id           m_Id; 
-
-        Whorl(void)
-            : m_Repos( NULL)  
-        {}
-
-        template < typename Parser>
-        void Initialize( Parser *parser)
-        {
-            auto    docWhorl = parser->Bottom< RExpDoc>();
-            m_Repos  = &docWhorl->m_Repos; 
-        }
-
-        template < typename Parser>
-        void Scavenge( Parser *parser)
-        {
-            auto    docWhorl = parser->Bottom< RExpDoc>();
-            docWhorl->m_Repos.Shrivel( m_ReposSz);
-            return;
-        }
-
-        RExpCrate::Id           FetchId( void) 
-        {
-            return m_Id;
-        }
-    };
 
 struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 {
     RExpUnit                    m_RExpUnit;
     ParseInt< uint32_t, 10>	    m_SpinMin;
     ParseInt< uint32_t, 10>     m_SpinMax;
-    
+
     struct Whorl
     {  
         RExpRepos               *m_Repos;  
@@ -252,14 +214,14 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         {
         } 
 
-template < typename Parser>
+        template < typename Parser>
         void Initialize( Parser *parser)
         {
             auto    docWhorl = parser->Bottom< RExpDoc>();
             m_Repos  = &docWhorl->m_Repos; 
         }
 
-template < typename Parser>
+        template < typename Parser>
         void Scavenge( Parser *parser)
         {
             auto    docWhorl = parser->Bottom< RExpDoc>();
@@ -268,7 +230,9 @@ template < typename Parser>
         }
 
         bool            IsBasic( void) const 
-            { return ( m_Min == CV_UINT32_MAX) && ( m_Max == CV_UINT32_MAX) && !m_Infinite && !m_Stingy; }
+        { 
+            return ( m_Min == CV_UINT32_MAX) && ( m_Max == CV_UINT32_MAX) && !m_Infinite && !m_Stingy; 
+        }
 
         RExpCrate::Id           FetchId( void) 
         {
@@ -286,94 +250,90 @@ template < typename Parser>
     auto        UnitListener(void) const {
         return [this]( auto ctxt) {
             ctxt->Pred< RExpQuanta>()->m_ChSet = ctxt->m_ChSet;
+
+            std::cout << ctxt->MatchStr() << "\n";
             return true;  }; } 
 
-	auto		MinSpinListener(void) const {
-		return []( auto ctxt) {
+    auto		MinSpinListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = ctxt->num;
-            whorl->m_Max = ctxt->num;
-			return true;  }; }
+            whorl->m_Max = ctxt->num; 
+            return true;  }; }
 
-	auto		MaxSpinListener(void) const {
-		return []( auto ctxt) {
+    auto		MaxSpinListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Max = ctxt->num;
             whorl->m_Infinite = false;
-			return true;  }; }
+            return true;  }; }
 
-	auto		CommaListener(void) const {
-		return [](auto ctxt) {
+    auto		CommaListener(void) const {
+        return [](auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
-			return true;  }; }
+            return true;  }; }
 
-	auto		ZeroToMaxListener(void) const {
-		return []( auto ctxt) {
+    auto		ZeroToMaxListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = ctxt->num; 
-			return true;  }; }
+            return true;  }; }
 
-	auto		QuestionListener(void) const {
-		return []( auto ctxt) {
+    auto		QuestionListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 1;
             whorl->m_Infinite = false;
-			return true;  }; }
+            return true;  }; }
 
-	auto		StarListener(void) const {
-		return []( auto ctxt) {
+    auto		StarListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
-			return true;  }; }
+            return true;  }; }
 
-	auto		PlusListener(void) const {
-		return []( auto ctxt) {
+    auto		PlusListener(void) const {
+        return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Min = 1;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
-			return true;  }; }
+            return true;  }; }
 
-	auto		StingyListener(void) const {
-		return [](auto ctxt) {
+    auto		StingyListener(void) const {
+        return [](auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Stingy = true;
-			return true;  }; }
+            return true;  }; }
 
-	auto		Quanta( const RExpAtom *re) const { 
-		return ( Char('(') >> (*re) >> Char(')')) | m_RExpUnit[ UnitListener()]  >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
-			              ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
-		                  ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
+    auto          AtomListener(void) const {
+        return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n"; 
+            return true;  }; }
+
+    auto          RexpListener(void) const {
+        return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n"; 
+            return true;  }; }
+
+    auto		Quanta( const RExpQuanta *re) const { 
+        return (( Char('(') >> +((*re)[ AtomListener()]) >> Char(')'))[ RexpListener()] | m_RExpUnit[ UnitListener()]) >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
+            ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
+            ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
 
     
-    
-template < typename Forge>
-	bool    DoParse( Forge *ctxt) const
-	{
-		ctxt->Push();
-		auto	unit = Quanta( this);
-		if ( !unit.DoMatch( ctxt))
-			return false; 
-		return true;
-	}
-};
-
- 
-
-    auto		Atom( const RExpAtom *re) const { 
-        return RExpQuanta().Quanta( re); } 
 
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {
         ctxt->Push();
-        auto	unit = Atom( this);
+        auto	unit = Quanta( this);
         if ( !unit.DoMatch( ctxt))
             return false; 
         return true;
@@ -405,15 +365,16 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
 	auto          IndexListener(void) const {
 		return [this]( auto ctxt) {   
-			ctxt->Pred< RExpEntry>()->m_Index = ctxt->num;
+ 		    ctxt->Pred< RExpEntry>()->m_Index = ctxt->num;
 			return true;  }; }
 
-	auto          UnitListener(void) const {
-		return [this]( auto ctxt) {
-	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId());
+	auto          AtomListener(void) const {
+		return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n";
+ 	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId());
 			return true;  }; }
 
-	auto           RExpression(void) const { return (+(RExpAtom()[ UnitListener()] - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpQuanta()[ AtomListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }

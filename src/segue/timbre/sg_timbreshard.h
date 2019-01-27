@@ -235,6 +235,8 @@ template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
         ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
+        static int k = 0;
+        ++k;
         
         bool        match = m_Shard.DoParse( &forge);
         if ( match)  
