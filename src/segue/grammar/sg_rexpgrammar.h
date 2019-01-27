@@ -91,11 +91,11 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     {
         Sg_ChSet		m_ChSet;
     }; 
-    
+
     RExpUnit( void)
         :  m_AlphaNum( AlphaNum()), m_EscapedCharset( EscapedCharset ), m_Octal()
     {}
-    
+
     auto		CharListener(void) const {
         return [](auto ctxt) {
             ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
@@ -174,13 +174,13 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             Char('b')[ WordBdyListener()] |
             Char('B')[ NonWordBdyListener()];  }
 
- 
+
 
     auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | 
         ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
             m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
 
-template < typename Forge>
+    template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {
         ctxt->Push();
@@ -193,10 +193,51 @@ template < typename Forge>
 
 //_____________________________________________________________________________________________________________________________
 
+struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
+{
+    const RExpQuanta            *m_Quanta; 
+
+    struct Whorl
+    {
+        Whorl(void) 
+        {
+        }
+    };
+
+    auto        QuantaListener(void) const {
+        return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n"; 
+            return true;  }; }
+
+    auto        SeqCompletor(void) const {
+        return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n"; 
+            return true;  }; }
+    
+
+    RExpSeq( const RExpQuanta *quanta)
+        :   m_Quanta( quanta)
+    {}
+
+    auto	Seq( void) const;
+
+template < typename Forge>
+    bool    DoParse( Forge *ctxt) const
+    {
+        ctxt->Push();
+        auto	unit = Seq();
+        if ( !unit.DoMatch( ctxt))
+            return false; 
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
 struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
 {
-    const RExpQuanta            *m_Quanta;
-    RExpUnit                    m_RExpUnit; 
+    RExpSeq             m_Seq;
+    RExpUnit            m_RExpUnit; 
 
     struct Whorl
     {
@@ -237,7 +278,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     };
 
     RExpAtom( const RExpQuanta *quanta)
-        :   m_Quanta( quanta)
+        :   m_Seq( quanta)
     {}
 
     auto        UnitListener(void) const {
@@ -247,7 +288,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
             std::cout << ctxt->MatchStr() << "\n";
             return true;  }; } 
 
-    auto        AtomListener(void) const {
+    auto        SeqListener(void) const {
         return [this]( auto ctxt) { 
             std::cout << ctxt->MatchStr() << "\n"; 
             return true;  }; }
@@ -257,7 +298,8 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
             std::cout << ctxt->MatchStr() << "\n"; 
             return true;  }; }
 
-    auto		Atom( void) const; 
+    auto		Atom( void) const { 
+        return ( Char('(') >> m_Seq[ SeqListener()] >> Char(')'))[ RexpListener()] | m_RExpUnit[ UnitListener()]; } 
 
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
@@ -323,8 +365,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             return m_Id;
         }
     };
-
-
+ 
     auto		MinSpinListener(void) const {
         return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
@@ -381,16 +422,12 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         return [](auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
             whorl->m_Stingy = true;
-            return true;  }; }
-
-    
+            return true;  }; } 
 
     auto		Quanta( void) const { 
         return RExpAtom( this) >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
             ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
-            ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; }
-
-    
+            ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; } 
 
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
@@ -502,7 +539,7 @@ template < typename Cnstr>
 
 //_____________________________________________________________________________________________________________________________
 
-inline auto	RExpAtom::Atom( void) const { 
-    return (( Char('(') >> +((*m_Quanta)[ AtomListener()]) >> Char(')'))[ RexpListener()] | m_RExpUnit[ UnitListener()]); }
 
+inline auto	RExpSeq::Seq( void) const { 
+    return  (+((*m_Quanta)[ QuantaListener()]))[ SeqCompletor()]; }
 };
