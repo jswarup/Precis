@@ -194,31 +194,26 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 //_____________________________________________________________________________________________________________________________
 
 struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
-{
-    const RExpQuanta            *m_Quanta; 
-
+{ 
     struct Whorl
     {
+        RExpCrate::Id       m_Id; 
+
         Whorl(void) 
-        {
-        }
+        {}
     };
 
     auto        QuantaListener(void) const {
-        return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n"; 
+        return [this]( auto ctxt) {         
+            std::cout << ctxt->MatchStr() << "\n";                  // build seq
+            ctxt->Pred< RExpSeq>()->m_Id = ctxt->FetchId(); 
             return true;  }; }
 
     auto        SeqCompletor(void) const {
         return [this]( auto ctxt) { 
             std::cout << ctxt->MatchStr() << "\n"; 
             return true;  }; }
-    
-
-    RExpSeq( const RExpQuanta *quanta)
-        :   m_Quanta( quanta)
-    {}
-
+     
     auto	Seq( void) const;
 
 template < typename Forge>
@@ -276,11 +271,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
             return m_Id;
         }
     };
-
-    RExpAtom( const RExpQuanta *quanta)
-        :   m_Seq( quanta)
-    {}
-
+ 
     auto        UnitListener(void) const {
         return [this]( auto ctxt) {
             ctxt->Pred< RExpQuanta>()->m_ChSet = ctxt->m_ChSet;
@@ -315,11 +306,10 @@ template < typename Forge>
 //_____________________________________________________________________________________________________________________________
 
 struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
-{
-    RExpUnit                    m_RExpUnit;
+{  
+    RExpAtom                    m_Atom;
     ParseInt< uint32_t, 10>	    m_SpinMin;
-    ParseInt< uint32_t, 10>     m_SpinMax;
-
+    ParseInt< uint32_t, 10>     m_SpinMax;  
     struct Whorl
     {  
         RExpRepos               *m_Repos;  
@@ -365,7 +355,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             return m_Id;
         }
     };
- 
+  
     auto		MinSpinListener(void) const {
         return []( auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>();
@@ -424,8 +414,14 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             whorl->m_Stingy = true;
             return true;  }; } 
 
+    auto	    AtomListener(void) const {
+        return [](auto ctxt) {
+            Whorl       *whorl = ctxt->Pred< RExpQuanta>(); 
+            whorl->m_Id = ctxt->FetchId();
+            return true;  }; } 
+
     auto		Quanta( void) const { 
-        return RExpAtom( this) >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
+        return m_Atom[ AtomListener()] >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
             ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
             ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; } 
 
@@ -454,10 +450,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 		{}
   
 	};
-
-	RExpEntry( void) 
-	{} 
-
+ 
 	auto           RExpressionListener(void) const {
 		return []( auto ctxt) {
 			std::cout << ctxt->MatchStr() << "\n";
@@ -541,5 +534,6 @@ template < typename Cnstr>
 
 
 inline auto	RExpSeq::Seq( void) const { 
-    return  (+((*m_Quanta)[ QuantaListener()]))[ SeqCompletor()]; }
+    RExpQuanta  quanta;
+    return  (+( quanta[ QuantaListener()]))[ SeqCompletor()]; }
 };
