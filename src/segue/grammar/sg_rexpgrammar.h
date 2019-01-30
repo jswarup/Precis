@@ -196,23 +196,22 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
 { 
     struct Whorl
-    {
-        RExpCrate::Id       m_Id; 
+    {  
+        std::vector< RExpCrate::Id>		m_RExps;  
 
-        Whorl(void) 
-        {}
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        {
+            auto    synElem = new SeqSynElem();
+            synElem->m_SeqList = m_RExps; 
+            return repos->Store( synElem);        
+        }
     };
 
     auto        QuantaListener(void) const {
-        return [this]( auto ctxt) {         
-            std::cout << ctxt->MatchStr() << "\n";                  // build seq
-            ctxt->Pred< RExpSeq>()->m_Id = ctxt->FetchId(); 
-            return true;  }; }
-
-    auto        SeqCompletor(void) const {
-        return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n"; 
-            return true;  }; }
+        return [this]( auto ctxt) {                      // build seq
+            auto    docWhorl = ctxt->Bottom< RExpDoc>();
+            ctxt->Pred< RExpSeq>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos)); 
+            return true;  }; } 
      
     auto	Seq( void) const;
 
@@ -235,23 +234,20 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     RExpUnit            m_RExpUnit; 
 
     struct Whorl
-    {
-        RExpRepos               *m_Repos; 
+    { 
         uint32_t                m_ReposSz;
         RExpCrate::Id           m_Id; 
         Sg_ChSet                m_ChSet;
  
         Whorl(void)
             : m_ReposSz( 0) 
-        {
-        }
+        {}
 
     template < typename Parser>
         void Initialize( Parser *parser)
         {
-            auto    docWhorl = parser->Bottom< RExpDoc>();
-            m_Repos = &docWhorl->m_Repos;
-            m_ReposSz  = m_Repos->Size(); 
+            auto    docWhorl = parser->Bottom< RExpDoc>(); 
+            m_ReposSz  = docWhorl->m_Repos->Size(); 
         }
 
     template < typename Parser>
@@ -260,15 +256,13 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
              m_Repos->Shrivel( m_ReposSz); 
         }
 
-        RExpCrate::Id           FetchId( void) 
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
         {
-            if ( !m_Id.IsValid()) 
-            {
-                auto    synElem = new CSetSynElem();
-                synElem->m_Filt = m_ChSet; 
-                m_Id = m_Repos->Store( synElem);
-            } 
-            return m_Id;
+            if ( m_Id.IsValid()) 
+                return m_Id;
+            auto    synElem = new CSetSynElem();
+            synElem->m_Filt = m_ChSet; 
+            return repos->Store( synElem);
         }
     };
  
@@ -282,6 +276,8 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     auto        SeqListener(void) const {
         return [this]( auto ctxt) { 
             std::cout << ctxt->MatchStr() << "\n"; 
+            auto            docWhorl = ctxt->Bottom< RExpDoc>();
+            ctxt->Pred< RExpQuanta>()->m_Id = ctxt->FetchId( docWhorl->m_Repos);
             return true;  }; }
 
     auto        RexpListener(void) const {
@@ -311,8 +307,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     ParseInt< uint32_t, 10>	    m_SpinMin;
     ParseInt< uint32_t, 10>     m_SpinMax;  
     struct Whorl
-    {  
-        RExpRepos               *m_Repos;  
+    {    
         Sg_ChSet                m_ChSet;
         uint32_t		        m_Min;
         uint32_t		        m_Max;
@@ -321,18 +316,10 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         RExpCrate::Id           m_Id; 
 
         Whorl(void)
-            : m_Repos( NULL), m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false) 
-        {
-        } 
+            :  m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false) 
+        {} 
 
-        template < typename Parser>
-        void Initialize( Parser *parser)
-        {
-            auto    docWhorl = parser->Bottom< RExpDoc>();
-            m_Repos  = &docWhorl->m_Repos; 
-        }
-
-        template < typename Parser>
+    template < typename Parser>
         void Scavenge( Parser *parser)
         {
             auto    docWhorl = parser->Bottom< RExpDoc>(); 
@@ -343,13 +330,13 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             return ( m_Min == CV_UINT32_MAX) && ( m_Max == CV_UINT32_MAX) && !m_Infinite && !m_Stingy; 
         }
 
-        RExpCrate::Id           FetchId( void) 
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
         {
-            if ( !m_Id.IsValid()) 
+            if ( m_Id.IsValid()) 
             {
                 auto    synElem = new CSetSynElem();
                 synElem->m_Filt = m_ChSet; 
-                m_Id = m_Repos->Store( synElem);
+                m_Id = repos->Store( synElem);
             }
             CV_ERROR_ASSERT( IsBasic())
             return m_Id;
@@ -417,7 +404,8 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     auto	    AtomListener(void) const {
         return [](auto ctxt) {
             Whorl       *whorl = ctxt->Pred< RExpQuanta>(); 
-            whorl->m_Id = ctxt->FetchId();
+            auto        docWhorl = ctxt->Bottom< RExpDoc>();
+            whorl->m_Id = ctxt->FetchId( docWhorl->m_Repos);
             return true;  }; } 
 
     auto		Quanta( void) const { 
@@ -441,19 +429,27 @@ template < typename Forge>
 struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 {
 	struct Whorl
-	{
+	{ 
 		uint64_t					    m_Index;
 		std::vector< RExpCrate::Id>		m_RExps;
 
 		Whorl( void)
 			: m_Index( 0)
 		{}
-  
+        
+    
+
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        {
+            auto    synElem = new SeqSynElem();
+            synElem->m_SeqList = m_RExps; 
+            return repos->Store( synElem);  
+        }
 	};
  
 	auto           RExpressionListener(void) const {
 		return []( auto ctxt) {
-			std::cout << ctxt->MatchStr() << "\n";
+			std::cout << ctxt->MatchStr() << "\n"; 
 			return true;  }; }
 
 	auto          IndexListener(void) const {
@@ -464,7 +460,8 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	auto          AtomListener(void) const {
 		return [this]( auto ctxt) { 
             std::cout << ctxt->MatchStr() << "\n";
- 	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId());
+            auto        docWhorl = ctxt->Bottom< RExpDoc>();
+ 	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos));
 			return true;  }; }
 
 	auto           RExpression(void) const { return (+(RExpQuanta()[ AtomListener()] - Char('/')))[ RExpressionListener()]; }
@@ -495,24 +492,35 @@ template < typename Cnstr>
 
 struct RExpDoc  : public Shard< RExpDoc>
 {  
+    RExpRepos       *m_Repos;
+
 	struct Whorl
 	{
-        Cv_CrateRepos< RExpCrate>       m_Repos;
-		AltSynElem	                    m_AllRules;
+        RExpRepos                       *m_Repos; 
+        std::vector< RExpCrate::Id>     m_RExps;
 	};
 
-	RExpDoc( void) 
+	RExpDoc( RExpRepos *repos) 
+        : m_Repos( repos)
 	{}
+
+    auto          RExpListener(void) const {
+        return [this]( auto ctxt) { 
+            std::cout << ctxt->MatchStr() << "\n";
+            auto            docWhorl = ctxt->Bottom< RExpDoc>();
+            ctxt->Pred< RExpDoc>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos));
+            return true;  }; }
 
 	auto           DocumentOver( void) const { return []( auto ctxt) {  
 		std::cout << ctxt->MatchStr() << "\n";
 		return true;  };  } 
 	 
-	auto           Document( void) const { return (+RExpEntry())[ DocumentOver()]; } 
+	auto           Document( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
 
 template < typename Forge>
 	bool    DoParse( Forge *ctxt) const
 	{   
+        ctxt->m_Repos = m_Repos;
 		ctxt->Push();
 		auto    doc = Document();
 		if (  !doc.DoMatch( ctxt))
@@ -535,5 +543,5 @@ template < typename Cnstr>
 
 inline auto	RExpSeq::Seq( void) const { 
     RExpQuanta  quanta;
-    return  (+( quanta[ QuantaListener()]))[ SeqCompletor()]; }
+    return  (+( quanta[ QuantaListener()])); }
 };

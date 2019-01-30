@@ -120,7 +120,7 @@ public:
     
 protected:
     
-    Cv_Stack< Forge>        m_ForgeStack;
+    Cv_Fifo< Forge>        m_ForgeStack;
     InStream                *m_InStream; 
     Mark                    m_LastMatch;
 
@@ -131,8 +131,8 @@ public:
 
     ~Parser( void) { }
 
-    void            PushForge( Forge *forge) { m_ForgeStack.Push( forge); }
-    Forge           *PopForge( void)  { return m_ForgeStack.Pop();  }
+    void            PushForge( Forge *forge) { m_ForgeStack.PushFront( forge); }
+    Forge           *PopForge( void)  { return m_ForgeStack.PopFront();  }
     
     Forge           *TopForge( void) { return m_ForgeStack.Top(); }
     Forge           *BottomForge( void) { return m_ForgeStack.Bottom(); } 

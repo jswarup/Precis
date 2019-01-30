@@ -59,11 +59,16 @@ int     Sg_RExpCmdProcessor::Test(void)
 	Parser< StrInStream>	parser( &memVector); 
 	 
 
-	RExpDoc					rexpDoc; 
+    RExpRepos				rexpCrate;
+	RExpDoc					rexpDoc( &rexpCrate); 
 
     bool					apiErrCode = parser.Match( &rexpDoc);
-
-	Cv_CrateRepos< RExpCrate>				synCrate ;
+    std::ofstream           rexpOStrm( "a.dot");
+    Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 
+    rexpCrate.OperateAll( [&rexpDotStrm]( auto k ){
+        return k->WriteDot( rexpDotStrm); 
+        });
+    RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);
 	std::ofstream							ostrm( "b.dot");
