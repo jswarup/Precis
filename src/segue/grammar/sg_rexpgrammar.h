@@ -70,7 +70,6 @@ struct      RExpDocSynElem : public AltSynElem
 	}
 };  
  
-
 //_____________________________________________________________________________________________________________________________
 
 struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
@@ -97,71 +96,71 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     {}
 
     auto		CharListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet.Set( forge->MatchStr()[0], true);
             return true;  }; }
 
     auto		CtrlCharListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0] -'a', true);
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet.Set( forge->MatchStr()[0] -'a', true);
             return true;  }; }
 
     auto		EscCharListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->MatchStr()[0], true);
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet.Set( forge->MatchStr()[0], true);
             return true;  }; }
 
     auto		OctalListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->num, true);
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet.Set( forge->num, true);
             return true;  }; }
 
     auto		HexListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet.Set( ctxt->num, true);
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet.Set( forge->num, true);
             return true;  }; }
 
     auto		BackrefListener(void) const {
-        return [](auto ctxt) {
-            std::cout << ctxt->MatchStr() << "\n";
+        return [](auto forge) {
+            std::cout << forge->MatchStr() << "\n";
             return true;  }; }
 
     auto		WhiteSpaceListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Space();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Space();
             return true;  }; }
 
     auto		NonWhiteSpaceListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonSpace();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonSpace();
             return true;  }; }
 
     auto		DigitListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Digit();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Digit();
             return true;  }; }
 
     auto		NonDigitListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonDigit();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonDigit();
             return true;  }; }
 
     auto		WordListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Word();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::Word();
             return true;  }; } 
 
     auto		NonWordListener(void) const {
-        return [](auto ctxt) {
-            ctxt->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
             return true;  }; }
 
     auto		WordBdyListener(void) const {
-        return [](auto ctxt) {
+        return [](auto forge) {
             return true;  }; }
 
     auto		NonWordBdyListener(void) const {
-        return [](auto ctxt) {
+        return [](auto forge) {
             return true;  }; } 
 
     auto           KeyChar( void) const {
@@ -181,11 +180,11 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
 
     template < typename Forge>
-    bool    DoParse( Forge *ctxt) const
+    bool    DoParse( Forge *forge) const
     {
-        ctxt->Push();
+        forge->Push();
         auto	unit = Unit();
-        if ( !unit.DoMatch( ctxt))
+        if ( !unit.DoMatch( forge))
             return false; 
         return true;
     }
@@ -208,19 +207,19 @@ struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
     };
 
     auto        QuantaListener(void) const {
-        return [this]( auto ctxt) {                      // build seq
-            auto    docWhorl = ctxt->Bottom< RExpDoc>();
-            ctxt->Pred< RExpSeq>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos)); 
+        return [this]( auto forge) {                      // build seq
+            auto    docWhorl = forge->Bottom< RExpDoc>();
+            forge->Pred< RExpSeq>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos)); 
             return true;  }; } 
      
     auto	Seq( void) const;
 
 template < typename Forge>
-    bool    DoParse( Forge *ctxt) const
+    bool    DoParse( Forge *forge) const
     {
-        ctxt->Push();
+        forge->Push();
         auto	unit = Seq();
-        if ( !unit.DoMatch( ctxt))
+        if ( !unit.DoMatch( forge))
             return false; 
         return true;
     }
@@ -267,33 +266,33 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     };
  
     auto        UnitListener(void) const {
-        return [this]( auto ctxt) {
-            ctxt->Pred< RExpQuanta>()->m_ChSet = ctxt->m_ChSet;
+        return [this]( auto forge) {
+            forge->Pred< RExpQuanta>()->m_ChSet = forge->m_ChSet;
 
-            std::cout << ctxt->MatchStr() << "\n";
+            std::cout << forge->MatchStr() << "\n";
             return true;  }; } 
 
     auto        SeqListener(void) const {
-        return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n"; 
-            auto            docWhorl = ctxt->Bottom< RExpDoc>();
-            ctxt->Pred< RExpQuanta>()->m_Id = ctxt->FetchId( docWhorl->m_Repos);
+        return [this]( auto forge) { 
+            std::cout << forge->MatchStr() << "\n"; 
+            auto            docWhorl = forge->Bottom< RExpDoc>();
+            forge->Pred< RExpQuanta>()->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; }
 
     auto        RexpListener(void) const {
-        return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n"; 
+        return [this]( auto forge) { 
+            std::cout << forge->MatchStr() << "\n"; 
             return true;  }; }
 
     auto		Atom( void) const { 
         return ( Char('(') >> m_Seq[ SeqListener()] >> Char(')'))[ RexpListener()] | m_RExpUnit[ UnitListener()]; } 
 
 template < typename Forge>
-    bool    DoParse( Forge *ctxt) const
+    bool    DoParse( Forge *forge) const
     {
-        ctxt->Push();
+        forge->Push();
         auto	unit = Atom();
-        if ( !unit.DoMatch( ctxt))
+        if ( !unit.DoMatch( forge))
             return false; 
         return true;
     }
@@ -344,68 +343,68 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     };
   
     auto		MinSpinListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
-            whorl->m_Min = ctxt->num;
-            whorl->m_Max = ctxt->num; 
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
+            whorl->m_Min = forge->num;
+            whorl->m_Max = forge->num; 
             return true;  }; }
 
     auto		MaxSpinListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
-            whorl->m_Max = ctxt->num;
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
+            whorl->m_Max = forge->num;
             whorl->m_Infinite = false;
             return true;  }; }
 
     auto		CommaListener(void) const {
-        return [](auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return [](auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
             return true;  }; }
 
     auto		ZeroToMaxListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
-            whorl->m_Max = ctxt->num; 
+            whorl->m_Max = forge->num; 
             return true;  }; }
 
     auto		QuestionListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 1;
             whorl->m_Infinite = false;
             return true;  }; }
 
     auto		StarListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
             return true;  }; }
 
     auto		PlusListener(void) const {
-        return []( auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return []( auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 1;
             whorl->m_Max = 0;
             whorl->m_Infinite = true;
             return true;  }; }
 
     auto	    StingyListener(void) const {
-        return [](auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>();
+        return [](auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Stingy = true;
             return true;  }; } 
 
     auto	    AtomListener(void) const {
-        return [](auto ctxt) {
-            Whorl       *whorl = ctxt->Pred< RExpQuanta>(); 
-            auto        docWhorl = ctxt->Bottom< RExpDoc>();
-            whorl->m_Id = ctxt->FetchId( docWhorl->m_Repos);
+        return [](auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>(); 
+            auto        docWhorl = forge->Bottom< RExpDoc>();
+            whorl->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; } 
 
     auto		Quanta( void) const { 
@@ -414,11 +413,11 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; } 
 
 template < typename Forge>
-    bool    DoParse( Forge *ctxt) const
+    bool    DoParse( Forge *forge) const
     {
-        ctxt->Push();
+        forge->Push();
         auto	unit = Quanta();
-        if ( !unit.DoMatch( ctxt))
+        if ( !unit.DoMatch( forge))
             return false; 
         return true;
     }
@@ -448,20 +447,20 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	};
  
 	auto           RExpressionListener(void) const {
-		return []( auto ctxt) {
-			std::cout << ctxt->MatchStr() << "\n"; 
+		return []( auto forge) {
+			std::cout << forge->MatchStr() << "\n"; 
 			return true;  }; }
 
 	auto          IndexListener(void) const {
-		return [this]( auto ctxt) {   
- 		    ctxt->Pred< RExpEntry>()->m_Index = ctxt->num;
+		return [this]( auto forge) {   
+ 		    forge->Pred< RExpEntry>()->m_Index = forge->num;
 			return true;  }; }
 
 	auto          AtomListener(void) const {
-		return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n";
-            auto        docWhorl = ctxt->Bottom< RExpDoc>();
- 	        ctxt->Pred< RExpEntry>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos));
+		return [this]( auto forge) { 
+            std::cout << forge->MatchStr() << "\n";
+            auto        docWhorl = forge->Bottom< RExpDoc>();
+ 	        forge->Pred< RExpEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
 			return true;  }; }
 
 	auto           RExpression(void) const { return (+(RExpQuanta()[ AtomListener()] - Char('/')))[ RExpressionListener()]; }
@@ -470,13 +469,13 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
 
 template < typename Forge>
-	bool    DoParse( Forge *ctxt) const
+	bool    DoParse( Forge *forge) const
 	{     
-		ctxt->Push();
+		forge->Push();
 		auto	rexpLine = RExpLine( ); 
-		if (!rexpLine.DoMatch(ctxt))
+		if (!rexpLine.DoMatch(forge))
 			return false;
-		std::cout << ctxt->m_Index << "\n";
+		std::cout << forge->m_Index << "\n";
 		return true;
 	}
 	 
@@ -493,37 +492,59 @@ template < typename Cnstr>
 struct RExpDoc  : public Shard< RExpDoc>
 {  
     RExpRepos       *m_Repos;
+    struct XAct
+    {
+        RExpCrate::Id   m_Id;
 
+        XAct( void) 
+        {}
+    };
+ 
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
         std::vector< RExpCrate::Id>     m_RExps;
+        
+    template <typename ParentForge>
+        bool    PrimeUp( ParentForge *xact)
+        {
+            m_Repos = xact->m_Repos;
+            return true;
+        }
+
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        {
+            auto    synElem = new AltSynElem();
+            synElem->m_AltList = m_RExps; 
+            return repos->Store( synElem);        
+        }
 	};
 
-	RExpDoc( RExpRepos *repos) 
+	RExpDoc( RExpRepos *repos)
         : m_Repos( repos)
-	{}
+    {}  
 
     auto          RExpListener(void) const {
-        return [this]( auto ctxt) { 
-            std::cout << ctxt->MatchStr() << "\n";
-            auto            docWhorl = ctxt->Bottom< RExpDoc>();
-            ctxt->Pred< RExpDoc>()->m_RExps.push_back( ctxt->FetchId( docWhorl->m_Repos));
+        return [this]( auto forge) {  
+            auto            docWhorl = forge->Pred< RExpDoc>();
+            docWhorl->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
             return true;  }; }
 
-	auto           DocumentOver( void) const { return []( auto ctxt) {  
-		std::cout << ctxt->MatchStr() << "\n";
+    
+	auto           DocumentOver( void) const { return [ this]( auto forge) { 
+        auto            docWhorl = forge->Bottom< RExpDoc>(); 
+        RExpCrate::Id   id = docWhorl->FetchId( docWhorl->m_Repos);
 		return true;  };  } 
 	 
 	auto           Document( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
 
 template < typename Forge>
-	bool    DoParse( Forge *ctxt) const
+	bool    DoParse( Forge *forge) const
 	{   
-        ctxt->m_Repos = m_Repos;
-		ctxt->Push();
+        forge->m_Repos = m_Repos;
+		forge->Push();
 		auto    doc = Document();
-		if (  !doc.DoMatch( ctxt))
+		if (  !doc.DoMatch( forge))
 			return false;  
 		return true;
 	} 

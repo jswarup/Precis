@@ -77,18 +77,19 @@ public:
 	bool        IsMatch( void) const { return m_MatchFlg; }
 
 	Forge       *Parent( void) const { return  this->GetBelow(); }
+ 
+template<typename ParentForge>
+    bool        PrimeFromParent( ParentForge *parent) { return true; } 
 
-	void        NotifyFromChildMatch( Forge *child)
-	{} 
+template<typename ChildForge>
+    void        NotifyParent( ChildForge *parent)
+    {} 
 
 	void        ProcessMatch( void)
 	{        
 		m_MatchFlg = true;
 		return;
-	}
-    
-
-    bool        DoScavenge( void)  { return false; } 
+	} 
 
 	uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
 	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
@@ -158,8 +159,15 @@ template < typename Shard>
     {
         Forge  forge( this);
        
-        bool    res = node->DoMatch( &forge);
-        forge.DoScavenge();
+        bool    res = node->DoMatch( &forge); 
+        return res;
+    } 
+
+template < typename Shard, typename Data>    
+    bool            Match( Shard *node, Data *data)
+    {
+        DataForge< Shard, typename Forge::Parser, Data>  forge( this, data); 
+        bool    res = node->DoMatch( &forge); 
         return res;
     } 
 }; 

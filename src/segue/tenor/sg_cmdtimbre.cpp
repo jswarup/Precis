@@ -79,6 +79,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
             
 		StrInStream				strInstrm( "alltest");
 		Parser< StrInStream>	parser( &strInstrm);
+        
         apiErrCode = parser.Match( &regex);
         
         Cv_CrateRepos< SynParserCrate>               synCrate ;

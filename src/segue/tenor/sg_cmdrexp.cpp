@@ -60,14 +60,15 @@ int     Sg_RExpCmdProcessor::Test(void)
 	 
 
     RExpRepos				rexpCrate;
-	RExpDoc					rexpDoc( &rexpCrate); 
-
-    bool					apiErrCode = parser.Match( &rexpDoc);
+    RExpDoc					rexpDoc( &rexpCrate); 
+    RExpDoc::XAct           xact;
+    bool					apiErrCode = parser.Match( &rexpDoc, &xact);
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 
     rexpCrate.OperateAll( [&rexpDotStrm]( auto k ){
         return k->WriteDot( rexpDotStrm); 
         });
+
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);

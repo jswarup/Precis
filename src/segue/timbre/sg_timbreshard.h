@@ -44,10 +44,9 @@ struct ShardForge : public  Parser::Forge
 {   
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser) 
-	{ }
+	{}
 
 };
- 
 
 template <typename TimbreShard, typename Parser>
 struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::Forge, public  TimbreShard::Whorl
@@ -56,27 +55,22 @@ struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename 
     
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser)
-	{
-        DoInitialize<Whorl>(); 
-    }
- 
-    ~ShardForge( void)
-    { 
-    }
- 
-template<typename T>
-    auto DoInitialize( void) -> decltype(std::declval<T>().TimbreShard::Whorl::Initialize( GetParser())) { return this->TimbreShard::Whorl::Initialize( GetParser());  }
+	{}
 
+template<typename ParentForge>
+    auto PrimeFromParent( ParentForge *parent) { return false; }   
+}; 
 
-template<typename T>
-    bool DoInitialize(...) { return false; } 
+//_____________________________________________________________________________________________________________________________  
 
-template<typename T>
-    auto DoScavenge( void) -> decltype(std::declval<T>().Scavenge( GetParser())) { return this->Scavenge( GetParser());  }
+template <typename TimbreShard, typename Parser,  typename Data>
+struct DataForge : public Parser::Forge
+{ 
+    Data        *m_Data;
 
- 
-template<typename T>
-    bool DoScavenge(...) { return false; } 
+    DataForge( Parser *parser, Data *data)
+        : Parser::Forge( parser), m_Data( data)
+    {}
 }; 
 
 //_____________________________________________________________________________________________________________________________  
@@ -92,9 +86,8 @@ public:
 	Shard( void)  
 	{}
 
-
-    GrammarShard             *GetShard( void)  { return static_cast< GrammarShard *>( this); }
-    const GrammarShard       *GetShard( void) const  { return static_cast< const GrammarShard *>( this); }
+    GrammarShard            *GetShard( void)  { return static_cast< GrammarShard *>( this); }
+    const GrammarShard      *GetShard( void) const  { return static_cast< const GrammarShard *>( this); }
  
 
     const std::string       &GetName( void) const { return m_Name; }
@@ -110,12 +103,13 @@ template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
         ShardForge< GrammarShard, typename ParentForge::Parser>      forge( ctxt->GetParser());
-        
+
+        forge.PrimeFromParent( ctxt); 
         bool        match = this->GetShard()->DoParse( &forge);
         if ( match)  
         {
-            forge.ProcessMatch(); 
-            ctxt->NotifyFromChildMatch( &forge);
+            forge.ProcessMatch();  
+            forge.NotifyParent( ctxt);
         }
         
         return match;
@@ -125,8 +119,8 @@ template < typename Right>
     Seq< GrammarShard, Right>                   operator>>( const Right & r) const;
 
 template <typename Actor>
-    Action< GrammarShard, Actor >               operator[]( const Actor &actor) const;     
-    
+    Action< GrammarShard, Actor >               operator[]( const Actor &actor) const;    
+
     auto										operator!( void) const;
     auto                                        operator!( void);
     
@@ -195,11 +189,13 @@ template <typename ParentForge>
 	{
 		ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
 
+        forge.PrimeFromParent( ctxt); 
+
 		bool        match = m_Shard->DoMatch( &forge);
 		if ( match)  
 		{
-			forge.ProcessMatch(); 
-			ctxt->NotifyFromChildMatch( &forge); 
+			forge.ProcessMatch();  
+            forge.NotifyParent( ctxt); 
 		}
 
 		return match;
@@ -234,16 +230,16 @@ public:
 template <typename ParentForge>
     bool DoMatch( ParentForge *ctxt) const
     {
-        ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
-        static int k = 0;
-        ++k;
-        
+        ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser()); 
+
+        forge.PrimeFromParent( ctxt);  
+
         bool        match = m_Shard.DoParse( &forge);
         if ( match)  
         {
-            forge.ProcessMatch(); 
-            ctxt->NotifyFromChildMatch( &forge);
+            forge.ProcessMatch();  
             match = m_Actor( &forge);
+            forge.NotifyParent( ctxt);
         }
         
         return match;

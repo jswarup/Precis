@@ -27,7 +27,7 @@ set(CMAKE_BUILD_DIRECTORY "${ROOT_PATH}delivery/")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_PATH}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_PATH}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PATH}/lib)
- 
+  
 #------------------------------------------------------------------------------------------------------------------------------
   
 include_directories( 
@@ -37,7 +37,7 @@ include_directories(
 #------------------------------------------------------------------------------------------------------------------------------ 
 
 if(PR_VISUALSTUDIO)
-add_definitions( -DPR_VISUALSTUDIO -std:c++latest)  
+add_definitions( -DPR_VISUALSTUDIO -std:c++17)  
 
 else(PR_VISUALSTUDIO)	 
 add_definitions( -std=c++1z)
