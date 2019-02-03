@@ -55,10 +55,7 @@ struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename 
     
 	ShardForge( Parser *parser)
 		: Parser::Forge(parser)
-	{}
-
-template<typename ParentForge>
-    auto PrimeFromParent( ParentForge *parent) { return false; }   
+	{} 
 }; 
 
 //_____________________________________________________________________________________________________________________________  
@@ -104,7 +101,6 @@ template <typename ParentForge>
     {
         ShardForge< GrammarShard, typename ParentForge::Parser>      forge( ctxt->GetParser());
 
-        forge.PrimeFromParent( ctxt); 
         bool        match = this->GetShard()->DoParse( &forge);
         if ( match)  
         {
@@ -188,8 +184,7 @@ template <typename ParentForge>
 	bool DoMatch( ParentForge *ctxt) const
 	{
 		ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser());
-
-        forge.PrimeFromParent( ctxt); 
+ 
 
 		bool        match = m_Shard->DoMatch( &forge);
 		if ( match)  
@@ -232,7 +227,6 @@ template <typename ParentForge>
     {
         ShardForge< TShard, typename ParentForge::Parser>       forge( ctxt->GetParser()); 
 
-        forge.PrimeFromParent( ctxt);  
 
         bool        match = m_Shard.DoParse( &forge);
         if ( match)  

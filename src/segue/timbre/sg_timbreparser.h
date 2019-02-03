@@ -77,9 +77,7 @@ public:
 	bool        IsMatch( void) const { return m_MatchFlg; }
 
 	Forge       *Parent( void) const { return  this->GetBelow(); }
- 
-template<typename ParentForge>
-    bool        PrimeFromParent( ParentForge *parent) { return true; } 
+  
 
 template<typename ChildForge>
     void        NotifyParent( ChildForge *parent)
@@ -165,10 +163,14 @@ template < typename Shard>
 
 template < typename Shard, typename Data>    
     bool            Match( Shard *node, Data *data)
-    {
-        DataForge< Shard, typename Forge::Parser, Data>  forge( this, data); 
-        bool    res = node->DoMatch( &forge); 
-        return res;
+    { 
+        ShardForge< Shard, typename Forge::Parser>      forge( this);
+        forge.PrimeIn( data);
+  
+        bool        match = node->DoParse( &forge);
+        if ( match)
+            forge.ExtractOut( data);
+        return match;
     } 
 }; 
  

@@ -60,8 +60,8 @@ int     Sg_RExpCmdProcessor::Test(void)
 	 
 
     RExpRepos				rexpCrate;
-    RExpDoc					rexpDoc( &rexpCrate); 
-    RExpDoc::XAct           xact;
+    RExpDoc					rexpDoc; 
+    RExpDoc::XAct           xact( &rexpCrate);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 

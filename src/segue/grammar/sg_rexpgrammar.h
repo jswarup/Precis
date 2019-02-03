@@ -490,25 +490,32 @@ template < typename Cnstr>
 //_____________________________________________________________________________________________________________________________
 
 struct RExpDoc  : public Shard< RExpDoc>
-{  
-    RExpRepos       *m_Repos;
+{   
     struct XAct
     {
+        RExpRepos       *m_Repos;
         RExpCrate::Id   m_Id;
 
-        XAct( void) 
-        {}
+        XAct( RExpRepos *repos) 
+            : m_Repos( repos)
+        {} 
     };
  
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
         std::vector< RExpCrate::Id>     m_RExps;
+        RExpCrate::Id                   m_Id;
         
-    template <typename ParentForge>
-        bool    PrimeUp( ParentForge *xact)
+        bool    PrimeIn( XAct *xact)
         {
             m_Repos = xact->m_Repos;
+            return true;
+        }
+        
+        bool    ExtractOut( XAct *xact)
+        {
+            xact->m_Id = m_Id;
             return true;
         }
 
@@ -520,8 +527,7 @@ struct RExpDoc  : public Shard< RExpDoc>
         }
 	};
 
-	RExpDoc( RExpRepos *repos)
-        : m_Repos( repos)
+	RExpDoc( void) 
     {}  
 
     auto          RExpListener(void) const {
@@ -533,15 +539,14 @@ struct RExpDoc  : public Shard< RExpDoc>
     
 	auto           DocumentOver( void) const { return [ this]( auto forge) { 
         auto            docWhorl = forge->Bottom< RExpDoc>(); 
-        RExpCrate::Id   id = docWhorl->FetchId( docWhorl->m_Repos);
+        docWhorl->m_Id = docWhorl->FetchId( docWhorl->m_Repos);
 		return true;  };  } 
 	 
 	auto           Document( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
 
 template < typename Forge>
 	bool    DoParse( Forge *forge) const
-	{   
-        forge->m_Repos = m_Repos;
+	{    
 		forge->Push();
 		auto    doc = Document();
 		if (  !doc.DoMatch( forge))
