@@ -112,6 +112,36 @@ template < typename T>
     { 
         typedef std::true_type  Note;
     };
+
+    //_____________________________________________________________________________________________________________________________
+
+template < typename TimbreShard>
+    static auto Dump( TimbreShard *shard, std::ostream &ostr, int k) ->   decltype( std::declval<TimbreShard>().Dump( std::declval<std::ostream>()), bool())
+    {         
+        shard->Dump( ostr);
+        return true;
+    }
+
+ template < typename TimbreShard>
+    static auto Dump( TimbreShard *shard, std::ostream &ostr, ...) -> bool
+    {         
+        return false;
+    }
+
+
+template<class T, class EqualTo>
+    struct HasStreamInsImpl
+    {
+        template<class U, class V>
+        static auto Test(U*) -> decltype(std::declval<U>() << std::declval<V>());
+        template<typename, typename>
+        static auto Test(...) -> void;
+
+        using Note = typename Same<bool, decltype(Test<T, EqualTo>(0))>::Note;
+    };
+
+template<class T, class EqualTo = T>
+    struct HasStreamIns : HasStreamInsImpl<T, EqualTo>::Note {};
 };
 
 

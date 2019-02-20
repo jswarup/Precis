@@ -75,7 +75,7 @@ struct DataForge : public Parser::Forge
 template < typename TShard>
 struct Shard 
 { 
-    typedef  TShard          GrammarShard;
+    typedef  TShard          GrammarShard; 
     
     std::string             m_Name; 
 
@@ -85,11 +85,10 @@ public:
 
     GrammarShard            *GetShard( void)  { return static_cast< GrammarShard *>( this); }
     const GrammarShard      *GetShard( void) const  { return static_cast< const GrammarShard *>( this); }
- 
 
-    const std::string       &GetName( void) const { return m_Name; }
-    void                    SetName( const std::string & n) { m_Name = n; } 
-    
+    std::string             Name( void) const { return std::string(); } 
+    std::string             GetName( void) const { return GetShard()->Name(); }
+ 	
 template <typename  Forge>   
     bool    DoParse( Forge *ctxt) const
     {
@@ -102,11 +101,8 @@ template <typename ParentForge>
         ShardForge< GrammarShard, typename ParentForge::Parser>      forge( ctxt->GetParser());
 
         bool        match = this->GetShard()->DoParse( &forge);
-        if ( match)  
-        {
-            forge.ProcessMatch();  
-            forge.NotifyParent( ctxt);
-        }
+        if ( match)   
+            forge.ProcessMatch( this->GetShard(), 0);  
         
         return match;
     }  
@@ -187,11 +183,8 @@ template <typename ParentForge>
  
 
 		bool        match = m_Shard->DoMatch( &forge);
-		if ( match)  
-		{
-			forge.ProcessMatch();  
-            forge.NotifyParent( ctxt); 
-		}
+		if ( match)   
+			forge.ProcessMatch( m_Shard, 0);   
 
 		return match;
 	} 
@@ -230,10 +223,10 @@ template <typename ParentForge>
 
         bool        match = m_Shard.DoParse( &forge);
         if ( match)  
-        {
-            forge.ProcessMatch();  
+        { 
             match = m_Actor( &forge);
-            forge.NotifyParent( ctxt);
+            if ( match)
+                forge.ProcessMatch( &m_Shard, 0);
         }
         
         return match;
@@ -354,6 +347,11 @@ template < typename Cnstr>
 		elem->m_SeqList.push_back( rightId); 
 		return cnstr->Store( elem);
 	} 
+
+    void    Dump( std::ostream &ostr)
+    {
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 

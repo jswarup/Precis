@@ -70,25 +70,24 @@ public:
 			m_Parser->RollTo( m_Marker); 
 	}
 
-	void		Push(void) { m_Parser->PushForge(this); m_PushedFlg = true; }
+	void		Push( void) { m_Parser->PushForge(this); m_PushedFlg = true; }
 
 	Parser      *GetParser( void) const { return m_Parser; }
 
 	bool        IsMatch( void) const { return m_MatchFlg; }
 
 	Forge       *Parent( void) const { return  this->GetBelow(); }
-  
 
-template<typename ChildForge>
-    void        NotifyParent( ChildForge *parent)
-    {} 
 
-	void        ProcessMatch( void)
-	{        
-		m_MatchFlg = true;
-		return;
-	} 
-
+template < typename TimbreShard>
+    void ProcessMatch( TimbreShard *shard, int k) 
+    {         
+        m_MatchFlg = true;
+        if ( GetParser()->LogStream() && Cv_TypeEngage::Dump( shard, *GetParser()->LogStream(), 0))
+            *GetParser()->LogStream() << ':' << MatchStr() << '\n';
+        return ;
+    } 
+ 
 	uint32_t    SzMatch( void) const { return m_Parser->SzFrom( m_Marker); }
 	Cv_CStr     MatchStr( void) { return m_Parser->Region( m_Marker, m_Parser->Marker()); }
 
@@ -121,15 +120,19 @@ protected:
     
     Cv_Fifo< Forge>        m_ForgeStack;
     InStream                *m_InStream; 
+    std::ostream            *m_LogStream; 
     Mark                    m_LastMatch;
 
 public:
     Parser( InStream *inStream) 
-        : m_InStream( inStream)
+        : m_InStream( inStream), m_LogStream( NULL)
     {}
 
     ~Parser( void) { }
 
+    std::ostream    *LogStream( void) { return m_LogStream; }
+    void            SetLogStream( std::ostream *ostr) { m_LogStream = ostr; }
+        
     void            PushForge( Forge *forge) { m_ForgeStack.PushFront( forge); }
     Forge           *PopForge( void)  { return m_ForgeStack.PopFront();  }
     
@@ -219,12 +222,12 @@ struct Str : public Shard< Str >
 {     
     std::string     m_Str;
     
+    
     Str( const std::string & s)
         :   m_Str( s)
-    {
-        SetName( std::string( "Str:" + s));
-    }
+    {}
     
+    std::string             Name( void) { return std::string( "Str:" + m_Str); }
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
@@ -258,11 +261,10 @@ struct IStr : public Shard< IStr >
     
     IStr( const std::string & s)
         :   m_Str( s)
-    {
-        SetName( std::string( "IStr:" + s)); 
-        Cv_Aid::UpCase( &m_Str);
-    }
+    {}
     
+ 
+
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   
@@ -297,9 +299,7 @@ struct Char : public Shard< Char >
 
     Char( const char ch)
         : m_Char( ch)
-    {
-        SetName( std::string( "Char:" + ch));
-    }
+    {}
 
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
@@ -332,9 +332,7 @@ struct CharRange  : public  Shard< CharRange >
 public:
 	CharRange( uint8_t c1, uint8_t c2) 
 		: m_C1( c1), m_C2( c2)
-    {
-        this->SetName( std::string( "Range:" + m_C1 + '-' + m_C2)) ;
-    }
+    {}
         
 template < typename Forge>  
     bool    DoParse( Forge *ctxt) const
@@ -360,9 +358,7 @@ template < typename Cnstr>
 struct EoS : public Shard< EoS >
 {
     EoS( void)
-    {
-        SetName( "EoS");
-    }
+    {}
 
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
@@ -385,9 +381,7 @@ template < typename Cnstr>
 struct Any : public Shard< Any>
 {
     Any( void)
-    {
-        SetName( "Any");
-    }
+    {}
 
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
@@ -414,8 +408,7 @@ struct CharSet : public Shard< CharSet >
     Sg_ChSet     m_Bits;
 
     CharSet( const std::string &set)
-    { 
-        SetName( std::string( "CharSet:" +set));
+    {  
         const char      *p = set.c_str();
         while ( *p)
         {

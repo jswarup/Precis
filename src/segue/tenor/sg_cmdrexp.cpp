@@ -48,20 +48,57 @@ CV_CMD_DEFINE( Sg_RExpCmdProcessor, "rexp", "rexp", s_RExpIfcOptions)
 using namespace Sg_Timbre;
 using namespace Sg_RExp; 
 
+
+class TestX
+{
+    int     i;
+
+public:
+    TestX( void)
+    {
+        i = 10;
+    }
+
+    void    Dump( std::ostream &ostr)
+    {
+        return;
+    } 
+
+    friend std::ostream &operator<<( std::ostream &ostr, const RExpQuanta &TestX)
+    {
+        return ostr;
+    } 
+};
+
+template < typename TimbreShard>
+auto ProcessMatch( TimbreShard *shard, int k = 0) ->   decltype( std::declval<TimbreShard>().Dump( std::declval<std::ostream>()))
+{         
+
+    return ;
+}
+ 
+
+template < typename TimbreShard>
+auto ProcessMatch( TimbreShard *shard, ...) -> void
+{         
+
+    return ;
+}
+
 //_____________________________________________________________________________________________________________________________ 
 
 int     Sg_RExpCmdProcessor::Test(void)
-{
-  
-
-	StrInStream					memVector;
-	bool	res = Cv_Aid::ReadVec( &memVector, "ip.rules"); 
-	Parser< StrInStream>	parser( &memVector); 
-	 
-
+{ 
+    RExpQuanta                   tx;
+    Cv_TypeEngage::Dump( &tx, std::cout, 0);
+	StrInStream			    memVector;
+	bool	                res = Cv_Aid::ReadVec( &memVector, "ip.rules"); 
+	Parser< StrInStream>	parser( &memVector);  
+    parser.SetLogStream( &std::cout);
     RExpRepos				rexpCrate;
     RExpDoc					rexpDoc; 
     RExpDoc::XAct           xact( &rexpCrate);
+    parser.SetLogStream( &std::cout);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 

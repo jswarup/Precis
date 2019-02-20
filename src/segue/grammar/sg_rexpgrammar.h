@@ -26,15 +26,18 @@ typedef Cv_CrateRepos< RExpCrate>                                   RExpRepos;
 
 struct RExpPrimitive
 {
-	auto           Blank(void) const { return CharSet(" \t\v\r\n"); }
-	auto           WhiteChars(void) const { return CharSet(" \t\v\r"); }
-	auto           WhiteSpace(void) const { return +WhiteChars(); }
-	auto           OptWhiteSpace(void) const { return *WhiteChars(); }
-	auto           NL(void) const { return !(Char('\r')) >> Char('\n'); }
-	auto           OptBlankSpace(void) const { return *(WhiteChars() | NL()); }
-	auto           BlankLine(void) const { return OptWhiteSpace() >> (NL() | EoS()); }
-	auto           Comment(void) const { return Str("<!--") >> *(Any() - Str("-->")) >> Str("-->"); }
-	auto		   AlphaNum(void) const { return CharSet("a-zA-Z0-9"); }
+
+    auto        AlphaEx( void) const { return CharSet( "a-zA-Z_"); }
+    auto        AlphaNum( void) const { return CharSet( "a-zA-Z0-9"); } 
+
+	auto        Blank(void) const { return CharSet(" \t\v\r\n"); }
+	auto        WhiteChars(void) const { return CharSet(" \t\v\r"); }
+	auto        WhiteSpace(void) const { return +WhiteChars(); }
+	auto        OptWhiteSpace(void) const { return *WhiteChars(); }
+	auto        NL(void) const { return !(Char('\r')) >> Char('\n'); }
+	auto        OptBlankSpace(void) const { return *(WhiteChars() | NL()); }
+	auto        BlankLine(void) const { return OptWhiteSpace() >> (NL() | EoS()); }
+	auto        Comment(void) const { return Str("<!--") >> *(Any() - Str("-->")) >> Str("-->"); } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -68,15 +71,289 @@ struct      RExpDocSynElem : public AltSynElem
 		strm << " </FONT>>];\n "; 
 		return true;
 	}
-};  
- 
+};   
+
+//_____________________________________________________________________________________________________________________________
+
+class RExpNamedCharClass : public Shard< RExpNamedCharClass>, public RExpPrimitive
+{
+    struct Whorl
+    {
+        Sg_ChSet    m_ChSet;
+        bool        m_NegateFlg;
+        Whorl( void)
+            : m_NegateFlg( false)
+        {}        
+
+        auto        FetchCCL( void) const { return m_NegateFlg ? m_ChSet.Negative() : m_ChSet; }
+        void        SetName( const Cv_CStr &name)
+        {
+                if ( name == "alnum")
+                    m_ChSet = Sg_ChSet::AlphaNum();
+                else if ( name == "alpha")
+                    m_ChSet = Sg_ChSet::Alpha();
+                else if ( name == "ascii")
+                    m_ChSet = Sg_ChSet::Ascii();
+                else if ( name == "blank")
+                    m_ChSet = Sg_ChSet::Blank();
+                else if ( name == "cntrl")
+                    m_ChSet = Sg_ChSet::Cntrl();
+                else if ( name == "digit")
+                    m_ChSet = Sg_ChSet::Digit();
+                else if ( name == "graph")
+                    m_ChSet = Sg_ChSet::Graph();
+                else if ( name == "lower")
+                    m_ChSet = Sg_ChSet::Lower();
+                else if ( name == "print")
+                    m_ChSet = Sg_ChSet::Print();
+                else if ( name == "punct")
+                    m_ChSet = Sg_ChSet::Punct();
+                else if ( name == "space")
+                    m_ChSet = Sg_ChSet::Space();
+                else if ( name == "upper")
+                    m_ChSet = Sg_ChSet::Upper();
+                else if ( name == "word")
+                    m_ChSet = Sg_ChSet::Word();
+                else if ( name == "xdigit")
+                    m_ChSet = Sg_ChSet::XDigit(); 
+        }
+    };
+    
+    auto		NameListener( void) const {  
+        return []( auto forge) {  
+            forge->Pred< RExpCCL>()->SetName( forge->MatchStr()); 
+            return true;  }; } 
+
+    auto		NegateListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_NegateFlg = true;
+            return true;  }; }
+
+    auto        NamedCCL(  void) const { return  Str( "[:" ) >> !( Char( '^')[ NegateListener()]) >> (+AlphaEx())[ NameListener()] >> Str( ":]" ); }
+
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {
+        forge->Push();
+        auto	namedCCL = NamedCCL();
+        if ( !namedCCL.DoMatch( forge))
+            return false; 
+        return true;
+    } 
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
+{ 
+    typedef ParseInt< uint8_t, 8, 3, 3>     Oct;
+    typedef ParseInt< uint16_t, 10, 1, 3>   Dec;
+    typedef ParseInt< uint8_t, 16, 2, 2>    Hex;
+
+    static constexpr const char   *s_CCLEscapedCharset = "^-]\\";    // "[]+*?{}().\\/";
+    struct Whorl
+    {
+        uint8_t     m_Char;
+
+        Whorl( void)
+            : m_Char( 0)
+        {}
+    }; 
+    
+    friend std::ostream &operator<<( std::ostream &ostr, const RExpAnyCCLChar &shard)
+    {
+        return ostr;
+    }   
+    
+    auto		CharListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
+            return true;  }; }
+
+    auto		CtrlCharListener( void) const {
+        return []( auto forge) {
+            uint8_t     *chPtr = forge->Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
+            switch ( *chPtr)
+            {
+                case 'a': *chPtr = '\a' break;
+                case 'b': *chPtr = '\b'; break;
+                case 'f': *chPtr = '\f'; break;
+                case 'n': *chPtr = '\n'; break;
+                case 'r': *chPtr = '\r'; break;
+                case 't': *chPtr = '\t'; break;
+                case 'v': *chPtr = '\v'; break;
+            }
+            return true;  }; }
+
+    auto		CharValueListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpAnyCCLChar>()->m_Char = uint8_t( forge->num);
+            return true;  }; }
+
+    auto        AnyCCLChar(  void) const { 
+        return AlphaNum()[ CharListener()] | ( Char( '\\') >> ( CharSet( "abfnrtv")[ CtrlCharListener()] |  CharSet( s_CCLEscapedCharset)[ CharListener()] |  
+                        Oct()[ CharValueListener()] |  ( IStr( "x") >> Hex()[ CharValueListener()]) | Any()[ CharListener()])) | Any()[ CharListener()]; }
+
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {
+        forge->Push();
+        auto	anyCharExp = AnyCCLChar();
+        if ( !anyCharExp.DoMatch( forge))
+            return false; 
+        return true;
+    }  
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
+}; 
+
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpCCLCharRange : public Shard< RExpCCLCharRange>, public RExpPrimitive
+{  
+    RExpAnyCCLChar      m_AnyChar;
+
+    struct Whorl
+    {
+        uint8_t     m_Beg;
+        uint8_t     m_End;
+
+        Whorl( void)
+            : m_Beg( 0), m_End( 0)
+        {}
+    }; 
+    
+    auto		BegListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCLCharRange>()->m_Beg = forge->m_Char;
+            return true;  }; }
+
+    auto		EndListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCLCharRange>()->m_End = forge->m_Char;
+            return true;  }; }
+
+    auto        CCLCharRange(  void) const { 
+        return ( m_AnyChar -Char(']'))[ BegListener()] >>  !( Char( '-') >> ( m_AnyChar -Char( ']'))[ EndListener()]); }
+
+
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {
+        forge->Push();
+        auto	anyCharExp = CCLCharRange();
+        if ( !anyCharExp.DoMatch( forge))
+            return false; 
+        return true;
+    } 
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
+{
+    RExpNamedCharClass      m_NamedCharClass;
+    RExpCCLCharRange        m_CharRange;
+         
+    struct Whorl
+    {
+        Sg_ChSet    m_ChSet;
+        bool        m_NegateFlg;
+        
+        Whorl( void)
+            : m_NegateFlg( false)
+        {}
+    }; 
+    
+    auto		NegateListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_NegateFlg = true;
+            return true;  }; }
+
+    auto		SquareBracketEndListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Set( ']', true);
+            return true;  }; }
+
+    auto		SpaceListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Space());
+            return true;  }; }
+
+    auto		NonSpaceListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonSpace());
+            return true;  }; }
+
+    auto		DigitListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Digit());
+            return true;  }; }
+    
+    auto		NonDigitListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonDigit());
+            return true;  }; }
+
+    auto		WordListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Word());
+            return true;  }; }
+
+
+    auto		NonWordListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonWord());
+            return true;  }; }
+
+    auto		NamedCharClassListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( forge->FetchCCL());
+            return true;  }; }
+
+    auto		CharRangeListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpCCL>()->m_ChSet.Union( forge->FetchCCL());
+            return true;  }; }
+
+    auto        CharClass(  void) const { return Char( '[') >> !( Char( '^')[ NegateListener()]) >> !( Char( ']')[ SquareBracketEndListener()]) >> 
+                            *(( Char( '\\') >> ( Char( 's')[ SpaceListener()] | Char( 'S')[ NonSpaceListener()] | Char( 'd')[ DigitListener()] |
+                                Char( 'D')[ NonDigitListener()] | Char( 'w')[ WordListener()] | Char( 'W')[ NonWordListener()])) | 
+                                m_NamedCharClass[ NamedCharClassListener()] |  m_CharRange[ CharRangeListener()]) >>  Char( ']'); }
+
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {
+        forge->Push();
+        auto	cclExp = CharClass();
+        if ( !cclExp.DoMatch( forge))
+            return false; 
+        return true;
+    }  
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
+};
+
 //_____________________________________________________________________________________________________________________________
 
 struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 {
     typedef ParseInt< uint8_t, 8, 2, 3>     Oct;
     typedef ParseInt< uint16_t, 10, 1, 3>   Dec;
-    typedef ParseInt< uint8_t, 16, 0, 2>    Hex;
+    typedef ParseInt< uint8_t, 16, 2, 2>    Hex;
 
     CharSet     m_AlphaNum;
     CharSet     m_EscapedCharset;
@@ -179,7 +456,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
         ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
             m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
 
-    template < typename Forge>
+ template < typename Forge>
     bool    DoParse( Forge *forge) const
     {
         forge->Push();
@@ -188,7 +465,62 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             return false; 
         return true;
     }
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Unit";
+        return;
+    } 
 }; 
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpAlt  : public Shard< RExpAlt>, public RExpPrimitive
+{ 
+    struct Whorl
+    {  
+        std::vector< RExpCrate::Id>		m_RExps;  
+
+        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        {
+            CV_ERROR_ASSERT( m_RExps.size())
+            if ( m_RExps.size() == 1)
+                return m_RExps[ 0];
+            auto    synElem = new AltSynElem();
+            synElem->m_AltList = m_RExps; 
+            return repos->Store( synElem);        
+        }
+    };
+
+    auto        QuantaListener(void) const {
+        return [this]( auto forge) {                      // build seq
+            auto    docWhorl = forge->Bottom< RExpDoc>();
+            forge->Pred< RExpSeq>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos)); 
+            return true;  }; } 
+      
+
+    auto        AltCharListener(void) const {
+        return [this]( auto forge) {                      // build seq
+            auto    docWhorl = forge->Bottom< RExpDoc>(); 
+            return true;  }; } 
+
+    auto	Alt( void) const; 
+
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {
+        forge->Push();
+        auto	unit = Alt();
+        if ( !unit.DoMatch( forge))
+            return false; 
+        return true;
+    }
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Alt";
+        return;
+    } 
+};
+
 
 //_____________________________________________________________________________________________________________________________
 
@@ -200,19 +532,25 @@ struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
         {
+            CV_ERROR_ASSERT( m_RExps.size())
+            if ( m_RExps.size() == 1)
+                return m_RExps[ 0];
             auto    synElem = new SeqSynElem();
             synElem->m_SeqList = m_RExps; 
             return repos->Store( synElem);        
         }
     };
 
-    auto        QuantaListener(void) const {
+    auto        AltListener(void) const {
         return [this]( auto forge) {                      // build seq
             auto    docWhorl = forge->Bottom< RExpDoc>();
             forge->Pred< RExpSeq>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos)); 
             return true;  }; } 
-     
-    auto	Seq( void) const;
+
+
+    auto	Seq( void) const {
+        RExpAlt  alt;
+        return  +( alt[ AltListener()]); }
 
 template < typename Forge>
     bool    DoParse( Forge *forge) const
@@ -223,6 +561,12 @@ template < typename Forge>
             return false; 
         return true;
     }
+
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Seq";
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -296,6 +640,11 @@ template < typename Forge>
             return false; 
         return true;
     }
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Atom";
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -331,7 +680,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
         {
-            if ( m_Id.IsValid()) 
+            if ( !m_Id.IsValid()) 
             {
                 auto    synElem = new CSetSynElem();
                 synElem->m_Filt = m_ChSet; 
@@ -421,6 +770,12 @@ template < typename Forge>
             return false; 
         return true;
     }
+
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Quanta";
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -456,14 +811,14 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
  		    forge->Pred< RExpEntry>()->m_Index = forge->num;
 			return true;  }; }
 
-	auto          AtomListener(void) const {
+	auto          SeqListener(void) const {
 		return [this]( auto forge) { 
             std::cout << forge->MatchStr() << "\n";
             auto        docWhorl = forge->Bottom< RExpDoc>();
  	        forge->Pred< RExpEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
 			return true;  }; }
 
-	auto           RExpression(void) const { return (+(RExpQuanta()[ AtomListener()] - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return (+(RExpSeq()[ SeqListener()] - Char('/')))[ RExpressionListener()]; }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
@@ -485,6 +840,11 @@ template < typename Cnstr>
 		auto	elem = new RExpSynElem();  
 		return cnstr->Store( elem);
 	}
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Entry";
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -562,12 +922,17 @@ template < typename Cnstr>
 		elem->m_Item = cnstr->FetchElemId( &node);
 		return cnstr->Store( elem);
 	} 
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________
 
 
-inline auto	RExpSeq::Seq( void) const { 
+inline auto	RExpAlt::Alt( void) const {
     RExpQuanta  quanta;
-    return  (+( quanta[ QuantaListener()])); }
+    return  (( quanta[ QuantaListener()] >>  *( OptBlankSpace() >> ( Char( '|')[ AltCharListener()] >>  quanta[ QuantaListener()]))  )); }
+
 };
