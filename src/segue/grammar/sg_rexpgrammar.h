@@ -75,7 +75,7 @@ struct      RExpDocSynElem : public AltSynElem
 
 //_____________________________________________________________________________________________________________________________
 
-class RExpNamedCharClass : public Shard< RExpNamedCharClass>, public RExpPrimitive
+struct RExpNamedCharClass : public Shard< RExpNamedCharClass>, public RExpPrimitive
 {
     struct Whorl
     {
@@ -121,12 +121,12 @@ class RExpNamedCharClass : public Shard< RExpNamedCharClass>, public RExpPrimiti
     
     auto		NameListener( void) const {  
         return []( auto forge) {  
-            forge->Pred< RExpCCL>()->SetName( forge->MatchStr()); 
+            forge->Pred< RExpNamedCharClass>()->SetName( forge->MatchStr()); 
             return true;  }; } 
 
     auto		NegateListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_NegateFlg = true;
+            forge->Pred< RExpNamedCharClass>()->m_NegateFlg = true;
             return true;  }; }
 
     auto        NamedCCL(  void) const { return  Str( "[:" ) >> !( Char( '^')[ NegateListener()]) >> (+AlphaEx())[ NameListener()] >> Str( ":]" ); }
@@ -176,10 +176,10 @@ struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
 
     auto		CtrlCharListener( void) const {
         return []( auto forge) {
-            uint8_t     *chPtr = forge->Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
-            switch ( *chPtr)
+            uint8_t     *chPtr = &forge->Pred< RExpAnyCCLChar>()->m_Char; 
+            switch ( forge->MatchStr()[0])
             {
-                case 'a': *chPtr = '\a' break;
+                case 'a': *chPtr = '\a'; break;
                 case 'b': *chPtr = '\b'; break;
                 case 'f': *chPtr = '\f'; break;
                 case 'n': *chPtr = '\n'; break;
@@ -228,6 +228,14 @@ struct RExpCCLCharRange : public Shard< RExpCCLCharRange>, public RExpPrimitive
         Whorl( void)
             : m_Beg( 0), m_End( 0)
         {}
+        
+        auto        FetchCCL( void) const 
+        { 
+            Sg_ChSet    chSet;
+            for ( uint8_t i = m_Beg; i <= m_End; ++i)
+                chSet.Set( i, true);
+            return chSet; 
+        }
     }; 
     
     auto		BegListener( void) const {
@@ -241,7 +249,7 @@ struct RExpCCLCharRange : public Shard< RExpCCLCharRange>, public RExpPrimitive
             return true;  }; }
 
     auto        CCLCharRange(  void) const { 
-        return ( m_AnyChar -Char(']'))[ BegListener()] >>  !( Char( '-') >> ( m_AnyChar -Char( ']'))[ EndListener()]); }
+        return ( m_AnyChar[ BegListener()] -Char(']')) >>  !( Char( '-') >> ( m_AnyChar[ EndListener()] -Char( ']'))); }
 
 
 template < typename Forge>
@@ -274,8 +282,11 @@ struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
         Whorl( void)
             : m_NegateFlg( false)
         {}
+
+        auto        FetchCCL( void) const { return m_NegateFlg ? m_ChSet.Negative() : m_ChSet; }
     }; 
     
+
     auto		NegateListener( void) const {
         return []( auto forge) {
             forge->Pred< RExpCCL>()->m_NegateFlg = true;
@@ -343,6 +354,7 @@ template < typename Forge>
     }  
     void    Dump( std::ostream &ostr) const
     {
+        ostr << "RExpCCL";
         return;
     } 
 };
@@ -360,6 +372,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     Oct         m_Octal;
     Hex         m_Hex;
     Dec         m_BackRef;
+    RExpCCL     m_CCLExpr;
 
     static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
 
@@ -432,6 +445,11 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::NonWord();
             return true;  }; }
 
+    auto		CCLExprListener(void) const {
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = forge->FetchCCL();
+            return true;  }; }
+
     auto		WordBdyListener(void) const {
         return [](auto forge) {
             return true;  }; }
@@ -452,7 +470,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
 
 
-    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | 
+    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] |
         ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
             m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
 
