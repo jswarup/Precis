@@ -136,10 +136,16 @@ struct     SeqSynElem : public SynElem
         strm << 'R' << m_IPtr << " [ shape=rectangle  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 		 
+        IPtrStor    tailIPtr = m_IPtr;
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
             SynCrate::Id		regex = m_SeqList[ k];
-            strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
+            strm << 'R' << tailIPtr << " -> " << 'R' << regex.m_IPtr;
+            if ( tailIPtr == m_IPtr)
+                strm << " [ arrowhead=tee color=black] ; \n"; 
+            else
+                strm << " [ arrowhead=vee color=black] ; \n"; 
+            tailIPtr = regex.m_IPtr;
         }
         return true;
     } 

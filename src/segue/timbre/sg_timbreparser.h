@@ -210,7 +210,7 @@ struct     CSetSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
+        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> \"" << m_Filt.ToString() << "\" <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     }
@@ -261,10 +261,10 @@ struct IStr : public Shard< IStr >
     
     IStr( const std::string & s)
         :   m_Str( s)
-    {}
-    
- 
-
+    {
+        Cv_Aid::UpCase( &m_Str);
+    }
+     
 template < typename Forge>    
     bool    DoParse( Forge *ctxt) const
     {   

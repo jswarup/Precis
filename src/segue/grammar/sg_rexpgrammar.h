@@ -173,6 +173,10 @@ struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
         return []( auto forge) {
             forge->Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
             return true;  }; }
+    auto		AlphaNumListener( void) const {
+        return []( auto forge) {
+            forge->Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
+            return true;  }; }
 
     auto		CtrlCharListener( void) const {
         return []( auto forge) {
@@ -195,7 +199,7 @@ struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
             return true;  }; }
 
     auto        AnyCCLChar(  void) const { 
-        return AlphaNum()[ CharListener()] | ( Char( '\\') >> ( CharSet( "abfnrtv")[ CtrlCharListener()] |  CharSet( s_CCLEscapedCharset)[ CharListener()] |  
+        return AlphaNum()[ AlphaNumListener()] | ( Char( '\\') >> ( CharSet( "abfnrtv")[ CtrlCharListener()] |  CharSet( s_CCLEscapedCharset)[ CharListener()] |  
                         Oct()[ CharValueListener()] |  ( IStr( "x") >> Hex()[ CharValueListener()]) | Any()[ CharListener()])) | Any()[ CharListener()]; }
 
 template < typename Forge>
@@ -232,7 +236,7 @@ struct RExpCCLCharRange : public Shard< RExpCCLCharRange>, public RExpPrimitive
         auto        FetchCCL( void) const 
         { 
             Sg_ChSet    chSet;
-            for ( uint8_t i = m_Beg; i <= m_End; ++i)
+            for ( uint32_t i = m_Beg; i <= m_End; ++i)
                 chSet.Set( i, true);
             return chSet; 
         }
@@ -682,7 +686,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         RExpCrate::Id           m_Id; 
 
         Whorl(void)
-            :  m_Min( CV_UINT32_MAX), m_Max( CV_UINT32_MAX), m_Infinite( false), m_Stingy( false) 
+            :  m_Min( CV_UINT32_MAX), m_Max( 0), m_Infinite( false), m_Stingy( false) 
         {} 
 
     template < typename Parser>
@@ -693,7 +697,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
         bool            IsBasic( void) const 
         { 
-            return ( m_Min == CV_UINT32_MAX) && ( m_Max == CV_UINT32_MAX) && !m_Infinite && !m_Stingy; 
+            return ( m_Min != CV_UINT32_MAX) && ( m_Max != 0) && !m_Infinite && !m_Stingy; 
         }
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
@@ -719,14 +723,13 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     auto		MaxSpinListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Max = forge->num;
+            whorl->m_Max = forge->num; 
             whorl->m_Infinite = false;
             return true;  }; }
 
     auto		CommaListener(void) const {
         return [](auto forge) {
-            Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Max = 0;
+            Whorl       *whorl = forge->Pred< RExpQuanta>(); 
             whorl->m_Infinite = true;
             return true;  }; }
 
@@ -742,22 +745,19 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 1;
-            whorl->m_Infinite = false;
             return true;  }; }
 
     auto		StarListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Min = 0;
-            whorl->m_Max = 0;
+            whorl->m_Min = 0; 
             whorl->m_Infinite = true;
             return true;  }; }
 
     auto		PlusListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Min = 1;
-            whorl->m_Max = 0;
+            whorl->m_Min = 1; 
             whorl->m_Infinite = true;
             return true;  }; }
 
@@ -952,5 +952,7 @@ template < typename Cnstr>
 inline auto	RExpAlt::Alt( void) const {
     RExpQuanta  quanta;
     return  (( quanta[ QuantaListener()] >>  *( OptBlankSpace() >> ( Char( '|')[ AltCharListener()] >>  quanta[ QuantaListener()]))  )); }
+
+//_____________________________________________________________________________________________________________________________
 
 };

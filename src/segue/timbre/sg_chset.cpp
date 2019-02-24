@@ -229,11 +229,7 @@ int Sg_ChSet::ListChars( int *list) const
     return n;
 }
 
-//_____________________________________________________________________________________________________________________________
-
-static     const int   CCLPRETTYPRINT_NUMSTRINGS = 8;
-static     const int   CCLPRETTYPRINT_STRINGLEN = 512;
-  
+//_____________________________________________________________________________________________________________________________ 
 
 char *charPrettyPrint( int c, char *p, bool chrClsFlg )
 {

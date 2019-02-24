@@ -108,7 +108,7 @@ template < typename Forge>
             int     d = ParseDigit< Radix>()( parser);
             match = (d >= 0); 
             if ( !match)
-                break;
+                return false;
             
 			num = num * Radix + d;
             ++digit_nb;

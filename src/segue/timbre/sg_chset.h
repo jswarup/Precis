@@ -72,10 +72,10 @@ public:
 
     Sg_ChSet                  &UnionWith( const Sg_ChSet &src2)
     {
-        m_ChSet[ 0] |= m_ChSet[ 0];
-        m_ChSet[ 1] |= m_ChSet[ 1];
-        m_ChSet[ 2] |= m_ChSet[ 2];
-        m_ChSet[ 3] |= m_ChSet[ 3]; 
+        m_ChSet[ 0] |= src2.m_ChSet[ 0];
+        m_ChSet[ 1] |= src2.m_ChSet[ 1];
+        m_ChSet[ 2] |= src2.m_ChSet[ 2];
+        m_ChSet[ 3] |= src2.m_ChSet[ 3]; 
         return *this;
     }
 
