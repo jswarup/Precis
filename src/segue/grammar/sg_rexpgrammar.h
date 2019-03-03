@@ -303,43 +303,43 @@ struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
 
     auto		SpaceListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Space());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::Space());
             return true;  }; }
 
     auto		NonSpaceListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonSpace());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::NonSpace());
             return true;  }; }
 
     auto		DigitListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Digit());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::Digit());
             return true;  }; }
     
     auto		NonDigitListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonDigit());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::NonDigit());
             return true;  }; }
 
     auto		WordListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::Word());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::Word());
             return true;  }; }
 
 
     auto		NonWordListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( Sg_ChSet::NonWord());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( Sg_ChSet::NonWord());
             return true;  }; }
 
     auto		NamedCharClassListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( forge->FetchCCL());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( forge->FetchCCL());
             return true;  }; }
 
     auto		CharRangeListener( void) const {
         return []( auto forge) {
-            forge->Pred< RExpCCL>()->m_ChSet.Union( forge->FetchCCL());
+            forge->Pred< RExpCCL>()->m_ChSet.UnionWith( forge->FetchCCL());
             return true;  }; }
 
     auto        CharClass(  void) const { return Char( '[') >> !( Char( '^')[ NegateListener()]) >> !( Char( ']')[ SquareBracketEndListener()]) >> 
@@ -633,7 +633,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
  
     auto        UnitListener(void) const {
         return [this]( auto forge) {
-            forge->Pred< RExpQuanta>()->m_ChSet = forge->m_ChSet;
+            forge->Pred< RExpAtom>()->m_ChSet = forge->m_ChSet;
 
             std::cout << forge->MatchStr() << "\n";
             return true;  }; } 
@@ -642,7 +642,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
         return [this]( auto forge) { 
             std::cout << forge->MatchStr() << "\n"; 
             auto            docWhorl = forge->Bottom< RExpDoc>();
-            forge->Pred< RExpQuanta>()->m_Id = forge->FetchId( docWhorl->m_Repos);
+            forge->Pred< RExpAtom>()->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; }
 
     auto        RexpListener(void) const {
@@ -681,12 +681,14 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         Sg_ChSet                m_ChSet;
         uint32_t		        m_Min;
         uint32_t		        m_Max;
+        bool                    m_MinSpinFlg;
+        bool                    m_MaxSpinFlg;
         bool                    m_Infinite;
         bool                    m_Stingy;
         RExpCrate::Id           m_Id; 
 
         Whorl(void)
-            :  m_Min( CV_UINT32_MAX), m_Max( 0), m_Infinite( false), m_Stingy( false) 
+            :  m_Min( 1), m_Max( 1), m_MinSpinFlg( false), m_MaxSpinFlg( false), m_Infinite( false), m_Stingy( false) 
         {} 
 
     template < typename Parser>
@@ -697,7 +699,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
         bool            IsBasic( void) const 
         { 
-            return ( m_Min != CV_UINT32_MAX) && ( m_Max != 0) && !m_Infinite && !m_Stingy; 
+            return ( m_Min != 1) && ( m_Max != 1) && !m_Infinite; 
         }
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
@@ -718,12 +720,15 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = forge->num;
             whorl->m_Max = forge->num; 
+            whorl->m_MinSpinFlg = true;
+            whorl->m_MaxSpinFlg = true;
             return true;  }; }
 
     auto		MaxSpinListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Max = forge->num; 
+            whorl->m_MaxSpinFlg = true;
             whorl->m_Infinite = false;
             return true;  }; }
 
@@ -731,13 +736,15 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         return [](auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>(); 
             whorl->m_Infinite = true;
+            whorl->m_Max = CV_UINT32_MAX; 
             return true;  }; }
 
     auto		ZeroToMaxListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
-            whorl->m_Max = forge->num; 
+            whorl->m_Max = CV_UINT32_MAX; 
+            whorl->m_MinSpinFlg = true;
             return true;  }; }
 
     auto		QuestionListener(void) const {
@@ -745,6 +752,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0;
             whorl->m_Max = 1;
+            whorl->m_MinSpinFlg = true;
             return true;  }; }
 
     auto		StarListener(void) const {
@@ -752,6 +760,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 0; 
             whorl->m_Infinite = true;
+            whorl->m_MinSpinFlg = true;
             return true;  }; }
 
     auto		PlusListener(void) const {
@@ -759,6 +768,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 1; 
             whorl->m_Infinite = true;
+            whorl->m_MinSpinFlg = true;
             return true;  }; }
 
     auto	    StingyListener(void) const {
@@ -774,10 +784,13 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             whorl->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; } 
 
+    auto        Spiner( void) const {
+        return ( Char('{') >> (( m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()]))) |
+                               Char(',')[ZeroToMaxListener()]) >> Char('}')) |
+                 Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()]; }
+
     auto		Quanta( void) const { 
-        return m_Atom[ AtomListener()] >> !(( Char('{') >> m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])) >> Char('}')) |
-            ( Char('{') >> Char(',') >> (m_SpinMax[ZeroToMaxListener()]) >> Char('}')) |
-            ( Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()] >> !Char('?')[ StingyListener()])) ; } 
+        return m_Atom[ AtomListener()] >> !( Spiner() >> !Char('?')[ StingyListener()]) ; } 
 
 template < typename Forge>
     bool    DoParse( Forge *forge) const

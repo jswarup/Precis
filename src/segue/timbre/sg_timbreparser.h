@@ -59,7 +59,7 @@ public:
 		
 	}
 
-	~Forge(void)
+	virtual ~Forge(void)
 	{
 		if (m_PushedFlg)
 		{
