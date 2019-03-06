@@ -210,7 +210,7 @@ struct     CSetSynElem : public SynElem
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> \"" << m_Filt.ToString() << "\" <BR />"; 
+        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> " <<   Cv_Aid::XmlEncode(  m_Filt.ToString()) << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     }

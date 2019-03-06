@@ -84,6 +84,8 @@ template < class T>
     static std::string          PrintBytes( const uint8_t *bytes, uint64_t len, uint32_t numBytesPerLine = CV_UINT32_MAX);
 
     static std::string          Format( const char *fmt, ...);
+
+    static std::string          XmlEncode( const std::string &source);
     
 template <typename T>
 	static std::ostream			&OutStrm( std::ostream &out, T t) { return out << t; }

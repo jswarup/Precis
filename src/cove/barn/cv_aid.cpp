@@ -194,6 +194,7 @@ std::string  Cv_Aid::CPPTypeStringCleanup( const Cv_CStr &typeName)
     return typeStr;    
 }
 
+
 //_____________________________________________________________________________________________________________________________
 
 char    Cv_Aid::HexToChar( int chr)
@@ -259,6 +260,36 @@ std::string Cv_Aid::Format( const char *fmt, ...)
     return std::string( &buffer[ 0], &buffer[ nsize]);
 }
  
+
+///-------------------------------------------------------------------------------------------------
+// encodes special characters in xml
+
+std::string Cv_Aid::XmlEncode( const std::string &source) 
+{
+    std::string     dest;
+    for ( std::string::const_iterator it = source.begin(); it != source.end(); ++it)
+        switch (*it)
+        {
+        case '&': dest +=  "&amp;"; break;
+        case '<': dest +=  "&lt;"; break;
+        case '>': dest +=  "&gt;"; break;
+        case '"': dest +=  "&quot;"; break;
+        case '\'': dest +=  "&apos;"; break;
+        case ' ': dest += "&#160;"; break;
+            /*
+            case 'ß': dest += "&#223;"; break;
+            case 'ä': dest += "&#228;"; break;
+            case 'ö': dest += "&#246;"; break;
+            case 'ü': dest += "&#252;"; break;
+            case 'Ä': dest += "&#196;"; break;
+            case 'Ö': dest += "&#214;"; break;
+            case 'Ü': dest += "&#220;"; break;
+            */
+        default :
+            dest += (*it);
+        }
+    return dest;
+}
 //_____________________________________________________________________________________________________________________________
 
 

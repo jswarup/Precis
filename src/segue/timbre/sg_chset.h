@@ -91,7 +91,7 @@ public:
 
     int             ListChars( int *list) const;
 
-    int             ToStringBasic( char *curStr) const;
+    int             ToStringBasic( char *curStr, bool negFlg = false) const;
 
     std::string     ToString ( void) const;
 };

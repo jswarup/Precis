@@ -677,8 +677,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     ParseInt< uint32_t, 10>	    m_SpinMin;
     ParseInt< uint32_t, 10>     m_SpinMax;  
     struct Whorl
-    {    
-        Sg_ChSet                m_ChSet;
+    {     
         uint32_t		        m_Min;
         uint32_t		        m_Max;
         bool                    m_MinSpinFlg;
@@ -704,13 +703,6 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
         {
-            if ( !m_Id.IsValid()) 
-            {
-                auto    synElem = new CSetSynElem();
-                synElem->m_Filt = m_ChSet; 
-                m_Id = repos->Store( synElem);
-            }
-            CV_ERROR_ASSERT( IsBasic())
             return m_Id;
         }
     };
