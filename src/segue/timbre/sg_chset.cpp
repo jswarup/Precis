@@ -297,12 +297,13 @@ char *charPrettyPrint( int c, char *p, bool chrClsFlg )
 
 //_____________________________________________________________________________________________________________________________
 
-int Sg_ChSet::ToStringBasic( char *curStr, bool negFlg) const
+std::string Sg_ChSet::ToString( bool negFlg) const
 {
 	int         curChars[ 256];
 	int         curWeight = ListChars( curChars);  
 
-    char        *p = curStr;
+    char        posStr[ 512] = "";
+    char        *p = posStr;
     *( p++ ) = '[';
     if ( negFlg)
         *( p++ ) = '^';
@@ -324,7 +325,7 @@ int Sg_ChSet::ToStringBasic( char *curStr, bool negFlg) const
 	}
 	* ( p++ ) = ']';
 	*p = '\0';
-    return curWeight;
+    return posStr;
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -337,14 +338,10 @@ std::string     Sg_ChSet::ToString ( void) const
     if ( IsEqual( NonWord()))
         return "[[NonWord]]";
     
-    char        posStr[ 512] = "";
-	int         posWeight = ToStringBasic( &posStr[ 0]);
-    
-	Sg_ChSet    negCcl = Negative();
-    char        negStr[ 512] = "";
-    int         negWeight = negCcl.ToStringBasic( &negStr[ 0]);
+    std::string     posStr =  ToString( false); 
+    std::string     negStr =  ToString( true);
      
-	if ( strlen ( posStr ) <= strlen ( negStr ) || negWeight == 0 )
+	if ( posStr.length() <= negStr.length())
 		return posStr; 
 	return negStr;
 }
