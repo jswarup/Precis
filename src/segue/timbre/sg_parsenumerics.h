@@ -19,7 +19,7 @@ template < typename Parser>
     int     operator()( Parser * parser)
     { 
         int     r = 1;
-        switch ( parser->Curr())
+        switch ( parser->IsCurValid() && parser->Curr())
         {
             case '-':
                 r = - 1;
@@ -28,7 +28,7 @@ template < typename Parser>
                 {
                     parser->Next();
                 }
-                while ((parser->Curr() == ' ') | (parser->Curr() == '\t'));
+                while ( parser->IsCurValid() && (( parser->Curr() == ' ') || ( parser->Curr() == '\t')));
         }
         return r;
     }
@@ -44,6 +44,8 @@ struct ParseDigit
 template < typename Parser>  
     int     operator()( Parser * parser)
     {
+        if ( !parser->IsCurValid())
+            return -1;
         int d = parser->Curr() - '0';
         if (d >= R)
             return -1;
@@ -60,6 +62,8 @@ struct ParseDigit< 16>
 template < typename Parser>  
 	int operator()(Parser * parser)
     {
+        if ( !parser->IsCurValid())
+            return -1;
         char    c = parser->Curr();
 
         if (c < '0') 

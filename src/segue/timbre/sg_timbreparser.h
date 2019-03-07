@@ -25,9 +25,9 @@ struct  StrInStream : public std::vector< char>
         SELF[ str.size()] = 0;
     } 
 
-    bool                HasMore( void) { return m_Cursor < size(); }
-    bool                Next( void) { return ++m_Cursor < size(); } 
+    bool                IsCurValid( void) { return m_Cursor < size(); }
     char                Curr( void) { return SELF[ m_Cursor]; }
+    bool                Next( void) { return ++m_Cursor < size(); } 
     uint32_t            Marker( void) const { return m_Cursor; } 
     
     void                RollTo( uint32_t mark) { m_Cursor = mark; }
@@ -138,7 +138,7 @@ public:
     
     Forge           *TopForge( void) { return m_ForgeStack.Top(); }
     Forge           *BottomForge( void) { return m_ForgeStack.Bottom(); } 
-    bool            HasMore( void) { return m_InStream->HasMore(); }
+    bool            IsCurValid( void) { return m_InStream->IsCurValid(); }
     bool            Next( void) { return m_InStream->Next(); } 
     Item            Curr( void) { return m_InStream->Curr(); } 
     Mark            Marker( void) const { return m_InStream->Marker(); }
@@ -235,7 +235,7 @@ template < typename Forge>
         const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
-            bool    match = parser->HasMore() && ( *pCh == parser->Curr());
+            bool    match = parser->IsCurValid() && ( *pCh == parser->Curr());
             if ( ! match) 
                 return false; 
             parser->Next();                       
@@ -272,7 +272,7 @@ template < typename Forge>
         const char                  *pCh = m_Str.c_str();
         while ( *pCh)
         {
-            bool    match = parser->HasMore() && ( *pCh ==  Cv_Aid::UpCase( parser->Curr()));
+            bool    match = parser->IsCurValid() && ( *pCh ==  Cv_Aid::UpCase( parser->Curr()));
             if ( ! match) 
                 return false; 
             parser->Next();                       
@@ -305,7 +305,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::Parser      *parser = ctxt->GetParser(); 
-        bool    match = parser->HasMore() && ( parser->Curr() == m_Char);
+        bool    match = parser->IsCurValid() && ( parser->Curr() == m_Char);
         if ( !match)
             return false;
         parser->Next();
@@ -338,7 +338,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::Parser     *parser = ctxt->GetParser(); 
-        bool                        match = parser->HasMore() && (( m_C1 <= parser->Curr()) && ( parser->Curr() < m_C2));
+        bool                        match = parser->IsCurValid() && (( m_C1 <= parser->Curr()) && ( parser->Curr() < m_C2));
         if ( !match)
             return false;
         parser->Next();
@@ -364,7 +364,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::Parser      *parser = ctxt->GetParser(); 
-        return  !parser->HasMore();
+        return  !parser->IsCurValid();
     }   
 	 
 
@@ -438,7 +438,7 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::Parser     *parser = ctxt->GetParser();  
-        bool                        match = parser->HasMore() && m_Bits.Get( parser->Curr());
+        bool                        match = parser->IsCurValid() && m_Bits.Get( parser->Curr());
         if ( ! match)
             return false;
         parser->Next();

@@ -372,22 +372,18 @@ struct Repeat  : public  Shard< Repeat< Child, Min, Max> >
 template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
-        typename Forge::Parser		*parser = ctxt->GetParser(); 
-
-        if ( !parser->HasMore())
-            return false;
- 
+        typename Forge::Parser		*parser = ctxt->GetParser();  
         uint32_t                    count = 0;
         while ( count < Min)
         {
-            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->IsCurValid() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return false;
             ++count; 
         }
 
         while ( count < Max)
         {
-            if ( !parser->HasMore() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
+            if ( !parser->IsCurValid() || !m_Target.DoMatch( ctxt) || !ctxt->SzMatch())
                 return true; 
             ++count;
         }
