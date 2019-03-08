@@ -5,6 +5,7 @@
 #include    "cove/snip/cv_cmdexec.h" 
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/tremolo/sg_autom.h"
 
 #include	<utility>
 #include	<tuple>

@@ -399,6 +399,11 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             forge->Pred< RExpUnit>()->m_ChSet.Set( forge->MatchStr()[0] -'a', true);
             return true;  }; }
 
+    auto		DotListener(void) const {
+        return [](auto forge) {
+            forge->Pred< RExpUnit>()->m_ChSet = Sg_ChSet::DotAll();
+            return true;  }; }
+
     auto		EscCharListener(void) const {
         return [](auto forge) {
             forge->Pred< RExpUnit>()->m_ChSet.Set( forge->MatchStr()[0], true);
@@ -470,13 +475,11 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             Char('w')[ WordListener()] |
             Char('W')[ NonWordListener()] |
             Char('b')[ WordBdyListener()] |
-            Char('B')[ NonWordBdyListener()];  }
+            Char('B')[ NonWordBdyListener()];  } 
 
-
-
-    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] |
-        ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
-            m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
+    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | Char( '.')[ DotListener()] |
+                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
+                              m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
 
  template < typename Forge>
     bool    DoParse( Forge *forge) const
