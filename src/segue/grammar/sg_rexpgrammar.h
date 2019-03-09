@@ -20,7 +20,13 @@ struct      RExpDocSynElem;
 struct      RExpSynElem;
 
 typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>     RExpCrate; 
-typedef Cv_CrateRepos< RExpCrate>                                   RExpRepos;
+
+//_____________________________________________________________________________________________________________________________
+
+struct RExpRepos : public Cv_CrateRepos< RExpCrate>                                   
+{
+    RExpCrate::Id     m_RootId;
+};
 
 //_____________________________________________________________________________________________________________________________
 
@@ -876,8 +882,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
-        std::vector< RExpCrate::Id>     m_RExps;
-        RExpCrate::Id                   m_Id;
+        std::vector< RExpCrate::Id>     m_RExps; 
         
         bool    PrimeIn( XAct *xact)
         {
@@ -887,7 +892,7 @@ struct RExpDoc  : public Shard< RExpDoc>
         
         bool    ExtractOut( XAct *xact)
         {
-            xact->m_Id = m_Id;
+            xact->m_Id = m_Repos->m_RootId;
             return true;
         }
 
@@ -911,7 +916,7 @@ struct RExpDoc  : public Shard< RExpDoc>
     
 	auto           DocumentOver( void) const { return [ this]( auto forge) { 
         auto            docWhorl = forge->Bottom< RExpDoc>(); 
-        docWhorl->m_Id = docWhorl->FetchId( docWhorl->m_Repos);
+        docWhorl->m_Repos->m_RootId = docWhorl->FetchId( docWhorl->m_Repos);
 		return true;  };  } 
 	 
 	auto           Document( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
@@ -922,7 +927,7 @@ template < typename Forge>
 		forge->Push();
 		auto    doc = Document();
 		if (  !doc.DoMatch( forge))
-			return false;  
+			return false;   
 		return true;
 	} 
 

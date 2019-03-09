@@ -101,6 +101,9 @@ int     Sg_RExpCmdProcessor::Test(void)
     RExpDoc::XAct           xact( &rexpCrate);
     parser.SetLogStream( &std::cout);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
+
+    AutomCnstrRepos         AutomRepos(  &rexpCrate);
+
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 
     rexpCrate.OperateAll( [&rexpDotStrm]( auto k ){

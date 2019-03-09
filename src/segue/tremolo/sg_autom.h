@@ -5,10 +5,11 @@
 #include 	"cove/barn/cv_aid.h"
 #include 	"cove/barn/cv_ptrslot.h"
 #include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/grammar/sg_rexpgrammar.h"
 
 //_____________________________________________________________________________________________________________________________  
 
-namespace Sg_Timbre
+namespace Sg_RExp
 {
   
 struct     AutomSpurCnstr; 
@@ -25,8 +26,7 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
-typedef Cv_Crate<  AutomSpurCnstr, AutomCnstr>      AutomCnstrCrate;  
-typedef Cv_CrateRepos< AutomCnstrCrate>             AutomCnstrRepos;
+typedef Cv_Crate<  AutomSpurCnstr, AutomCnstr>      AutomCnstrCrate;   
 typedef AutomCnstrCrate::Id                         AutomCnstrId;
 
 //_____________________________________________________________________________________________________________________________ 
@@ -44,6 +44,15 @@ public:
 
 //_____________________________________________________________________________________________________________________________  
  
+struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
+{
+    RExpRepos				*m_RexpRepos;
+    
+    AutomCnstrRepos(  RExpRepos *rexpRepos)
+        : m_RexpRepos( rexpRepos)
+    {}
+
+};
 
 //_____________________________________________________________________________________________________________________________  
 };
