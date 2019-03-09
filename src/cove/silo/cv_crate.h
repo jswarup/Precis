@@ -40,7 +40,9 @@ public:
 
     bool            IsValid( void) const { return !!m_IPtr; }
 
-    Cv_CrateId  &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
+    Cv_CrateId      &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
+
+    bool            operator<( const Cv_CrateId &id) { return m_IPtr < id.m_IPtr;  } 
 
     IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
     void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }

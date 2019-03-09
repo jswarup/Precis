@@ -10,14 +10,8 @@
 
 namespace Sg_Timbre
 {
-
-struct     AutomCnstr; 
+  
 struct     AutomSpurCnstr; 
-
-//_____________________________________________________________________________________________________________________________ 
-
-typedef Cv_Crate<  AutomSpurCnstr, AutomCnstr>      AutomCnstrCrate;  
-typedef Cv_CrateRepos< AutomCnstrCrate>             AutomCnstrRepos;
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -26,13 +20,23 @@ struct  AutomCnstr   : public Cv_CrateEntry
 public:
     AutomCnstr( void)  
     {}
-  
+
 };
+
+//_____________________________________________________________________________________________________________________________ 
+
+typedef Cv_Crate<  AutomSpurCnstr, AutomCnstr>      AutomCnstrCrate;  
+typedef Cv_CrateRepos< AutomCnstrCrate>             AutomCnstrRepos;
+typedef AutomCnstrCrate::Id                         AutomCnstrId;
 
 //_____________________________________________________________________________________________________________________________ 
 
 struct  AutomSpurCnstr   : public AutomCnstr 
 { 
+    std::vector< Sg_ChSet>          m_ChSets;
+    std::vector< AutomCnstrId>      m_Dests;
+    std::set< uint32_t>             m_EpsDestIds; 
+    std::set< uint32_t>             m_EpsFromSources;
 public:
     AutomSpurCnstr( void)  
     {}
