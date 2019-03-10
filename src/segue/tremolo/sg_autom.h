@@ -25,12 +25,11 @@ public:
     AutomCnstr( void)  
     {} 
 
-    void    AddEpsDest( Cv_Var< AutomCnstrCrate>	 s) 
-    {
-    }
-    void    AddEpsSource( Cv_Var< AutomCnstrCrate>	 s) 
-    {
-    }
+    void    AddEdge( ...)  {}
+
+    void    AddEpsDest( Cv_Var< AutomCnstrCrate>	 s) {} 
+
+    void    AddEpsSource( Cv_Var< AutomCnstrCrate>	 s) {} 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -46,10 +45,17 @@ struct  AutomSpurCnstr   : public AutomCnstr
     std::vector< AutomCnstrId>      m_Dests;
     std::set< AutomCnstrId>         m_EpsDestIds; 
     std::set< AutomCnstrId>         m_EpsFromSources;
+
 public:
     AutomSpurCnstr( void)  
     {}
      
+    void        AddEdge( const Sg_ChSet &chSet, AutomCnstrId dest) 
+    {
+        m_ChSets.push_back( chSet);
+        m_Dests.push_back( dest);
+    }
+
     void        AddEpsDest( AutomCnstrVar s) 
     { 
         if ( this == s.GetEntry())
@@ -86,8 +92,38 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         : m_RexpRepos( rexpRepos)
     {}
     
-    void    Proliferate( SynElem *altElm, AutomCnstrVar start, AutomCnstrVar end)
+    void    Proliferate( SynElem *elm, AutomCnstrVar start, AutomCnstrVar end)
     {
+        return;   
+    }
+
+    void    Proliferate( CSetSynElem *csetElm, AutomCnstrVar start, AutomCnstrVar end)
+    {
+        start( [ csetElm, end]( auto k) {
+            k->AddEdge( csetElm->m_Filt, end.GetId());
+        });
+        return;   
+    }
+
+    void    Proliferate( SeqSynElem *seqElm, AutomCnstrVar start, AutomCnstrVar end)
+    {
+          
+        auto    right = end; 
+        for ( uint32_t i = seqElm->m_SeqList.size(); i > 1; --i)
+        {
+            AutomSpurCnstr      *state =  new AutomSpurCnstr(); 
+            RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[ i -1]); 
+
+            elemVar( [ this, state, right](  auto k) {
+                Proliferate( k, state, right);
+            });
+            right = state;
+        }
+        RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[0]); 
+
+        elemVar( [ this, start, right](  auto k) {
+            Proliferate( k, start, right);
+        });
         return;   
     }
 
@@ -95,7 +131,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
     {
         for ( uint32_t i = 0; i < altElm->m_AltList.size(); ++i)
         {
-            AutomCnstrVar        state =  new AutomSpurCnstr();
+            AutomSpurCnstr        *state =  new AutomSpurCnstr();
             start( [ state](  auto k) {
                 k->AddEpsDest( state);
             }); 
@@ -108,11 +144,41 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         }
         return;   
     }
+        
+    void    Proliferate( RepeatSynElem *repElm, AutomCnstrVar start, AutomCnstrVar end)
+    {
+        uint32_t            nSeg  = ( repElm->m_Max == 0) ? ( repElm->m_Min +1) : repElm->m_Max; 
+        AutomSpurCnstr      *fState = new AutomSpurCnstr();
+        start( [ fState](  auto k) {
+            k->AddEpsDest( fState);
+        });
+        AutomSpurCnstr                  *sState;
+        AutomSpurCnstr                  *loopbackState;
+        std::vector< AutomSpurCnstr *>  optSpinList;
+        RExpCrate::Var      elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
+        for ( uint32_t i = 0; i < nSeg; ++i)
+        { 
+            sState = new AutomSpurCnstr();
+            elemVar( [ this, fState, sState](  auto k) {
+                Proliferate( k, fState, sState);
+            });
+            if (( repElm->m_Max && ( i >= repElm->m_Min)) || ( !repElm->m_Max && ( i == repElm->m_Min)))
+                optSpinList.push_back( fState);
+            if ( !repElm->m_Max && ( i == repElm->m_Min))
+                loopbackState = fState;
+            fState = sState;
+        }
+        if ( repElm->m_Max) 
+            sState->AddEpsDest( end); 
+        else
+            sState->AddEpsDest( loopbackState);
+        return;   
+    }
 
     void    Process( void)
     {
-        AutomCnstrVar        start =  new AutomSpurCnstr();
-        AutomCnstrVar        end =  new AutomSpurCnstr();
+        AutomSpurCnstr      *start =  new AutomSpurCnstr();
+        AutomSpurCnstr      *end =  new AutomSpurCnstr();
         RExpCrate::Var      docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
         docVar( [ this, start, end](  auto k) {
             Proliferate( k, start, end);

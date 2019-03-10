@@ -704,7 +704,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
         bool            IsBasic( void) const 
         { 
-            return ( m_Min == 0) && ( m_Max == 0); 
+            return ( m_Min == 1) && ( m_Max == 1); 
         }
 
         RExpCrate::Id           FetchId( RExpRepos *repos) 
@@ -735,8 +735,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
     auto		CommaListener(void) const {
         return [](auto forge) {
-            Whorl       *whorl = forge->Pred< RExpQuanta>();  
-            whorl->m_Max = CV_UINT32_MAX; 
+            Whorl       *whorl = forge->Pred< RExpQuanta>();   
             return true;  }; }
  
 
@@ -750,15 +749,13 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     auto		StarListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Min = 0;  
-            whorl->m_Max = CV_UINT32_MAX;  
+            whorl->m_Min = 0;   
             return true;  }; }
 
     auto		PlusListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Min = 1;  
-            whorl->m_Max = CV_UINT32_MAX;  
+            whorl->m_Min = 1;   
             return true;  }; }
 
     auto	    StingyListener(void) const {
