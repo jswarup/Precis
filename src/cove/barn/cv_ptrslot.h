@@ -20,13 +20,13 @@ public:
         : m_RefCount( 0) 
     {} 
 
-    uint32_t		RaiseReference( void) {	return ++m_RefCount; }
+    uint32_t		RaiseRef( void) {	return ++m_RefCount; }
 
-    uint32_t		LowerReference( void) {	return --m_RefCount;	}
+    uint32_t		LowerRef( void) {	return --m_RefCount;	}
 
     uint32_t		RefCount( void) const { return m_RefCount;}
 
-    void            FlipReferences( Cv_Shared *shared)  {  std::swap( m_RefCount, shared->m_RefCount);  }
+    void            FlipRefs( Cv_Shared *shared)  {  std::swap( m_RefCount, shared->m_RefCount);  }
 };
 
 //_________________________________________________________________________________________________________________________________
@@ -78,7 +78,7 @@ public:
         : Cv_Ptr< Shared>( u) 
     {
         if ( Base::m_Inst)
-            Base::m_Inst->RaiseReference(); 
+            Base::m_Inst->RaiseRef(); 
     }
 
     template < class XShared>
@@ -86,19 +86,19 @@ public:
         : Cv_Ptr< Shared>( static_cast< Shared*>( arr.GetInstance()))
     {	
         if ( Base::m_Inst)
-            Base::m_Inst->RaiseReference(); 
+            Base::m_Inst->RaiseRef(); 
     }
 
     Cv_Slot( const Cv_Slot< Shared> &arr) 
         : Cv_Ptr< Shared>( arr.m_Inst)
     {	
         if ( Base::m_Inst)
-            Base::m_Inst->RaiseReference(); 
+            Base::m_Inst->RaiseRef(); 
     }
 
     ~Cv_Slot( void) 
     {	
-        if ( Base::m_Inst && ( Base::m_Inst->LowerReference() == 0)) 
+        if ( Base::m_Inst && ( Base::m_Inst->LowerRef() == 0)) 
             delete Base::m_Inst;
     }
 
@@ -106,11 +106,11 @@ public:
     {	
         if ( arr == *this)	
             return *this;
-        if ( Base::m_Inst && ( Base::m_Inst->LowerReference() == 0))
+        if ( Base::m_Inst && ( Base::m_Inst->LowerRef() == 0))
             delete Base::m_Inst;	
         Base::m_Inst = arr.m_Inst;	
         if ( Base::m_Inst)
-            Base::m_Inst->RaiseReference(); 
+            Base::m_Inst->RaiseRef(); 
         return *this;	
     }
 };

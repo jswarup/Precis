@@ -40,15 +40,15 @@ public:
 
     bool            IsValid( void) const { return !!m_IPtr; }
 
-    Cv_CrateId      &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
-
-    bool            operator<( const Cv_CrateId &id) { return m_IPtr < id.m_IPtr;  } 
-
     IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
     void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
 
     TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
     TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+
+    Cv_CrateId      &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
+
+    friend	bool    operator<( const Cv_CrateId &id1, const Cv_CrateId &id2) { return id1.m_IPtr < id2.m_IPtr;  } 
 
     friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
     { 
@@ -64,16 +64,30 @@ struct	Cv_Var
 {
 	typedef typename Crate::TypeStor	TypeStor;
 	typedef typename Crate::Entry		Entry; 
+    typedef typename Crate::Id		    Id; 
 
 	Entry				*m_Entry;
 	TypeStor			m_Type; 
 
-	Cv_Var( Entry *entry, TypeStor typeStor)
+    Cv_Var( Entry *entry)
+        : m_Entry( elm), m_Type( entry->GetType())
+    {}
+
+    Cv_Var( Entry *entry, TypeStor typeStor)
 		: m_Entry( entry), m_Type( typeStor)
 	{} 
-		 
-	TypeStor        GetType( void) const { return m_Type; }
+	
+template < typename Element>	 
+    Cv_Var( Element *elm)
+        : m_Entry( elm), m_Type( Crate::TypeOf<Element>())
+    {} 
+  
+    TypeStor        GetType( void) const { return m_Type; }
 	Entry			*GetEntry( void) const { return m_Entry; } 
+    
+    Id              GetId( void) const { return Id( m_Entry->GetId(), m_Type); }
+
+    auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
 	auto    operator()( Lambda &lambda,  Args&... args)  
@@ -120,7 +134,7 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< Rest...>          CrateBase;
     typedef T                           Elem;
     typedef typename CrateBase::Entry   Entry; 
-	typedef  Cv_Var< Crate>		Var; 
+	typedef  Cv_Var< Crate>		        Var; 
 	typedef typename Entry::TypeStor    TypeStor; 
     typedef typename Entry::IndexStor   IndexStor;
     typedef typename CrateBase::Id      Id;
@@ -185,12 +199,19 @@ struct Cv_CrateT
     typedef  T								Entry;
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
-	typedef  Cv_Var< Crate>			Var; 
+	typedef  Cv_Var< Crate>			        Var; 
     struct Id : public Cv_CrateId 
     {
         typedef Cv_CrateT< T,void>      Crate;
         Id( void) {}
-        Id( IndexStor id, TypeStor type) :  Cv_CrateId( id, type) {} 
+
+        Id( const Cv_CrateId &id) 
+            :  Cv_CrateId( id) 
+        {}
+
+        Id( IndexStor id, TypeStor type) 
+            :  Cv_CrateId( id, type) 
+        {} 
     };
 
 
