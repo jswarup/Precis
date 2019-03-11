@@ -693,7 +693,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         RExpCrate::Id           m_Id; 
 
         Whorl(void)
-            :  m_Min( 0), m_Max( 0), m_Stingy( false) 
+            :  m_Min( 1), m_Max( 1), m_Stingy( false) 
         {} 
 
     template < typename Parser>
@@ -749,13 +749,15 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
     auto		StarListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
-            whorl->m_Min = 0;   
+            whorl->m_Min = 0; 
+            whorl->m_Max = 0;   
             return true;  }; }
 
     auto		PlusListener(void) const {
         return []( auto forge) {
             Whorl       *whorl = forge->Pred< RExpQuanta>();
             whorl->m_Min = 1;   
+            whorl->m_Max = 0; 
             return true;  }; }
 
     auto	    StingyListener(void) const {
@@ -771,8 +773,15 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             whorl->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; } 
 
+    auto	    SpinerResetListener(void) const {
+        return [](auto forge) {
+            Whorl       *whorl = forge->Pred< RExpQuanta>(); 
+            whorl->m_Min = 0;
+            whorl->m_Max = 0; 
+            return true;  }; } 
+
     auto        Spiner( void) const {
-        return ( Char('{') >> ( !m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])))  >> Char('}')) |
+        return ( Char('{')[ SpinerResetListener()] >> ( !m_SpinMin[ MinSpinListener()] >> !(Char(',') >> !(m_SpinMax[ MaxSpinListener()])))  >> Char('}')) |
                  Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()]; }
 
     auto		Quanta( void) const { 

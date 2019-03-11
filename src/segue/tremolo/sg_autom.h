@@ -24,12 +24,17 @@ struct  AutomCnstr   : public Cv_CrateEntry, public Cv_Shared
 public:
     AutomCnstr( void)  
     {} 
+    
+    virtual ~AutomCnstr( void)  
+    {} 
 
     void    AddEdge( ...)  {}
 
     void    AddEpsDest( Cv_Var< AutomCnstrCrate>	 s) {} 
 
     void    AddEpsSource( Cv_Var< AutomCnstrCrate>	 s) {} 
+
+    bool    WriteDot( Cv_DotStream &strm) { return true; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -42,15 +47,18 @@ typedef AutomCnstrCrate::Var                        AutomCnstrVar;
 struct  AutomSpurCnstr   : public AutomCnstr 
 { 
     std::vector< Sg_ChSet>          m_ChSets;
-    std::vector< AutomCnstrId>      m_Dests;
-    std::set< AutomCnstrId>         m_EpsDestIds; 
-    std::set< AutomCnstrId>         m_EpsFromSources;
+    std::vector< AutomCnstrVar>     m_Dests;
+    std::set< AutomCnstrVar>        m_EpsDestIds; 
+    std::set< AutomCnstrVar>        m_EpsFromSources;
 
 public:
     AutomSpurCnstr( void)  
     {}
      
-    void        AddEdge( const Sg_ChSet &chSet, AutomCnstrId dest) 
+
+    const char		*GetName( void) const { return "Spur"; }
+
+    void        AddEdge( const Sg_ChSet &chSet, AutomCnstrVar dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
@@ -60,7 +68,7 @@ public:
     { 
         if ( this == s.GetEntry())
             return; 
-        auto    res = m_EpsDestIds.insert( s.GetId()); 
+        auto    res = m_EpsDestIds.insert( s); 
         if ( res.second)
             s->RaiseRef();  
         AutomCnstrVar   thisVar( this);
@@ -75,10 +83,31 @@ public:
         if ( this == s.GetEntry())
             return; 
  
-        auto    res = m_EpsFromSources.insert( s.GetId()); 
+        auto    res = m_EpsFromSources.insert( s); 
         if ( res.second)
             s->RaiseRef(); 
         return;
+    }
+
+    bool    WriteDot( Cv_DotStream &strm)  
+    {
+        strm << 'R' << m_IPtr << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
+        strm << " </FONT>>];\n "; 
+
+        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
+        {
+            AutomCnstrVar		regex = m_Dests[ k];
+            strm << 'R' << m_IPtr << " -> " << 'R' << regex->m_IPtr << " [ arrowhead=normal color=black label=<<FONT> ";  
+            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
+            strm << "</FONT>>] ; \n" ;  
+        } 
+
+        for ( auto it = m_EpsDestIds.begin(); it !=  m_EpsDestIds.end(); ++it) 
+            strm << 'R' << m_IPtr << " -> " << 'R' << it->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
+
+        for ( auto it = m_EpsFromSources.begin(); it !=  m_EpsFromSources.end(); ++it)  
+            strm << 'R' << it->GetId() << " -> " << 'R' << m_IPtr << " [ arrowhead=tee color=green] ; \n"; 
+        return true;
     }
 };
 
@@ -100,7 +129,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
     void    Proliferate( CSetSynElem *csetElm, AutomCnstrVar start, AutomCnstrVar end)
     {
         start( [ csetElm, end]( auto k) {
-            k->AddEdge( csetElm->m_Filt, end.GetId());
+            k->AddEdge( csetElm->m_Filt, end);
         });
         return;   
     }
@@ -111,7 +140,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         auto    right = end; 
         for ( uint32_t i = seqElm->m_SeqList.size(); i > 1; --i)
         {
-            AutomSpurCnstr      *state =  new AutomSpurCnstr(); 
+            AutomSpurCnstr      *state =  Construct< AutomSpurCnstr>(); 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[ i -1]); 
 
             elemVar( [ this, state, right](  auto k) {
@@ -131,7 +160,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
     {
         for ( uint32_t i = 0; i < altElm->m_AltList.size(); ++i)
         {
-            AutomSpurCnstr        *state =  new AutomSpurCnstr();
+            AutomSpurCnstr        *state =  Construct< AutomSpurCnstr>();
             start( [ state](  auto k) {
                 k->AddEpsDest( state);
             }); 
@@ -148,7 +177,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
     void    Proliferate( RepeatSynElem *repElm, AutomCnstrVar start, AutomCnstrVar end)
     {
         uint32_t            nSeg  = ( repElm->m_Max == 0) ? ( repElm->m_Min +1) : repElm->m_Max; 
-        AutomSpurCnstr      *fState = new AutomSpurCnstr();
+        AutomSpurCnstr      *fState = Construct< AutomSpurCnstr>();
         start( [ fState](  auto k) {
             k->AddEpsDest( fState);
         });
@@ -158,7 +187,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         RExpCrate::Var      elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
         for ( uint32_t i = 0; i < nSeg; ++i)
         { 
-            sState = new AutomSpurCnstr();
+            sState = Construct< AutomSpurCnstr>();
             elemVar( [ this, fState, sState](  auto k) {
                 Proliferate( k, fState, sState);
             });
@@ -177,8 +206,8 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
 
     void    Process( void)
     {
-        AutomSpurCnstr      *start =  new AutomSpurCnstr();
-        AutomSpurCnstr      *end =  new AutomSpurCnstr();
+        AutomSpurCnstr      *start =  Construct< AutomSpurCnstr>();
+        AutomSpurCnstr      *end =  Construct< AutomSpurCnstr>();
         RExpCrate::Var      docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
         docVar( [ this, start, end](  auto k) {
             Proliferate( k, start, end);

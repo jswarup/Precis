@@ -66,8 +66,12 @@ struct	Cv_Var
 	typedef typename Crate::Entry		Entry; 
     typedef typename Crate::Id		    Id; 
 
-	Entry				*m_Entry;
+	Entry			    *m_Entry;
 	TypeStor			m_Type; 
+
+    Cv_Var( void)
+        : m_Entry( NULL), m_Type( 0)
+    {}
 
     Cv_Var( Entry *entry)
         : m_Entry( elm), m_Type( entry->GetType())
@@ -90,10 +94,11 @@ template < typename Element>
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( Lambda &lambda,  Args&... args)  
-	{
-		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...);
-	}  
+	auto    operator()( Lambda &lambda,  Args&... args)     {
+		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
+
+    friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
+        return ( id1.m_Type != id2.m_Type) ? ( id1.m_Type < id2.m_Type) : ( id1.m_Entry < id2.m_Entry) ;  } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -322,8 +327,7 @@ public:
 template<  class Object>
 	Id    Store( Object *x)
     {
-		TypeStor	typeVal = Crate::AssignIndex( x); 
-
+		TypeStor	typeVal = Crate::AssignIndex( x);  
 		IndexStor	ind = IndexStor( m_Elems.size());
 		x->SetId( ind);
 		m_Elems.push_back( x); 
@@ -331,6 +335,14 @@ template<  class Object>
         return Id( ind, typeVal);
     }
 
+template<  class Object>
+    Object  *Construct( void)
+    {
+        Object  *x = new Object();
+        Store( x);
+        return x;
+    }
+  
     void            Shrivel( uint32_t m)
     { 
         CV_ERROR_ASSERT( m <= Size())

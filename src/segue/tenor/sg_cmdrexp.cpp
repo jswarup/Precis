@@ -106,7 +106,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     automRepos.Process();
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 
-    rexpCrate.OperateAll( [&rexpDotStrm]( auto k ){
+    automRepos.OperateAll( [&rexpDotStrm]( auto k ){
         return k->WriteDot( rexpDotStrm); 
         });
 
