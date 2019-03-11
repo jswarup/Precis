@@ -63,6 +63,7 @@ template < typename Crate>
 struct	Cv_Var 
 {
 	typedef typename Crate::TypeStor	TypeStor;
+    typedef typename Crate::IndexStor	IndexStor;
 	typedef typename Crate::Entry		Entry; 
     typedef typename Crate::Id		    Id; 
 
@@ -87,9 +88,10 @@ template < typename Element>
     {} 
   
     TypeStor        GetType( void) const { return m_Type; }
+    IndexStor       GetId( void) const { return m_Entry->GetId(); }
 	Entry			*GetEntry( void) const { return m_Entry; } 
     
-    Id              GetId( void) const { return Id( m_Entry->GetId(), m_Type); }
+    Id              CrateId( void) const { return Id( m_Entry->GetId(), m_Type); }
 
     auto            operator->( void) { return m_Entry; }
 

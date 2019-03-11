@@ -91,22 +91,22 @@ public:
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
+        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
         for ( uint32_t k = 0; k < m_Dests.size(); ++k)
         {
             AutomCnstrVar		regex = m_Dests[ k];
-            strm << 'R' << m_IPtr << " -> " << 'R' << regex->m_IPtr << " [ arrowhead=normal color=black label=<<FONT> ";  
+            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
             strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
             strm << "</FONT>>] ; \n" ;  
         } 
 
         for ( auto it = m_EpsDestIds.begin(); it !=  m_EpsDestIds.end(); ++it) 
-            strm << 'R' << m_IPtr << " -> " << 'R' << it->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
+            strm << 'R' << GetId() << " -> " << 'R' << it->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
 
         for ( auto it = m_EpsFromSources.begin(); it !=  m_EpsFromSources.end(); ++it)  
-            strm << 'R' << it->GetId() << " -> " << 'R' << m_IPtr << " [ arrowhead=tee color=green] ; \n"; 
+            strm << 'R' << it->GetId() << " -> " << 'R' << GetId() << " [ arrowhead=tee color=green] ; \n"; 
         return true;
     }
 };
@@ -184,7 +184,7 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         AutomSpurCnstr                  *sState;
         AutomSpurCnstr                  *loopbackState;
         std::vector< AutomSpurCnstr *>  optSpinList;
-        RExpCrate::Var      elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
+        RExpCrate::Var                  elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
         for ( uint32_t i = 0; i < nSeg; ++i)
         { 
             sState = Construct< AutomSpurCnstr>();
@@ -197,6 +197,9 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
                 loopbackState = fState;
             fState = sState;
         }
+        for ( auto it = optSpinList.begin(); it != optSpinList.end(); ++it)
+            (*it)->AddEpsDest( end);
+
         if ( repElm->m_Max) 
             sState->AddEpsDest( end); 
         else
