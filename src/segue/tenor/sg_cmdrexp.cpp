@@ -106,10 +106,11 @@ int     Sg_RExpCmdProcessor::Test(void)
     automRepos.Process();
     std::ofstream           rexpOStrm( "a.dot");
     Cv_DotStream			rexpDotStrm( &rexpOStrm, false); 
-    automRepos.OperateAll( [&rexpDotStrm]( auto k ){
-        return k->WriteDot( rexpDotStrm); 
-        });
-
+    for ( uint32_t i = 1; i < automRepos.m_Elems.size(); ++i)
+    {
+        auto    si = automRepos.m_Elems[ i];
+        si->WriteDot( rexpDotStrm); 
+    }
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);

@@ -11,16 +11,19 @@
 
 namespace Sg_RExp
 {
-  
-struct     AutomSpurCnstr; 
-struct     AutomCnstr;
-
-typedef Cv_Crate<  AutomSpurCnstr, AutomCnstr>      AutomCnstrCrate;   
-
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomCnstr   : public Cv_CrateEntry, public Cv_Shared
+struct AutomCnstr;
+typedef Cv_Slot< AutomCnstr> AutomSlot;
+//_____________________________________________________________________________________________________________________________ 
+
+struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
+    std::vector< Sg_ChSet>      m_ChSets;
+    std::vector< AutomSlot>     m_Dests;
+    std::set< AutomSlot>        m_EpsDestIds; 
+    std::set< AutomSlot>        m_EpsFromSources;
+
 public:
     AutomCnstr( void)  
     {} 
@@ -28,64 +31,28 @@ public:
     virtual ~AutomCnstr( void)  
     {} 
 
-    void    AddEdge( ...)  {}
-
-    void    AddEpsDest( Cv_Var< AutomCnstrCrate>	 s) {} 
-
-    void    AddEpsSource( Cv_Var< AutomCnstrCrate>	 s) {} 
-
-    bool    WriteDot( Cv_DotStream &strm) { return true; }
-};
-
-//_____________________________________________________________________________________________________________________________ 
-
-typedef AutomCnstrCrate::Id                         AutomCnstrId;
-typedef AutomCnstrCrate::Var                        AutomCnstrVar;
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct  AutomSpurCnstr   : public AutomCnstr 
-{ 
-    std::vector< Sg_ChSet>          m_ChSets;
-    std::vector< AutomCnstrVar>     m_Dests;
-    std::set< AutomCnstrVar>        m_EpsDestIds; 
-    std::set< AutomCnstrVar>        m_EpsFromSources;
-
-public:
-    AutomSpurCnstr( void)  
-    {}
-     
-
     const char		*GetName( void) const { return "Spur"; }
 
-    void        AddEdge( const Sg_ChSet &chSet, AutomCnstrVar dest) 
+    void        AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
     }
 
-    void        AddEpsDest( AutomCnstrVar s) 
+    void        AddEpsDest( const AutomSlot &s) 
     { 
-        if ( this == s.GetEntry())
+        if ( this == s.Ptr())
             return; 
-        auto    res = m_EpsDestIds.insert( s); 
-        if ( res.second)
-            s->RaiseRef();  
-        AutomCnstrVar   thisVar( this);
-        s( [ thisVar]( auto k) {
-            k->AddEpsSource( thisVar);
-        });
+        m_EpsDestIds.insert( s);    
+        s->AddEpsSource( this); 
         return;
     }
- 
-    void    AddEpsSource( AutomCnstrVar s) 
+
+    void    AddEpsSource( const AutomSlot &s) 
     { 
-        if ( this == s.GetEntry())
+        if ( this == s.Ptr())
             return; 
- 
-        auto    res = m_EpsFromSources.insert( s); 
-        if ( res.second)
-            s->RaiseRef(); 
+        m_EpsFromSources.insert( s);  
         return;
     }
 
@@ -96,51 +63,65 @@ public:
 
         for ( uint32_t k = 0; k < m_Dests.size(); ++k)
         {
-            AutomCnstrVar		regex = m_Dests[ k];
+            const AutomSlot     &regex = m_Dests[ k];
             strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
             strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
             strm << "</FONT>>] ; \n" ;  
         } 
 
         for ( auto it = m_EpsDestIds.begin(); it !=  m_EpsDestIds.end(); ++it) 
-            strm << 'R' << GetId() << " -> " << 'R' << it->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
+            strm << 'R' << GetId() << " -> " << 'R' << (*it)->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
 
         for ( auto it = m_EpsFromSources.begin(); it !=  m_EpsFromSources.end(); ++it)  
-            strm << 'R' << it->GetId() << " -> " << 'R' << GetId() << " [ arrowhead=tee color=green] ; \n"; 
+            strm << 'R' << (*it)->GetId() << " -> " << 'R' << GetId() << " [ arrowhead=tee color=green] ; \n"; 
         return true;
     }
 };
 
 //_____________________________________________________________________________________________________________________________  
  
-struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
+struct AutomCnstrRepos  
 {
-    RExpRepos				*m_RexpRepos;
+    RExpRepos				    *m_RexpRepos;
+    std::vector< AutomSlot>     m_Elems;
     
     AutomCnstrRepos(  RExpRepos *rexpRepos)
         : m_RexpRepos( rexpRepos)
     {}
     
-    void    Proliferate( SynElem *elm, AutomCnstrVar start, AutomCnstrVar end)
+template<  class Object>
+    uint32_t    Store( Object *x)
+    {
+        
+        return ind;
+    } 
+
+    AutomSlot   Construct( void)
+    {
+        AutomSlot   x = new AutomCnstr();
+        uint32_t    ind = m_Elems.size();
+        x->SetId( ind);
+        m_Elems.push_back( x); 
+        return x;
+    }
+
+    void    Proliferate( SynElem *elm, const AutomSlot &start, const AutomSlot &end)
     {
         return;   
     }
 
-    void    Proliferate( CSetSynElem *csetElm, AutomCnstrVar start, AutomCnstrVar end)
+    void    Proliferate( CSetSynElem *csetElm, const AutomSlot &start, const AutomSlot &end)
     {
-        start( [ csetElm, end]( auto k) {
-            k->AddEdge( csetElm->m_Filt, end);
-        });
-        return;   
+        start->AddEdge( csetElm->m_Filt, end);
     }
 
-    void    Proliferate( SeqSynElem *seqElm, AutomCnstrVar start, AutomCnstrVar end)
+    void    Proliferate( SeqSynElem *seqElm, const AutomSlot &start, const AutomSlot &end)
     {
           
         auto    right = end; 
-        for ( uint32_t i = seqElm->m_SeqList.size(); i > 1; --i)
+        for ( uint32_t i = uint32_t( seqElm->m_SeqList.size()); i > 1; --i)
         {
-            AutomSpurCnstr      *state =  Construct< AutomSpurCnstr>(); 
+            AutomSlot           state =  Construct(); 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[ i -1]); 
 
             elemVar( [ this, state, right](  auto k) {
@@ -156,14 +137,12 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         return;   
     }
 
-    void    Proliferate( AltSynElem *altElm, AutomCnstrVar start, AutomCnstrVar end)
+    void    Proliferate( AltSynElem *altElm, const AutomSlot &start, const AutomSlot &end)
     {
         for ( uint32_t i = 0; i < altElm->m_AltList.size(); ++i)
         {
-            AutomSpurCnstr        *state =  Construct< AutomSpurCnstr>();
-            start( [ state](  auto k) {
-                k->AddEpsDest( state);
-            }); 
+            AutomSlot       state =  Construct();
+            start->AddEpsDest( state);
 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( altElm->m_AltList[ i]);
 
@@ -174,20 +153,19 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
         return;   
     }
         
-    void    Proliferate( RepeatSynElem *repElm, AutomCnstrVar start, AutomCnstrVar end)
+    void    Proliferate( RepeatSynElem *repElm, const AutomSlot &start, const AutomSlot &end)
     {
         uint32_t            nSeg  = ( repElm->m_Max == 0) ? ( repElm->m_Min +1) : repElm->m_Max; 
-        AutomSpurCnstr      *fState = Construct< AutomSpurCnstr>();
-        start( [ fState](  auto k) {
-            k->AddEpsDest( fState);
-        });
-        AutomSpurCnstr                  *sState;
-        AutomSpurCnstr                  *loopbackState;
-        std::vector< AutomSpurCnstr *>  optSpinList;
-        RExpCrate::Var                  elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
+        AutomSlot           fState = Construct();
+        start->AddEpsDest( fState);
+        
+        AutomSlot                   sState;
+        AutomSlot                   loopbackState;
+        std::vector< AutomSlot>     optSpinList;
+        RExpCrate::Var              elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
         for ( uint32_t i = 0; i < nSeg; ++i)
         { 
-            sState = Construct< AutomSpurCnstr>();
+            sState = Construct();
             elemVar( [ this, fState, sState](  auto k) {
                 Proliferate( k, fState, sState);
             });
@@ -209,9 +187,9 @@ struct AutomCnstrRepos : public Cv_CrateRepos< AutomCnstrCrate>
 
     void    Process( void)
     {
-        AutomSpurCnstr      *start =  Construct< AutomSpurCnstr>();
-        AutomSpurCnstr      *end =  Construct< AutomSpurCnstr>();
-        RExpCrate::Var      docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
+        AutomSlot       start =  Construct();
+        AutomSlot       end =  Construct();
+        RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
         docVar( [ this, start, end](  auto k) {
             Proliferate( k, start, end);
         });

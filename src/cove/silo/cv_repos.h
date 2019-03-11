@@ -112,7 +112,24 @@ template < class Y>
         return;
     }
  
-    
+
+template<  class Object>
+    uint32_t    Store( Object *x)
+    {
+        uint32_t    ind = m_Elems.size();
+        x->SetId( ind);
+        m_Elems.push_back( x); 
+        return ind;
+    }
+
+
+template<  class Object>
+    Object  *Construct( void)
+    {
+        Object  *x = new Object();
+        Store( x);
+        return x;
+    }
 
     void    Swap( Cv_Repos< Entry> *tc) {   m_Elems.swap( tc->m_Elems);} 
 
