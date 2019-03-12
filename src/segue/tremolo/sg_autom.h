@@ -18,10 +18,50 @@ typedef Cv_Slot< AutomCnstr> AutomSlot;
 
 //_____________________________________________________________________________________________________________________________ 
 
+struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
+{     
+    std::vector< Sg_ChSet>          m_ChSets;
+    std::vector< AutomState *>      m_Dests;
+
+    void        AddEdge( const Sg_ChSet &chSet, AutomState *dest) 
+    {
+        m_ChSets.push_back( chSet);
+        m_Dests.push_back( dest);
+    }
+    
+    //_____________________________________________________________________________________________________________________________  
+    // this state is losing its constructor and we would not be adding Transitions to it..
+    // export all this state transistion to the epsIn state and loose the epsilon connection
+
+    void    ExportTransitions( AutomState *epsIn) 
+    {   
+        for ( uint32_t i = 0; i < m_Dests.size(); ++i) 
+            epsIn->AddEdge( m_ChSets[ i], m_Dests[ i]); 
+        return;
+    }
+
+
+    bool        WriteDot( Cv_DotStream &strm)  
+    {
+        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
+        strm << RefCount() << " </FONT>>];\n "; 
+
+        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
+        {
+            AutomState      *regex = m_Dests[ k];
+            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
+            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
+            strm << "</FONT>>] ; \n" ;  
+        }
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
-    std::vector< Sg_ChSet>          m_ChSets;
-    std::vector< AutomCnstr *>      m_Dests;
+    AutomState                      *m_State;
     std::set< AutomCnstr *>         m_EpsDests; 
     std::set< AutomCnstr *>         m_EpsSources;
 
@@ -37,7 +77,7 @@ public:
 
     uint32_t		LowerRef( void) 
     {	
-        if ( m_RefCount== 2)
+        if ( m_RefCount == 2)
             FinalizeEpsLinks(); 
         return --m_RefCount;	
     }
@@ -46,8 +86,7 @@ public:
 
     void        AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
     {
-        m_ChSets.push_back( chSet);
-        m_Dests.push_back( dest);
+        m_State->AddEdge( chSet, dest->m_State);
     }
 
     void        AddEpsDest( const AutomSlot &s) 
@@ -69,16 +108,7 @@ public:
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
-        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
-        strm << RefCount() << " </FONT>>];\n "; 
-        
-        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
-        {
-            AutomSlot       regex = m_Dests[ k];
-            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
-            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
-            strm << "</FONT>>] ; \n" ;  
-        } 
+         
         for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
             strm << 'R' << GetId() << " -> " << 'R' << (*it)->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
 
@@ -87,18 +117,7 @@ public:
         return true;
     }
     
-    //_____________________________________________________________________________________________________________________________  
-    // this state is losing its constructor and we would not be adding Transitions to it..
-    // export all this state transistion to the epsIn state and loose the epsilon connection
-
-    void    ExportTransitions( const AutomSlot &epsIn) 
-    {   
-        for ( uint32_t i = 0; i < m_Dests.size(); ++i) 
-            epsIn->AddEdge( m_ChSets[ i], m_Dests[ i]); 
-        return;
-    }
-
-    //_____________________________________________________________________________________________________________________________   
+     //_____________________________________________________________________________________________________________________________   
 
     void    FinalizeEpsLinks( void)
     {
@@ -110,7 +129,7 @@ public:
         {
             if ( (*sIt) == this)
                 continue;
-            ExportTransitions( *sIt);
+            m_State->ExportTransitions( (*sIt)->m_State);
             for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
                 (*sIt)->AddEpsDest( *dIt); 
 
@@ -128,8 +147,10 @@ public:
  
 struct AutomRepos 
 {
+    Cv_Repos< AutomState>           m_AutomRepos;
     RExpRepos				        *m_RexpRepos;
     AutomSlot                       m_Start;   
+    AutomSlot                       m_End;   
     std::vector< AutomSlot>         m_Cnstrs;
 
     AutomRepos(  RExpRepos *rexpRepos)
@@ -148,7 +169,7 @@ template<  class Object>
     AutomSlot   ConstructCnstr( void)
     {
         AutomSlot   x = new AutomCnstr(); 
-
+        x->m_State = m_AutomRepos.Construct< AutomState>();
         uint32_t    ind = m_Cnstrs.size();
         x->SetId( ind); 
         m_Cnstrs.push_back( x); 
@@ -240,6 +261,13 @@ template<  class Object>
         std::ofstream           rexpOStrm( str);
         Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
 
+        for ( uint32_t i = 1; i < m_AutomRepos.Size(); ++i)
+        {
+            AutomState  *si = m_AutomRepos.At( i);
+            if (si)
+                si->WriteDot( rexpDotStrm); 
+        }
+
         for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
         {
             const AutomSlot    &si = m_Cnstrs[ i];
@@ -251,10 +279,10 @@ template<  class Object>
     void    Process( void)
     {
         m_Start =  ConstructCnstr();
-        AutomSlot       end =  ConstructCnstr();
+        m_End =  ConstructCnstr();
         RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
-        docVar( [ this, end](  auto k) {
-            Proliferate( k, m_Start, end);
+        docVar( [ this](  auto k) {
+            Proliferate( k, m_Start, m_End);
         });
 
 /*        for ( uint32_t i = 1; i < m_Elems.size(); ++i)
