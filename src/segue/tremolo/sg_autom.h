@@ -15,22 +15,33 @@ namespace Sg_RExp
 
 struct AutomCnstr;
 typedef Cv_Slot< AutomCnstr> AutomSlot;
+
 //_____________________________________________________________________________________________________________________________ 
 
 struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
-    std::vector< Sg_ChSet>      m_ChSets;
-    std::vector< AutomSlot>     m_Dests;
-    std::set< AutomSlot>        m_EpsDestIds; 
-    std::set< AutomSlot>        m_EpsFromSources;
+    std::vector< Sg_ChSet>          m_ChSets;
+    std::vector< AutomCnstr *>      m_Dests;
+    std::set< AutomCnstr *>         m_EpsDests; 
+    std::set< AutomCnstr *>         m_EpsSources;
 
 public:
     AutomCnstr( void)  
-    {} 
+    {}  
     
-    virtual ~AutomCnstr( void)  
-    {} 
+    virtual    ~AutomCnstr( void)  
+    {
+       
+    }
+    
 
+    uint32_t		LowerRef( void) 
+    {	
+        if ( m_RefCount== 2)
+            FinalizeEpsLinks(); 
+        return --m_RefCount;	
+    }
+    
     const char		*GetName( void) const { return "Spur"; }
 
     void        AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
@@ -43,51 +54,89 @@ public:
     { 
         if ( this == s.Ptr())
             return; 
-        m_EpsDestIds.insert( s);    
+        m_EpsDests.insert( s);    
         s->AddEpsSource( this); 
         return;
     }
 
-    void    AddEpsSource( const AutomSlot &s) 
+    void    AddEpsSource( AutomCnstr *s) 
     { 
-        if ( this == s.Ptr())
+        if ( this == s)
             return; 
-        m_EpsFromSources.insert( s);  
+        m_EpsSources.insert( s);  
         return;
     }
 
     bool    WriteDot( Cv_DotStream &strm)  
     {
         strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
-        strm << " </FONT>>];\n "; 
-
+        strm << RefCount() << " </FONT>>];\n "; 
+        
         for ( uint32_t k = 0; k < m_Dests.size(); ++k)
         {
-            const AutomSlot     &regex = m_Dests[ k];
+            AutomSlot       regex = m_Dests[ k];
             strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
             strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
             strm << "</FONT>>] ; \n" ;  
         } 
-
-        for ( auto it = m_EpsDestIds.begin(); it !=  m_EpsDestIds.end(); ++it) 
+        for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
             strm << 'R' << GetId() << " -> " << 'R' << (*it)->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
 
-        for ( auto it = m_EpsFromSources.begin(); it !=  m_EpsFromSources.end(); ++it)  
+        for ( auto it = m_EpsSources.begin(); it !=  m_EpsSources.end(); ++it)  
             strm << 'R' << (*it)->GetId() << " -> " << 'R' << GetId() << " [ arrowhead=tee color=green] ; \n"; 
         return true;
+    }
+    
+    //_____________________________________________________________________________________________________________________________  
+    // this state is losing its constructor and we would not be adding Transitions to it..
+    // export all this state transistion to the epsIn state and loose the epsilon connection
+
+    void    ExportTransitions( const AutomSlot &epsIn) 
+    {   
+        for ( uint32_t i = 0; i < m_Dests.size(); ++i) 
+            epsIn->AddEdge( m_ChSets[ i], m_Dests[ i]); 
+        return;
+    }
+
+    //_____________________________________________________________________________________________________________________________   
+
+    void    FinalizeEpsLinks( void)
+    {
+        if (  !m_EpsSources.size())        // nothing needs to be done if no one has eps transition to it.
+            return;
+
+        // state is frozen: It should meet its obligation to export its OutTransitions to its eps-sourcces.
+        for ( auto sIt = m_EpsSources.begin(); sIt != m_EpsSources.end(); ++sIt)
+        {
+            if ( (*sIt) == this)
+                continue;
+            ExportTransitions( *sIt);
+            for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
+                (*sIt)->AddEpsDest( *dIt); 
+
+            (*sIt)->m_EpsDests.erase( this);
+        }
+        for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
+            (*dIt)->m_EpsSources.erase( this);
+        m_EpsSources.clear();
+        m_EpsDests.clear(); 
+        return;
     }
 };
 
 //_____________________________________________________________________________________________________________________________  
  
-struct AutomCnstrRepos  
+struct AutomRepos 
 {
-    RExpRepos				    *m_RexpRepos;
-    std::vector< AutomSlot>     m_Elems;
-    
-    AutomCnstrRepos(  RExpRepos *rexpRepos)
+    RExpRepos				        *m_RexpRepos;
+    AutomSlot                       m_Start;   
+    std::vector< AutomSlot>         m_Cnstrs;
+
+    AutomRepos(  RExpRepos *rexpRepos)
         : m_RexpRepos( rexpRepos)
-    {}
+    {
+        m_Cnstrs.push_back( NULL);
+    }
     
 template<  class Object>
     uint32_t    Store( Object *x)
@@ -96,12 +145,13 @@ template<  class Object>
         return ind;
     } 
 
-    AutomSlot   Construct( void)
+    AutomSlot   ConstructCnstr( void)
     {
-        AutomSlot   x = new AutomCnstr();
-        uint32_t    ind = m_Elems.size();
-        x->SetId( ind);
-        m_Elems.push_back( x); 
+        AutomSlot   x = new AutomCnstr(); 
+
+        uint32_t    ind = m_Cnstrs.size();
+        x->SetId( ind); 
+        m_Cnstrs.push_back( x); 
         return x;
     }
 
@@ -118,20 +168,20 @@ template<  class Object>
     void    Proliferate( SeqSynElem *seqElm, const AutomSlot &start, const AutomSlot &end)
     {
           
-        auto    right = end; 
+        AutomSlot    right = end; 
         for ( uint32_t i = uint32_t( seqElm->m_SeqList.size()); i > 1; --i)
         {
-            AutomSlot           state =  Construct(); 
+            AutomSlot           state =  ConstructCnstr(); 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[ i -1]); 
 
-            elemVar( [ this, state, right](  auto k) {
+            elemVar( [ this, &state, &right](  auto k) {
                 Proliferate( k, state, right);
             });
             right = state;
         }
         RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[0]); 
 
-        elemVar( [ this, start, right](  auto k) {
+        elemVar( [ this, &start, &right](  auto k) {
             Proliferate( k, start, right);
         });
         return;   
@@ -141,12 +191,12 @@ template<  class Object>
     {
         for ( uint32_t i = 0; i < altElm->m_AltList.size(); ++i)
         {
-            AutomSlot       state =  Construct();
+            AutomSlot       state =  ConstructCnstr();
             start->AddEpsDest( state);
 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( altElm->m_AltList[ i]);
 
-            elemVar( [ this, state, end](  auto k) {
+            elemVar( [ this, &state, &end](  auto k) {
                  Proliferate( k, state, end);
             });
         }
@@ -156,7 +206,7 @@ template<  class Object>
     void    Proliferate( RepeatSynElem *repElm, const AutomSlot &start, const AutomSlot &end)
     {
         uint32_t            nSeg  = ( repElm->m_Max == 0) ? ( repElm->m_Min +1) : repElm->m_Max; 
-        AutomSlot           fState = Construct();
+        AutomSlot           fState = ConstructCnstr();
         start->AddEpsDest( fState);
         
         AutomSlot                   sState;
@@ -165,7 +215,7 @@ template<  class Object>
         RExpCrate::Var              elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
         for ( uint32_t i = 0; i < nSeg; ++i)
         { 
-            sState = Construct();
+            sState = ConstructCnstr();
             elemVar( [ this, fState, sState](  auto k) {
                 Proliferate( k, fState, sState);
             });
@@ -185,15 +235,34 @@ template<  class Object>
         return;   
     }
 
+    bool    WriteDot( const std::string &str)
+    {
+        std::ofstream           rexpOStrm( str);
+        Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
+
+        for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
+        {
+            const AutomSlot    &si = m_Cnstrs[ i];
+            if (si)
+                si->WriteDot( rexpDotStrm); 
+        }
+        return true;
+    }
     void    Process( void)
     {
-        AutomSlot       start =  Construct();
-        AutomSlot       end =  Construct();
+        m_Start =  ConstructCnstr();
+        AutomSlot       end =  ConstructCnstr();
         RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
-        docVar( [ this, start, end](  auto k) {
-            Proliferate( k, start, end);
+        docVar( [ this, end](  auto k) {
+            Proliferate( k, m_Start, end);
         });
-        return;
+
+/*        for ( uint32_t i = 1; i < m_Elems.size(); ++i)
+        {
+            auto    si = m_Elems[ i];
+            si->FinalizeEpsLinks();
+        }
+*/        return;
     }
 };
 
