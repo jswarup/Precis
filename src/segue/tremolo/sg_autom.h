@@ -27,18 +27,7 @@ struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
-    }
-    
-    //_____________________________________________________________________________________________________________________________  
-    // this state is losing its constructor and we would not be adding Transitions to it..
-    // export all this state transistion to the epsIn state and loose the epsilon connection
-
-    void    ExportTransitions( AutomState *epsIn) 
-    {   
-        for ( uint32_t i = 0; i < m_Dests.size(); ++i) 
-            epsIn->AddEdge( m_ChSets[ i], m_Dests[ i]); 
-        return;
-    }
+    } 
 
 
     bool        WriteDot( Cv_DotStream &strm)  
@@ -128,8 +117,13 @@ public:
         for ( auto sIt = m_EpsSources.begin(); sIt != m_EpsSources.end(); ++sIt)
         {
             if ( (*sIt) == this)
-                continue;
-            m_State->ExportTransitions( (*sIt)->m_State);
+                continue;  
+            // export all this state transistions to the eps-source  
+            for ( uint32_t i = 0; i < m_State->m_Dests.size(); ++i) 
+            {
+                (*sIt)->m_State->AddEdge( m_State->m_ChSets[ i], m_State->m_Dests[ i]); 
+            }
+            // export all this state eps-transistions to the eps-source  
             for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
                 (*sIt)->AddEpsDest( *dIt); 
 
