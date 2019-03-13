@@ -22,11 +22,12 @@ struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
 {     
     std::vector< Sg_ChSet>          m_ChSets;
     std::vector< AutomState *>      m_Dests;
-
+    
     void        AddEdge( const Sg_ChSet &chSet, AutomState *dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
+        dest->RaiseRef();
     } 
 
 
@@ -166,7 +167,8 @@ template<  class Object>
         x->m_State = m_AutomRepos.Construct< AutomState>();
         uint32_t    ind = m_Cnstrs.size();
         x->SetId( ind); 
-        m_Cnstrs.push_back( x); 
+        m_Cnstrs.push_back( x);
+        //m_Cnstrs.push_back( NULL); 
         return x;
     }
 
