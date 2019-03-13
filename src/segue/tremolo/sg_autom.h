@@ -67,7 +67,7 @@ public:
 
     uint32_t		LowerRef( void) 
     {	
-        if ( m_RefCount == 2)
+        if ( m_RefCount == 1)
             FinalizeEpsLinks(); 
         return --m_RefCount;	
     }
@@ -111,9 +111,7 @@ public:
 
     void    FinalizeEpsLinks( void)
     {
-        if (  !m_EpsSources.size())        // nothing needs to be done if no one has eps transition to it.
-            return;
-
+         
         // state is frozen: It should meet its obligation to export its OutTransitions to its eps-sourcces.
         for ( auto sIt = m_EpsSources.begin(); sIt != m_EpsSources.end(); ++sIt)
         {
@@ -127,11 +125,15 @@ public:
             // export all this state eps-transistions to the eps-source  
             for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
                 (*sIt)->AddEpsDest( *dIt); 
-
+        }
+        for ( auto sIt = m_EpsSources.begin(); sIt != m_EpsSources.end(); ++sIt)
+        {    
             (*sIt)->m_EpsDests.erase( this);
         }
         for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
+        {    
             (*dIt)->m_EpsSources.erase( this);
+        }
         m_EpsSources.clear();
         m_EpsDests.clear(); 
         return;
@@ -144,8 +146,7 @@ struct AutomRepos
 {
     Cv_Repos< AutomState>           m_AutomRepos;
     RExpRepos				        *m_RexpRepos;
-    AutomSlot                       m_Start;   
-    AutomSlot                       m_End;   
+    AutomSlot                       m_Start;  
     std::vector< AutomSlot>         m_Cnstrs;
 
     AutomRepos(  RExpRepos *rexpRepos)
@@ -167,8 +168,8 @@ template<  class Object>
         x->m_State = m_AutomRepos.Construct< AutomState>();
         uint32_t    ind = m_Cnstrs.size();
         x->SetId( ind); 
-        m_Cnstrs.push_back( x);
-        //m_Cnstrs.push_back( NULL); 
+        //m_Cnstrs.push_back( x);
+        m_Cnstrs.push_back( NULL); 
         return x;
     }
 
@@ -275,10 +276,10 @@ template<  class Object>
     void    Process( void)
     {
         m_Start =  ConstructCnstr();
-        m_End =  ConstructCnstr();
+        AutomSlot   end =  ConstructCnstr();
         RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
-        docVar( [ this](  auto k) {
-            Proliferate( k, m_Start, m_End);
+        docVar( [ this, end](  auto k) {
+            Proliferate( k, m_Start, end);
         });
 
 /*        for ( uint32_t i = 1; i < m_Elems.size(); ++i)
