@@ -90,8 +90,8 @@ struct Tr_Consume
             uint32_t i = 0;
             for ( ; i < sz;)
             {
-                uint32_t    val = m_Dock.Get( i++);
-                printf( "%u\n", val);
+                uint64_t    val = m_Dock.Get( i++);
+                printf( "%u\n", uint32_t( val));
                 CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
                 m_Prev = val;
                 if ( val == (cv_numEventsToGenerate -1))

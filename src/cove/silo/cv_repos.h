@@ -116,7 +116,7 @@ template < class Y>
 template<  class Object>
     uint32_t    Store( Object *x)
     {
-        uint32_t    ind = m_Elems.size();
+        uint32_t    ind = uint32_t( m_Elems.size());
         x->SetId( ind);
         m_Elems.push_back( x); 
         return ind;
