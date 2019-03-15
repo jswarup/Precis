@@ -1,9 +1,8 @@
-//  sg_autom.h ___________________________________________________________________________________________________________________
+//  sg_automcnstr.h ___________________________________________________________________________________________________________________
 #pragma once
 
-#include    "cove/barn/cv_cexpr.h"
-#include 	"cove/barn/cv_aid.h"
-#include 	"cove/barn/cv_ptrslot.h"
+
+#include    "segue/tremolo/sg_automstate.h"
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 
@@ -14,52 +13,21 @@ namespace Sg_RExp
 //_____________________________________________________________________________________________________________________________ 
 
 struct      AutomCnstr;
-struct      AutomRepos;
+struct      AutomReposCnstr;
 
 typedef Cv_Slot< AutomCnstr>    AutomSlot;
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
-{     
-    std::vector< Sg_ChSet>          m_ChSets;
-    std::vector< AutomState *>      m_Dests;
-    
-    void        AddEdge( const Sg_ChSet &chSet, AutomState *dest) 
-    {
-        m_ChSets.push_back( chSet);
-        m_Dests.push_back( dest);
-        dest->RaiseRef();
-    } 
-
-
-    bool        WriteDot( Cv_DotStream &strm)  
-    {
-        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
-        strm << RefCount() << " </FONT>>];\n "; 
-
-        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
-        {
-            AutomState      *regex = m_Dests[ k];
-            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
-            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
-            strm << "</FONT>>] ; \n" ;  
-        }
-        return true;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________ 
-
 struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
-    AutomRepos                      *m_Repos;
+    AutomReposCnstr                 *m_Repos;
     AutomState                      *m_State;
-    std::set< AutomCnstr *>            m_EpsDests; 
+    std::set< AutomCnstr *>         m_EpsDests; 
     std::set< uint32_t>             m_EpsSourceIds;
 
 public:
-    AutomCnstr( AutomRepos *repos)  
+    AutomCnstr( AutomReposCnstr *repos)  
         : m_Repos( repos)
     {}  
  
@@ -96,13 +64,13 @@ public:
 
 //_____________________________________________________________________________________________________________________________  
  
-struct AutomRepos 
+struct AutomReposCnstr 
 {
-    Cv_Repos< AutomState>           m_AutomRepos;
+    AutomRepos                      m_AutomRepos;
     RExpRepos				        *m_RexpRepos; 
     std::vector< AutomCnstr *>      m_Cnstrs;
 
-    AutomRepos(  RExpRepos *rexpRepos)
+    AutomReposCnstr(  RExpRepos *rexpRepos)
         : m_RexpRepos( rexpRepos)
     { 
         m_Cnstrs.push_back( NULL);

@@ -5,7 +5,7 @@
 #include    "cove/snip/cv_cmdexec.h" 
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
-#include    "segue/tremolo/sg_autom.h"
+#include    "segue/tremolo/sg_automcnstr.h"
 
 #include	<utility>
 #include	<tuple>
@@ -102,7 +102,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     parser.SetLogStream( &std::cout);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
-    AutomRepos              automRepos(  &rexpCrate);
+    AutomReposCnstr         automRepos(  &rexpCrate);
     automRepos.Process();  
     automRepos.WriteDot( "a.dot");
      

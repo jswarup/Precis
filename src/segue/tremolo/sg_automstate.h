@@ -1,0 +1,62 @@
+//  sg_automstate.h ___________________________________________________________________________________________________________________
+#pragma once
+
+#include    "cove/barn/cv_cexpr.h"
+#include 	"cove/barn/cv_aid.h"
+#include 	"cove/barn/cv_ptrslot.h"
+#include    "segue/timbre/sg_chset.h"
+#include 	"cove/silo/cv_repos.h"
+#include 	"cove/silo/cv_dotstream.h"
+
+//_____________________________________________________________________________________________________________________________  
+
+namespace Sg_RExp
+{
+//_____________________________________________________________________________________________________________________________ 
+
+struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
+{     
+    std::vector< Sg_ChSet>          m_ChSets;
+    std::vector< AutomState *>      m_Dests;
+
+    void        AddEdge( const Sg_ChSet &chSet, AutomState *dest) 
+    {
+        m_ChSets.push_back( chSet);
+        m_Dests.push_back( dest);
+        dest->RaiseRef();
+    } 
+
+    bool        WriteDot( Cv_DotStream &strm)  
+    {
+        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
+        strm << RefCount() << " </FONT>>];\n "; 
+
+        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
+        {
+            AutomState      *regex = m_Dests[ k];
+            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
+            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
+            strm << "</FONT>>] ; \n" ;  
+        }
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct  AutomRepos  : public Cv_Repos< AutomState>
+{
+    bool        WriteDot( Cv_DotStream &strm)  
+    {
+        for ( uint32_t i = 1; i < Size(); ++i)
+        {
+            AutomState  *si = At( i);
+            if (si)
+                si->WriteDot( strm); 
+        }
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+};

@@ -1,7 +1,7 @@
-// sg_autom.cpp ___________________________________________________________________________________________________________________
+// automcnstr.cpp ___________________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_autom.h"
+#include    "segue/tremolo/sg_automcnstr.h"
 
 using namespace Sg_RExp;
  
@@ -60,7 +60,7 @@ bool    AutomCnstr::WriteDot( Cv_DotStream &strm)
 }
 //_____________________________________________________________________________________________________________________________
 
-void    AutomRepos::Process( void)
+void    AutomReposCnstr::Process( void)
 { 
     AutomSlot                       start =  ConstructCnstr();
     start->m_State->RaiseRef();
@@ -75,17 +75,12 @@ void    AutomRepos::Process( void)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    AutomRepos::WriteDot( const std::string &str)
+bool    AutomReposCnstr::WriteDot( const std::string &str)
 {
     std::ofstream           rexpOStrm( str);
     Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
 
-    for ( uint32_t i = 1; i < m_AutomRepos.Size(); ++i)
-    {
-        AutomState  *si = m_AutomRepos.At( i);
-        if (si)
-            si->WriteDot( rexpDotStrm); 
-    }
+    m_AutomRepos.WriteDot( rexpDotStrm);
     for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
     {
         AutomCnstr  *si = m_Cnstrs[ i];
