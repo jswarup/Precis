@@ -4,29 +4,26 @@
 #include    "segue/tremolo/sg_autom.h"
 
 using namespace Sg_RExp;
-
-static bool     skipFinalizeEpsLinks = false;
+ 
 //_____________________________________________________________________________________________________________________________
 
 AutomCnstr::~AutomCnstr( void)  
 {
 
+    FinalizeEpsLinks(); 
     m_Repos->m_Cnstrs[ GetId()] = NULL;
+    if ( !m_State->RefCount())
+        m_Repos->m_AutomRepos.Destroy( m_State->GetId());
 }
 
 //_____________________________________________________________________________________________________________________________   
 
 void    AutomCnstr::FinalizeEpsLinks( void)
-{
-    if ( skipFinalizeEpsLinks)
-        return;
-
-    //m_Repos->WriteDot( "dbg0.dot");
+{  
     // state is frozen: It should meet its obligation to export its OutTransitions to its eps-sourcces.
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
     {
-        if ( (*sIt) == GetId())
-            continue;  
+  
         AutomState      *srcState = m_Repos->m_AutomRepos.At( *sIt);
         AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
 
@@ -46,12 +43,57 @@ void    AutomCnstr::FinalizeEpsLinks( void)
         if ( srcCnstr)
             srcCnstr->m_EpsDests.erase( this);
     }   
- 
-    if ( !m_State->RefCount())
-        m_Repos->m_AutomRepos.Destroy( m_State->GetId());
-    //m_Repos->WriteDot( "dbg1.dot");
     return;
+}
+
+//_____________________________________________________________________________________________________________________________   
+
+bool    AutomCnstr::WriteDot( Cv_DotStream &strm)  
+{
+
+    for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
+        strm << 'R' << GetId() << " -> " << 'R' << (*it)->GetId() << " [ arrowhead=vee color=blue] ; \n"; 
+
+    for ( auto it = m_EpsSourceIds.begin(); it !=  m_EpsSourceIds.end(); ++it)  
+        strm << 'R' << GetId() << " -> " << 'R' << (*it)  << " [ arrowhead=tee color=green] ; \n"; 
+    return true;
+}
+//_____________________________________________________________________________________________________________________________
+
+void    AutomRepos::Process( void)
+{ 
+    AutomSlot                       start =  ConstructCnstr();
+    start->m_State->RaiseRef();
+    AutomSlot                       end =  ConstructCnstr();
+    end->m_State->RaiseRef();
+    RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
+    docVar( [ this, start, end](  auto k) {
+        Proliferate( k, start, end);
+        }); 
+    return;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool    AutomRepos::WriteDot( const std::string &str)
+{
+    std::ofstream           rexpOStrm( str);
+    Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
+
+    for ( uint32_t i = 1; i < m_AutomRepos.Size(); ++i)
+    {
+        AutomState  *si = m_AutomRepos.At( i);
+        if (si)
+            si->WriteDot( rexpDotStrm); 
     }
+    for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
+    {
+        AutomCnstr  *si = m_Cnstrs[ i];
+        if (si)
+            si->WriteDot( rexpDotStrm); 
+    }
+    return true;
+}
 
 //_____________________________________________________________________________________________________________________________
 
