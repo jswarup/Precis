@@ -55,7 +55,7 @@ struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
     AutomRepos                      *m_Repos;
     AutomState                      *m_State;
-    std::set< AutomCnstr *>         m_EpsDests; 
+    std::set< AutomSlot>         m_EpsDests; 
     std::set< uint32_t>             m_EpsSourceIds;
 
 public:
@@ -116,8 +116,6 @@ struct AutomRepos
 {
     Cv_Repos< AutomState>           m_AutomRepos;
     RExpRepos				        *m_RexpRepos; 
-    AutomSlot                       m_Start;
-    AutomSlot                       m_End;
     std::vector< AutomCnstr *>      m_Cnstrs;
 
     AutomRepos(  RExpRepos *rexpRepos)
@@ -128,9 +126,7 @@ struct AutomRepos
      
 
     ~AutomRepos( void)
-    { 
-        m_End = AutomSlot();
-        m_Start = AutomSlot();
+    {  
     }
 
     AutomSlot   ConstructCnstr( void)
@@ -243,13 +239,15 @@ struct AutomRepos
     }
     void    Process( void)
     {
-        m_Start =  ConstructCnstr();
-        m_Start->m_State->RaiseRef();
-        m_End =  ConstructCnstr();
-        m_End->m_State->RaiseRef();
+        ;
+        ;
+        AutomSlot                       start =  ConstructCnstr();
+        start->m_State->RaiseRef();
+        AutomSlot                       end =  ConstructCnstr();
+        end->m_State->RaiseRef();
         RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
-        docVar( [ this](  auto k) {
-            Proliferate( k, m_Start, m_End);
+        docVar( [ this, start, end](  auto k) {
+            Proliferate( k, start, end);
         }); 
         return;
     }
