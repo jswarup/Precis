@@ -2,7 +2,7 @@
 #pragma once
 
 #include 	"cove/silo/cv_cstr.h"
-#include 	"cove/silo/cv_crate.h" 
+#include 	"cove/silo/cv_craterepos.h" 
 #include 	"cove/silo/cv_dotstream.h" 
 #include    "segue/timbre/sg_chset.h"
 
