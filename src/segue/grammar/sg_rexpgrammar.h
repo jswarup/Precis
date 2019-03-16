@@ -26,7 +26,7 @@ typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>     RExpCrate;
 
 struct RExpRepos : public Cv_CrateRepos< RExpCrate>                                   
 {
-    RExpCrate::Id     m_RootId;
+    RExpRepos::Id     m_RootId;
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -509,9 +509,9 @@ struct RExpAlt  : public Shard< RExpAlt>, public RExpPrimitive
 { 
     struct Whorl
     {  
-        std::vector< RExpCrate::Id>		m_RExps;  
+        std::vector< RExpRepos::Id>		m_RExps;  
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             CV_ERROR_ASSERT( m_RExps.size())
             if ( m_RExps.size() == 1)
@@ -559,9 +559,9 @@ struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
 { 
     struct Whorl
     {  
-        std::vector< RExpCrate::Id>		m_RExps;  
+        std::vector< RExpRepos::Id>		m_RExps;  
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             CV_ERROR_ASSERT( m_RExps.size())
             if ( m_RExps.size() == 1)
@@ -609,7 +609,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     struct Whorl
     { 
         uint32_t                m_ReposSz;
-        RExpCrate::Id           m_Id; 
+        RExpRepos::Id           m_Id; 
         Sg_ChSet                m_ChSet;
  
         Whorl(void)
@@ -629,7 +629,7 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
              m_Repos->Shrivel( m_ReposSz); 
         }
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             if ( m_Id.IsValid()) 
                 return m_Id;
@@ -689,7 +689,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
         uint32_t		        m_Min;
         uint32_t		        m_Max;  
         bool                    m_Stingy;
-        RExpCrate::Id           m_Id; 
+        RExpRepos::Id           m_Id; 
 
         Whorl(void)
             :  m_Min( 1), m_Max( 1), m_Stingy( false) 
@@ -706,7 +706,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             return ( m_Min == 1) && ( m_Max == 1); 
         }
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             if ( IsBasic())
                 return m_Id;
@@ -810,13 +810,13 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	struct Whorl
 	{ 
 		uint64_t					    m_Index;
-		std::vector< RExpCrate::Id>		m_RExps;
+		std::vector< RExpRepos::Id>		m_RExps;
 
 		Whorl( void)
 			: m_Index( 0)
 		{} 
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             auto    synElem = new SeqSynElem();
             synElem->m_SeqList = m_RExps; 
@@ -877,7 +877,7 @@ struct RExpDoc  : public Shard< RExpDoc>
     struct XAct
     {
         RExpRepos       *m_Repos;
-        RExpCrate::Id   m_Id;
+        RExpRepos::Id   m_Id;
 
         XAct( RExpRepos *repos) 
             : m_Repos( repos)
@@ -887,7 +887,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
-        std::vector< RExpCrate::Id>     m_RExps; 
+        std::vector< RExpRepos::Id>     m_RExps; 
         
         bool    PrimeIn( XAct *xact)
         {
@@ -901,7 +901,7 @@ struct RExpDoc  : public Shard< RExpDoc>
             return true;
         }
 
-        RExpCrate::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             auto    synElem = new AltSynElem();
             synElem->m_AltList = m_RExps; 

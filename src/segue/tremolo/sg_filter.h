@@ -19,9 +19,9 @@ typedef Cv_Crate< ChSetFilter, CharFilter, Filter>   FilterCrate;
 
 //_____________________________________________________________________________________________________________________________ 
  
-struct  Filter   : public Cv_CrateEntry 
+struct  Filter  
 { 
-
+    typedef uint8_t     TypeStor;
 public:
     Filter( void) 
     {} 
@@ -40,7 +40,7 @@ struct     CharFilter : public Filter
         : m_Char( 0)
     {}
 
-    std::string		GetName( void) const { return Cv_Aid::ToStr( "Char", GetId()); }
+    std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -53,14 +53,28 @@ struct     ChSetFilter : public Filter
         : m_ChSet()
     {}
 
-    std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet", GetId()); } 
+    std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", m_ChSet.ToString(), "]"); } 
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct FilterRepos : public Cv_CrateRepos< FilterCrate>                                   
-{ 
-    Id  Locate( const Sg_ChSet &chSet);
+struct FilterRepos                                    
+{  
+    struct LessOp
+    {
+        FilterRepos     *m_FiltRepos;
+        
+        LessOp( FilterRepos *filtRepos)
+            : m_FiltRepos( filtRepos)
+        {}
+
+         
+    };
+ 
+    
+    FilterRepos( void) 
+    {}
+ 
 };
 
 };

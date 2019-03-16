@@ -25,9 +25,10 @@ struct     Cv_SynCrate;
 //_____________________________________________________________________________________________________________________________ 
 
 typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynElem, RefSynElem, LexemeSynElem, ErrorSynElem, SynElem>   SynCrate; 
+typedef Cv_CrateRepos< SynCrate>                                                                                                        SynRepos;
 
 //_____________________________________________________________________________________________________________________________ 
-    
+                                                                                                        
 struct  SynElem   : public Cv_CrateEntry 
 {
 	bool	m_LockFlg;
@@ -51,7 +52,7 @@ public:
 
 struct     RefSynElem : public SynElem 
 {
-    SynCrate::Id		m_Elem;
+    SynRepos::Id		m_Elem;
     
 	RefSynElem( void)
 	{}
@@ -73,7 +74,7 @@ struct     RefSynElem : public SynElem
 
 struct     LexemeSynElem : public SynElem 
 {
-    SynCrate::Id		m_Elem;
+    SynRepos::Id		m_Elem;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
 
@@ -127,7 +128,7 @@ struct     ActionSynElem : public RefSynElem
 
 struct     SeqSynElem : public SynElem 
 {
-    std::vector< SynCrate::Id>     m_SeqList; 
+    std::vector< SynRepos::Id>     m_SeqList; 
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq", GetId()); }  
     
@@ -139,7 +140,7 @@ struct     SeqSynElem : public SynElem
         IPtrStor    tailIPtr = m_IPtr;
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
-            SynCrate::Id		regex = m_SeqList[ k];
+            SynRepos::Id		regex = m_SeqList[ k];
             strm << 'R' << tailIPtr << " -> " << 'R' << regex.m_IPtr;
             if ( tailIPtr == m_IPtr)
                 strm << " [ arrowhead=tee color=black] ; \n"; 
@@ -155,7 +156,7 @@ struct     SeqSynElem : public SynElem
 
 struct     AltSynElem : public SynElem 
 {
-    std::vector< SynCrate::Id>     m_AltList; 
+    std::vector< SynRepos::Id>     m_AltList; 
 	 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Alt", GetId()); }  
 
@@ -166,7 +167,7 @@ struct     AltSynElem : public SynElem
 
         for ( uint32_t k = 0; k < m_AltList.size(); ++k)
         {
-            SynCrate::Id		regex = m_AltList[ k];
+            SynRepos::Id		regex = m_AltList[ k];
             strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
         }
         return true;
@@ -178,7 +179,7 @@ struct     AltSynElem : public SynElem
 
 struct     RepeatSynElem : public SynElem 
 {
-    SynCrate::Id	    m_Elem;
+    SynRepos::Id	    m_Elem;
     uint32_t            m_Min;
     uint32_t            m_Max;
 	 

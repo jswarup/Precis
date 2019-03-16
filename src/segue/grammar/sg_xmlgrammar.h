@@ -15,13 +15,14 @@ struct      XDocSynElem;
 struct      XMLSynElem;
 //_____________________________________________________________________________________________________________________________ 
 
-typedef Cv_Crate< XDocSynElem, XMLSynElem,  SynParserCrate>   XmlCrate; 
+typedef Cv_Crate< XDocSynElem, XMLSynElem,  SynParserCrate>     XmlCrate; 
+typedef Cv_CrateRepos< XmlCrate>                                XmlRepos;
 
 //_____________________________________________________________________________________________________________________________
 
 struct      XMLSynElem : public SynElem 
 { 
-    XmlCrate::Id		m_Item;
+    XmlRepos::Id		m_Item;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "XMLElem", GetId()); } 
 
@@ -38,7 +39,7 @@ struct      XMLSynElem : public SynElem
 
 struct      XDocSynElem : public SynElem 
 { 
-    XmlCrate::Id		m_Item;
+    XmlRepos::Id		m_Item;
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "XDocElem", GetId()); } 
 
@@ -163,7 +164,7 @@ template < typename Cnstr>
 	{  
 		auto		    elem = new XMLSynElem();  
 		elem->m_LockFlg = 0;
-        XmlCrate::Id	crateId = cnstr->Store( elem);
+        XmlRepos::Id	crateId = cnstr->Store( elem);
 		auto		node = Elem();
 		elem->m_Item = cnstr->FetchElemId( &node);
 		return crateId;

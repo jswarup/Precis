@@ -63,9 +63,8 @@ template < typename Crate>
 struct	Cv_Var 
 {
 	typedef typename Crate::TypeStor	TypeStor;
-    typedef typename Crate::IndexStor	IndexStor;
-	typedef typename Crate::Entry		Entry; 
-    typedef typename Crate::Id		    Id; 
+    typedef typename Crate::Entry		Entry; 
+    typedef typename Entry::IndexStor	IndexStor; 
 
 	Entry			    *m_Entry;
 	TypeStor			m_Type; 
@@ -87,11 +86,9 @@ template < typename Element>
         : m_Entry( elm), m_Type( Crate::TypeOf<Element>())
     {} 
   
-    TypeStor        GetType( void) const { return m_Type; }
-    IndexStor       GetId( void) const { return m_Entry->GetId(); }
+    TypeStor        GetType( void) const { return m_Type; } 
 	Entry			*GetEntry( void) const { return m_Entry; } 
     
-    Id              CrateId( void) const { return Id( m_Entry->GetId(), m_Type); }
 
     auto            operator->( void) { return m_Entry; }
 
@@ -143,8 +140,6 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef typename CrateBase::Entry   Entry; 
 	typedef  Cv_Var< Crate>		        Var; 
 	typedef typename Entry::TypeStor    TypeStor; 
-    typedef typename Entry::IndexStor   IndexStor;
-    typedef typename CrateBase::Id      Id;
     
     
     enum {
@@ -207,19 +202,7 @@ struct Cv_CrateT
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
 	typedef  Cv_Var< Crate>			        Var; 
-    struct Id : public Cv_CrateId 
-    {
-        typedef Cv_CrateT< T,void>      Crate;
-        Id( void) {}
-
-        Id( const Cv_CrateId &id) 
-            :  Cv_CrateId( id) 
-        {}
-
-        Id( IndexStor id, TypeStor type) 
-            :  Cv_CrateId( id, type) 
-        {} 
-    };
+    
 
 
 template < typename X = void>    
@@ -264,7 +247,18 @@ struct   Cv_Crate< T> : Cv_CrateT< T>
 class  Cv_CrateEntry : public Cv_CrateId
 {
 public:   
+    struct Id : public Cv_CrateId 
+    { 
+        Id( void) {}
 
+        Id( const Cv_CrateId &id) 
+            :  Cv_CrateId( id) 
+        {}
+
+        Id( IndexStor id, TypeStor type) 
+            :  Cv_CrateId( id, type) 
+        {} 
+    };
 public:
 	Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
 		:  Cv_CrateId( id, 0)
@@ -290,7 +284,8 @@ public:
 	typedef typename Entry::TypeStor		TypeStor; 
 	typedef typename Entry::IndexStor		IndexStor;
 	typedef typename Crate::Var				Var; 
-	typedef typename Crate::Id				Id; 
+    typedef typename Entry::Id		        Id;
+    
 
 protected:
 	std::vector< Entry *>					m_Elems;
@@ -377,10 +372,10 @@ template < typename Lambda, typename... Args>
 template < typename CrateT>
 struct   Cv_CrateConstructor 
 {  
-	typedef CrateT 						Crate; 	
-	typedef typename Crate::Entry		Entry; 
-	typedef typename Crate::Var			Var; 
-    typedef typename Crate::Id			Id; 
+	typedef CrateT 						                Crate; 	
+	typedef typename Crate::Entry		                Entry; 
+	typedef typename Crate::Var			                Var; 
+    typedef typename Cv_CrateRepos< Crate>::Id			Id; 
 
 	Cv_CrateRepos< Crate>				*m_Crate;
 	std::map< void *, Id>		m_CnstrMap;
