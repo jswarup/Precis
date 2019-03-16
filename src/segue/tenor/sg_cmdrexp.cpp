@@ -96,13 +96,13 @@ int     Sg_RExpCmdProcessor::Test(void)
 	bool	                res = Cv_Aid::ReadVec( &memVector, "ip.rules"); 
 	Parser< StrInStream>	parser( &memVector);  
     parser.SetLogStream( &std::cout);
-    RExpRepos				rexpCrate;
+    RExpRepos				rexpRepos;
     RExpDoc					rexpDoc; 
-    RExpDoc::XAct           xact( &rexpCrate);
+    RExpDoc::XAct           xact( &rexpRepos);
     parser.SetLogStream( &std::cout);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
-    AutomReposCnstr         automRepos(  &rexpCrate);
+    AutomReposCnstr         automRepos(  &rexpRepos);
     automRepos.Process();  
     automRepos.WriteDot( "a.dot");
      

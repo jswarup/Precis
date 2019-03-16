@@ -1,12 +1,11 @@
 //  sg_automstate.h ___________________________________________________________________________________________________________________
 #pragma once
 
-#include    "cove/barn/cv_cexpr.h"
-#include 	"cove/barn/cv_aid.h"
-#include 	"cove/barn/cv_ptrslot.h"
-#include    "segue/timbre/sg_chset.h"
+#include 	"cove/barn/cv_ptrslot.h" 
+#include    "segue/tremolo/sg_filter.h"
 #include 	"cove/silo/cv_repos.h"
 #include 	"cove/silo/cv_dotstream.h"
+#include    "segue/timbre/sg_distrib.h"
 
 //_____________________________________________________________________________________________________________________________  
 
@@ -15,7 +14,7 @@ namespace Sg_RExp
 //_____________________________________________________________________________________________________________________________ 
 
 struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
-{     
+{      
     std::vector< Sg_ChSet>          m_ChSets;
     std::vector< AutomState *>      m_Dests;
 
@@ -46,6 +45,8 @@ struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
 
 struct  AutomRepos  : public Cv_Repos< AutomState>
 {
+    FilterRepos     m_FilterRepos;
+
     bool        WriteDot( Cv_DotStream &strm)  
     {
         for ( uint32_t i = 1; i < Size(); ++i)

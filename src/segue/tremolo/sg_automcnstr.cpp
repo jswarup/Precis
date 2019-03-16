@@ -16,6 +16,14 @@ AutomCnstr::~AutomCnstr( void)
         m_Repos->m_AutomRepos.Destroy( m_State->GetId());
 }
 
+//_____________________________________________________________________________________________________________________________  
+
+void    AutomCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
+{
+    m_Repos->m_AutomRepos.m_FilterRepos.Locate( chSet);
+    m_State->AddEdge( chSet, dest->m_State);
+}
+
 //_____________________________________________________________________________________________________________________________   
 
 void    AutomCnstr::FinalizeEpsLinks( void)

@@ -35,10 +35,7 @@ public:
     
     const char		*GetName( void) const { return "Spur"; }
 
-    void            AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
-    {
-        m_State->AddEdge( chSet, dest->m_State);
-    }
+    void            AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest);
 
     void            AddEpsDest( const AutomSlot &s) 
     { 

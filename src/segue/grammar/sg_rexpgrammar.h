@@ -5,6 +5,7 @@
 #include    "segue/timbre/sg_timbreparser.h"
 #include 	"segue/grammar/sg_xmlshard.h" 
 #include 	"segue/timbre/sg_parsenumerics.h" 
+#include    "segue/tremolo/sg_filter.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -222,7 +223,6 @@ template < typename Forge>
         return;
     } 
 }; 
-
 
 //_____________________________________________________________________________________________________________________________
 
@@ -528,7 +528,6 @@ struct RExpAlt  : public Shard< RExpAlt>, public RExpPrimitive
             forge->Pred< RExpSeq>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos)); 
             return true;  }; } 
       
-
     auto        AltCharListener(void) const {
         return [this]( auto forge) {                      // build seq
             auto    docWhorl = forge->Bottom< RExpDoc>(); 
@@ -545,6 +544,7 @@ template < typename Forge>
             return false; 
         return true;
     }
+
     void    Dump( std::ostream &ostr) const
     {
         ostr << "Alt";
@@ -577,7 +577,6 @@ struct RExpSeq : public Shard< RExpSeq>, public RExpPrimitive
             auto    docWhorl = forge->Bottom< RExpDoc>();
             forge->Pred< RExpSeq>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos)); 
             return true;  }; } 
-
 
     auto	Seq( void) const {
         RExpAlt  alt;
