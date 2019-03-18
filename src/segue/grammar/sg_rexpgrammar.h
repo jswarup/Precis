@@ -734,7 +734,8 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
 
     auto		CommaListener(void) const {
         return [](auto forge) {
-            Whorl       *whorl = forge->Pred< RExpQuanta>();   
+            Whorl       *whorl = forge->Pred< RExpQuanta>(); 
+            whorl->m_Max = 0;    
             return true;  }; }
  
 
@@ -780,7 +781,7 @@ struct RExpQuanta : public Shard< RExpQuanta>, public RExpPrimitive
             return true;  }; } 
 
     auto        Spiner( void) const {
-        return ( Char('{')[ SpinerResetListener()] >> ( !m_SpinMin[ MinSpinListener()] >> !(Char(',') >> !(m_SpinMax[ MaxSpinListener()])))  >> Char('}')) |
+        return ( Char('{')[ SpinerResetListener()] >> ( !m_SpinMin[ MinSpinListener()] >> !(Char(',')[ CommaListener()] >> !(m_SpinMax[ MaxSpinListener()])))  >> Char('}')) |
                  Char('?')[ QuestionListener()] | Char('*')[ StarListener()] | Char('+')[ PlusListener()]; }
 
     auto		Quanta( void) const { 
@@ -818,9 +819,12 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
         RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
+            auto    actElem = new ActionSynElem();
             auto    synElem = new SeqSynElem();
             synElem->m_SeqList = m_RExps; 
-            return repos->Store( synElem);  
+            actElem->m_Elem = repos->Store( synElem);  
+            actElem->m_Token = m_Index;
+            return  repos->Store( actElem); 
         }
 	};
  

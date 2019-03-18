@@ -35,8 +35,13 @@ void    AutomCnstr::FinalizeEpsLinks( void)
         AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
 
         // export all this state transistions to the eps-source  
-        for ( uint32_t i = 0; srcState && ( i < m_State->m_Dests.size()); ++i)  
-            srcState->AddEdge( m_State->m_ChSets[ i], m_State->m_Dests[ i]);  
+        if ( srcState)
+        {
+            if ( m_State->m_Action)
+                srcState->m_Action = new Action( *m_State->m_Action);  
+            for ( uint32_t i = 0; i < m_State->m_Dests.size(); ++i) 
+                srcState->AddEdge( m_State->m_ChSets[ i], m_State->m_Dests[ i]);  
+        }
 
         // export all this state eps-transistions to the eps-source  
         for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)

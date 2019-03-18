@@ -55,7 +55,11 @@ public:
 		*m_OStrm <<  x;  
 		return SELF;
 	}
-
+    Cv_DotStream   &operator<<( const uint64_t &x)
+    {
+        *m_OStrm <<  x;  
+        return SELF;
+    }
     void    HtmlDump( const std::string &y)
     {
         for ( uint32_t ci = 0; ci < y.length(); ++ci)

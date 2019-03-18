@@ -11,12 +11,26 @@
 
 namespace Sg_RExp
 {
+struct  Action
+{
+    uint64_t        m_Value;
+    
+    Action( uint64_t value)
+        : m_Value( value)
+    {}
+};
+
 //_____________________________________________________________________________________________________________________________ 
 
 struct  AutomElem   : public Cv_ReposEntry, public Cv_Shared
 {      
-    std::vector< Sg_ChSet>          m_ChSets;
+    Action                          *m_Action;
+    std::vector< Sg_ChSet>         m_ChSets;
     std::vector< AutomElem *>      m_Dests;
+
+    AutomElem( void)
+        : m_Action( NULL)
+    {}
 
     void        AddEdge( const Sg_ChSet &chSet, AutomElem *dest) 
     {
@@ -25,20 +39,7 @@ struct  AutomElem   : public Cv_ReposEntry, public Cv_Shared
         dest->RaiseRef();
     } 
 
-    bool        WriteDot( Cv_DotStream &strm)  
-    {
-        strm << 'R' << GetId() << " [ shape=ellipse color=cyan label= <<FONT> N" << GetId() << "<BR />" ; 
-        strm << RefCount() << " </FONT>>];\n "; 
-
-        for ( uint32_t k = 0; k < m_Dests.size(); ++k)
-        {
-            AutomElem      *regex = m_Dests[ k];
-            strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
-            strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
-            strm << "</FONT>>] ; \n" ;  
-        }
-        return true;
-    }
+    bool        WriteDot( Cv_DotStream &strm);
 };
 
 //_____________________________________________________________________________________________________________________________ 

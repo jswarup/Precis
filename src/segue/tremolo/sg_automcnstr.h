@@ -86,6 +86,17 @@ struct AutomReposCnstr
     {
         return;   
     }
+    
+    void    Proliferate( ActionSynElem *elm, const AutomSlot &start, const AutomSlot &end)
+    {
+        RExpCrate::Var      elemVar = m_RexpRepos->ToVar( elm->m_Elem); 
+
+        elemVar( [ this, &start, &end](  auto k) {
+                Proliferate( k, start, end);
+            });
+        end->m_State->m_Action = new Action( elm->m_Token);
+        return;   
+    }
 
     void    Proliferate( CSetSynElem *csetElm, const AutomSlot &start, const AutomSlot &end)
     {

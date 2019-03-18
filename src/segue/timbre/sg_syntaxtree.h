@@ -108,14 +108,20 @@ struct     ErrorSynElem : public SynElem
 };
 //_____________________________________________________________________________________________________________________________ 
 
-struct     ActionSynElem : public RefSynElem 
+struct     ActionSynElem : public SynElem 
 { 
+    SynRepos::Id    m_Elem;
+    uint64_t        m_Token;
+
+    ActionSynElem( void)
+        : m_Token( 0)
+    {}
 
 	std::string		GetName( void) const { return Cv_Aid::ToStr( "Act", GetId()); } 
 
     bool    WriteDot( Cv_DotStream &strm)   
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << m_IPtr << " [ shape=box  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
         strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
