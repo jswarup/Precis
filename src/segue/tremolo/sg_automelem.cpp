@@ -1,7 +1,7 @@
-// sg_automstate.cpp ___________________________________________________________________________________________________________________
+// sg_automelem.cpp ___________________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_automstate.h"
+#include    "segue/tremolo/sg_automelem.h"
 
 using namespace Sg_RExp;
 

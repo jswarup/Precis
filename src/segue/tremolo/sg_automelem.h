@@ -1,4 +1,4 @@
-//  sg_automstate.h ___________________________________________________________________________________________________________________
+//  sg_automelem.h ___________________________________________________________________________________________________________________
 #pragma once
 
 #include 	"cove/barn/cv_ptrslot.h" 
@@ -13,12 +13,12 @@ namespace Sg_RExp
 {
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
+struct  AutomElem   : public Cv_ReposEntry, public Cv_Shared
 {      
     std::vector< Sg_ChSet>          m_ChSets;
-    std::vector< AutomState *>      m_Dests;
+    std::vector< AutomElem *>      m_Dests;
 
-    void        AddEdge( const Sg_ChSet &chSet, AutomState *dest) 
+    void        AddEdge( const Sg_ChSet &chSet, AutomElem *dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
@@ -32,7 +32,7 @@ struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
 
         for ( uint32_t k = 0; k < m_Dests.size(); ++k)
         {
-            AutomState      *regex = m_Dests[ k];
+            AutomElem      *regex = m_Dests[ k];
             strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
             strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
             strm << "</FONT>>] ; \n" ;  
@@ -43,7 +43,7 @@ struct  AutomState   : public Cv_ReposEntry, public Cv_Shared
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomRepos  : public Cv_Repos< AutomState>
+struct  AutomRepos  : public Cv_Repos< AutomElem>
 {
     FilterRepos     m_FilterRepos;
 
@@ -51,7 +51,7 @@ struct  AutomRepos  : public Cv_Repos< AutomState>
     {
         for ( uint32_t i = 1; i < Size(); ++i)
         {
-            AutomState  *si = At( i);
+            AutomElem  *si = At( i);
             if (si)
                 si->WriteDot( strm); 
         }

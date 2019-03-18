@@ -2,7 +2,7 @@
 #pragma once
 
 
-#include    "segue/tremolo/sg_automstate.h"
+#include    "segue/tremolo/sg_automelem.h"
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 
@@ -22,7 +22,7 @@ typedef Cv_Slot< AutomCnstr>    AutomSlot;
 struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
     AutomReposCnstr                 *m_Repos;
-    AutomState                      *m_State;
+    AutomElem                      *m_State;
     std::set< AutomCnstr *>         m_EpsDests; 
     std::set< uint32_t>             m_EpsSourceIds;
 
@@ -77,7 +77,7 @@ struct AutomReposCnstr
     {
         AutomSlot   x = new AutomCnstr( this);  
         x->SetId( m_AutomRepos.Size()); 
-        x->m_State = m_AutomRepos.Construct< AutomState>();  
+        x->m_State = m_AutomRepos.Construct< AutomElem>();  
         m_Cnstrs.push_back( x);
         return x;
     }

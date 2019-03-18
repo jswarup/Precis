@@ -91,7 +91,7 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/segue/timbre/sg_chset.cpp
     ${SOURCE_PATH}/segue/timbre/sg_distrib.cpp
 	${SOURCE_PATH}/segue/tremolo/sg_filter.cpp
-	${SOURCE_PATH}/segue/tremolo/sg_automstate.cpp
+	${SOURCE_PATH}/segue/tremolo/sg_automelem.cpp
 	${SOURCE_PATH}/segue/tremolo/sg_automcnstr.cpp
     ${SOURCE_PATH}/trellis/tenor/tr_cmdtrellis.cpp
     ${SOURCE_PATH}/trellis/tenor/tr_include.cpp

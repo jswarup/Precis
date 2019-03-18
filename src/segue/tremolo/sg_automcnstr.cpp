@@ -31,7 +31,7 @@ void    AutomCnstr::FinalizeEpsLinks( void)
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
     {
   
-        AutomState      *srcState = m_Repos->m_AutomRepos.At( *sIt);
+        AutomElem      *srcState = m_Repos->m_AutomRepos.At( *sIt);
         AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
 
         // export all this state transistions to the eps-source  
