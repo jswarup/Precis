@@ -87,6 +87,19 @@ public:
     bool            IsEqual( const Sg_ChSet &cs) const  {  return ( m_ChSet[ 0] == cs.m_ChSet[ 0]) && ( m_ChSet[ 1] == cs.m_ChSet[ 1]) && 
                                                                     ( m_ChSet[ 2] == cs.m_ChSet[ 2])  && ( m_ChSet[ 3] == cs.m_ChSet[ 3]) ; }
 
+    bool            IsLess( const Sg_ChSet &cs) const 
+    {
+        if  ( m_ChSet[ 0] != cs.m_ChSet[ 0])
+            return m_ChSet[ 0] < cs.m_ChSet[ 0];
+        if  ( m_ChSet[ 1] != cs.m_ChSet[ 1])
+            return m_ChSet[ 1] < cs.m_ChSet[ 1];
+        if  ( m_ChSet[ 2] != cs.m_ChSet[ 2])
+            return m_ChSet[ 2] < cs.m_ChSet[ 2];
+        if  ( m_ChSet[ 3] != cs.m_ChSet[ 3])
+            return m_ChSet[ 3] < cs.m_ChSet[ 3];
+        return false;
+    }
+
     void            SetByteRange( uint32_t start, uint32_t stop, bool value); // Start and Stop are inclusive
 
     int             ListChars( int *list) const;

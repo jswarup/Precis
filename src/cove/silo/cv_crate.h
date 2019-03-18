@@ -42,7 +42,7 @@ template < typename Element>
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( Lambda &lambda,  Args&... args)     {
+	auto    operator()( Lambda &lambda,  Args&&... args)     {
 		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
@@ -140,14 +140,13 @@ template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>
 
 template<typename T, typename=void>
 struct Cv_CrateT
-{ 
-
+{  
     enum {
         Sz = 1,
     }; 
 
 	typedef Cv_CrateT< T,void>			    Crate;
-    typedef  T								Entry;
+    typedef T								Entry;
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor; 
 	typedef  Cv_Var< Crate>			        Var; 
@@ -190,5 +189,5 @@ template < typename T >
 struct   Cv_Crate< T> : Cv_CrateT< T>
 { 
 }; 
- 
+
 //_____________________________________________________________________________________________________________________________
