@@ -31,6 +31,12 @@ struct  AutomElem   : public Cv_ReposEntry, public Cv_Shared
     AutomElem( void)
         : m_Action( NULL)
     {}
+    
+    ~AutomElem( void)
+    {
+        if ( m_Action)
+            delete m_Action;
+    }
 
     void        AddEdge( const Sg_ChSet &chSet, AutomElem *dest) 
     {

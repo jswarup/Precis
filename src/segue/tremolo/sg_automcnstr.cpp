@@ -76,12 +76,11 @@ void    AutomReposCnstr::Process( void)
 { 
     AutomSlot                       start =  ConstructCnstr();
     start->m_State->RaiseRef();
-    AutomSlot                       end =  ConstructCnstr();
-    end->m_State->RaiseRef();
+    AutomSlot                       end =  ConstructCnstr(); 
     RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
     docVar( [ this, start, end](  auto k) {
         Proliferate( k, start, end);
-        }); 
+    }); 
     return;
 }
 
