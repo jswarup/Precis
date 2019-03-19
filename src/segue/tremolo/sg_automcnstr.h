@@ -63,7 +63,7 @@ public:
  
 struct AutomReposCnstr 
 {
-    AutomRepos                      m_AutomRepos;
+    FsaRepos                        m_AutomRepos;
     RExpRepos				        *m_RexpRepos; 
     std::vector< AutomCnstr *>      m_Cnstrs;
 
