@@ -20,4 +20,54 @@ bool        FsaRepos::WriteDot( Cv_DotStream &strm)
 }
 
 //_____________________________________________________________________________________________________________________________
+
+std::vector< Sg_ChSet>    FsaSupState::RefineCharDistrib(  void)
+{ 
+    std::pair< Fs_CharDistrib, int32_t>     validPrtn;
+
+    validPrtn.first.MakeUniversal();
+
+    Fs_CharDistrib::CCLIdImpressor      prtnIntersector(  &validPrtn.first);
+ 
+    for ( uint32_t i = 0; i < m_SubStates.size(); ++i) 
+    {
+/*
+        m_SubStates[ i].
+        const std::vector< Fs_TransEdge>    &outEdges = ListOutEdges( );
+
+        for ( uint32_t j = 0; j < outEdges.size(); ++j)
+        {
+            const Fs_TransEdge      &trans = outEdges[ j];
+            const Fs_CCL            &ccl = trans.Sifter().CCL();
+            aggregator->HfaDfaRepos()->AddCoverCCL( ccl);
+            if ( !ccl.IsValid())
+            {
+                Fs_CCL      eaCCL = trans.Sifter().Clues()->EndAnchorsEAACCL( aggregator->CfgParams()->CCLFlavor());
+                if ( eaCCL.IsValid())
+                    prtnIntersector->Process( eaCCL, AX_UINT32_MAX);
+            }
+            else 
+                prtnIntersector->Process( ccl, supIdFlg ? AX_UINT32_MAX  : trans.Sifter().Clues()->GetId());
+        }
+         
+        m_SubStates.IntersectOutEdges( &prtnIntersector); 
+ 
+*/  
+    }
+    Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
+     
+    prtnIntersector.Over();
+
+/*
+    validPrtn.second = validCCL.Negate().GetChar( 0);
+    AX_TRACE(( "Domain[ %s] Fail[ 0x%x]",  validPrtn.first.ToString().c_str(), validPrtn.second))
+    */
+        std::vector< Sg_ChSet>    domain = validPrtn.first.Domain();
+        /*
+    if ( validPrtn.second != -1)
+        domain.erase( domain.begin() +validPrtn.first.Image( validPrtn.second));
+*/
+    return domain;
+}
+//_____________________________________________________________________________________________________________________________
  
