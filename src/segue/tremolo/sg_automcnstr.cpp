@@ -31,8 +31,7 @@ void    AutomCnstr::FinalizeEpsLinks( void)
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
     {
   
-        AutomElem      *srcState = m_Repos->m_AutomRepos.At( *sIt);
-        AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
+        AutomElem       *srcState = static_cast< AutomElem *>( m_Repos->m_AutomRepos.Get( *sIt).GetEntry()) ;
 
         // export all this state transistions to the eps-source  
         if ( srcState)
@@ -43,6 +42,7 @@ void    AutomCnstr::FinalizeEpsLinks( void)
                 srcState->AddEdge( m_State->m_ChSets[ i], m_State->m_Dests[ i]);  
         }
 
+        AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
         // export all this state eps-transistions to the eps-source  
         for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
         {

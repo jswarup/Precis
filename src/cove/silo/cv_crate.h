@@ -3,9 +3,7 @@
  
 #include    "cove/silo/cv_repos.h"
 #include    "cove/barn/cv_cexpr.h"
-#include    "cove/silo/cv_dotstream.h"
-  
- 
+#include    "cove/silo/cv_dotstream.h" 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -38,7 +36,7 @@ template < typename Element>
     TypeStor        GetType( void) const { return m_Type; } 
 	Entry			*GetEntry( void) const { return m_Entry; } 
     
-
+    operator        bool( void) const { return !!m_Entry; }
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
