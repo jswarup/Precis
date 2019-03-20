@@ -29,9 +29,11 @@ std::vector< Sg_ChSet>    FsaSupState::RefineCharDistrib(  void)
 
     Fs_CharDistrib::CCLIdImpressor      prtnIntersector(  &validPrtn.first);
  
-    for ( uint32_t i = 0; i < m_SubStates.size(); ++i) 
+    Cv_CArr< FsaVar>                    subStates = SubStates();
+    for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
-/*
+        FsaVar      state = subStates[ i];
+/*  
         m_SubStates[ i].
         const std::vector< Fs_TransEdge>    &outEdges = ListOutEdges( );
 

@@ -87,13 +87,14 @@ public:
         : m_CStr( ptr), m_Len( uint32_t( end -ptr))
     {}
 
-    X                       *Ptr( void) const { return m_CStr; }
-    uint32_t                Size( void) const { return m_Len; }
+    X           *Ptr( void) const { return m_CStr; }
+    uint32_t    Size( void) const { return m_Len; }
 
-    X                       *Begin( void) const { return m_CStr; }
-    X                       *End( void) const { return m_CStr +m_Len; }
+    X           *Begin( void) const { return m_CStr; }
+    X           *End( void) const { return m_CStr +m_Len; }
 
-    const char              &operator[]( uint32_t i) const { return m_CStr[ i]; } 
+    const X     &operator[]( uint32_t i) const { return m_CStr[ i]; } 
+    X           &operator[]( uint32_t i) { return m_CStr[ i]; } 
 
     Cv_CArr     &Advance( uint32_t k)
     {

@@ -20,9 +20,10 @@ bool  AutomElem::WriteDot( Cv_DotStream &strm)
         strm << 'T' << m_Action->m_Value;
     strm << " </FONT>>];\n "; 
 
-    for ( uint32_t k = 0; k < m_Dests.size(); ++k)
+    Cv_CArr< FsaVar>    dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        AutomElem      *regex = m_Dests[ k];
+        AutomElem      *regex = ( AutomElem *) dests[ k];
         strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
         strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
         strm << "</FONT>>] ; \n" ;  
