@@ -2,7 +2,6 @@
 
 #include    "segue/tenor/sg_include.h"
 #include    "segue/tremolo/sg_fsastate.h" 
-#include    "segue/timbre/sg_distrib.h" 
 
 using namespace Sg_RExp;
 
@@ -48,56 +47,73 @@ bool  FsaElem::WriteDot( Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
-std::vector< Sg_ChSet>    FsaSupState::RefineCharDistrib(  void)
+Sg_CharDistrib  FsaSupState::RefineCharDistrib(  void)
 { 
-    std::pair< Fs_CharDistrib, int32_t>     validPrtn;
+    Sg_CharDistrib      distrib;
 
-    validPrtn.first.MakeUniversal();
+    distrib.MakeUniversal();
 
-    Fs_CharDistrib::CCLIdImpressor      prtnIntersector(  &validPrtn.first);
+    Sg_CharDistrib::CCLIdImpressor      prtnIntersector(  &distrib);
  
     Cv_CArr< FsaVar>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaClip             state = subStates[ i];
         Cv_CArr< FiltVar>   filters = state.Filters();
-/*
-        m_SubStates[ i].
-        const std::vector< Fs_TransEdge>    &outEdges = ListOutEdges( );
-
-        for ( uint32_t j = 0; j < outEdges.size(); ++j)
+        for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
-            const Fs_TransEdge      &trans = outEdges[ j];
-            const Fs_CCL            &ccl = trans.Sifter().CCL();
-            aggregator->HfaDfaRepos()->AddCoverCCL( ccl);
-            if ( !ccl.IsValid())
-            {
-                Fs_CCL      eaCCL = trans.Sifter().Clues()->EndAnchorsEAACCL( aggregator->CfgParams()->CCLFlavor());
-                if ( eaCCL.IsValid())
-                    prtnIntersector->Process( eaCCL, AX_UINT32_MAX);
-            }
-            else 
-                prtnIntersector->Process( ccl, supIdFlg ? AX_UINT32_MAX  : trans.Sifter().Clues()->GetId());
+            ChSetFilter *chSet = filters[ i];
+            prtnIntersector.Process( *chSet, CV_UINT32_MAX);
         }
          
-        m_SubStates.IntersectOutEdges( &prtnIntersector); 
- 
-*/  
     }
     Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
      
     prtnIntersector.Over();
-
-/*
-    validPrtn.second = validCCL.Negate().GetChar( 0);
-    AX_TRACE(( "Domain[ %s] Fail[ 0x%x]",  validPrtn.first.ToString().c_str(), validPrtn.second))
-    */
-        std::vector< Sg_ChSet>    domain = validPrtn.first.Domain();
-        /*
-    if ( validPrtn.second != -1)
-        domain.erase( domain.begin() +validPrtn.first.Image( validPrtn.second));
-*/
-    return domain;
+ 
+    return distrib;
 }
+
+//_____________________________________________________________________________________________________________________________
+
+void    FsaSupState::DoConstructTransisition( void)
+{
+    Sg_CharDistrib          distrib = RefineCharDistrib();
+    std::vector< Sg_ChSet>  domain = distrib.Domain();
+    
+    uint32_t                sz = domain.size();
+    for ( uint32_t i = 0; i < sz; ++i)
+    {
+        FsaSupState     *supState = new FsaSupState();
+    }
+/*
+    if ( m_Tokens && !m_Tokens->HasTokens())
+    {
+        delete m_Tokens;
+        m_Tokens = NULL;
+    }
+
+    if ( m_Tokens)
+    { 
+        // mark all the shorter match tokens as greedy, as longer match exist
+        if ( domain.size() && m_Tokens->GreedyTokens().size())
+            m_Tokens->SetGreedyTokenAsShort();
+        m_Tokens->SetDepthInfo( Depth());
+        if ( IsLoopUp())
+            m_Tokens->SetDepthInfo( AX_UINT32_MAX);
+        m_Tokens->DoAttach( aggregator, dfaState);
+    }
+    // ignore the transitions out of this state for swarm && matchall && sc-changes
+    if ( !aggregator->CfgParams()->TestTarget( Fs_EngineProp::Txxxx) || !m_Tokens || m_Tokens->GreedyTokens().size() || !m_Tokens->CanChangeSc() )
+        DoConstructTransisition( aggregator, dfaState, domain);
+
+    dfaState->SetSaveTH( IsSaveTH());
+    if ( aggregator->CfgParams()->TestTarget( Fs_EngineProp::Txxxx) && !aggregator->Context()->ScanFlavor().IsMatchAll())
+        dfaState->SetStall( true);
+    m_Tokens = NULL;
+*/
+    return;
+}
+
 //_____________________________________________________________________________________________________________________________
  

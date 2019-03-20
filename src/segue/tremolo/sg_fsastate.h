@@ -5,6 +5,7 @@
 #include 	"cove/barn/cv_ptrslot.h" 
 #include    "segue/tremolo/sg_filter.h"
 #include    "cove/silo/cv_craterepos.h"
+#include    "segue/timbre/sg_distrib.h"  
 
 //_____________________________________________________________________________________________________________________________  
 
@@ -48,12 +49,12 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
 struct FsaSupState  : public FsaState
 { 
-    std::vector< FsaVar>     m_SubStates;
-
-
-    Cv_CArr< FsaVar>            SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaVar>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaVar>(); } 
+    std::vector< FsaVar>     m_SubStates; 
     
-    std::vector< Sg_ChSet>      RefineCharDistrib(  void);
+    Cv_CArr< FsaVar>        SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaVar>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaVar>(); } 
+    
+    Sg_CharDistrib          RefineCharDistrib(  void);
+    void                    DoConstructTransisition( void);
 }; 
 
 //_____________________________________________________________________________________________________________________________ 

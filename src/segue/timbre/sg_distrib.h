@@ -5,14 +5,14 @@
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Fs_BaseDistrib;
+class Sg_BaseDistrib;
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Fs_Distrib
+class Sg_Distrib
 {
 public:
-    virtual ~Fs_Distrib( void);
+    virtual ~Sg_Distrib( void);
 
     virtual uint16_t                Image( uint16_t t) const = 0;
     virtual uint32_t                SzImage( void) const = 0;
@@ -24,14 +24,14 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Fs_CharDistrib : public Fs_Distrib
+class Sg_CharDistrib : public Sg_Distrib
 {
 protected:
     uint16_t        m_SzEqClass;
     uint16_t        m_EqClassIds[ Sg_ChSet::SzChBits];        // list the equivalence class the entry belongs : [0, m_SzEqClass)
     
 public:
-    Fs_CharDistrib( void);
+    Sg_CharDistrib( void);
     
     
     uint16_t        Image( uint16_t t) const {  return m_EqClassIds[ t]; }
@@ -43,7 +43,7 @@ public:
     bool            IsRep( uint32_t k) const;
     
     
-    int32_t         Compare( const Fs_CharDistrib &cd) const; 
+    int32_t         Compare( const Sg_CharDistrib &cd) const; 
 
     void            MergeClass( uint16_t eq1, uint16_t eq2);
 
@@ -68,14 +68,14 @@ public:
 
     // Intersects a new Sg_ChSet with all subsets in a partition, making it finer.
     // Returns true if anything changed (equivalent to partitionCutByCCL return value).
-    Fs_CharDistrib  Impression( const Fs_CharDistrib &q) const;
-    void            ImpressWith( const Fs_CharDistrib &q);
+    Sg_CharDistrib  Impression( const Sg_CharDistrib &q) const;
+    void            ImpressWith( const Sg_CharDistrib &q);
 
     // Returns true if every subset in the first partition is contained in some subset in the second
     // (including when the partitions are equal).  If not finer, a sample character C will be
     // placed at sampleChar (if not NULL), such that the p subset containing C is not contained
     // in any subset of q.
-    bool            TestFiner( const Fs_CharDistrib &q, int *sampleChar) const;
+    bool            TestFiner( const Sg_CharDistrib &q, int *sampleChar) const;
    
     std::vector< Sg_ChSet>    Domain( void) const;
 
@@ -94,7 +94,7 @@ template < uint32_t N>          //  N < 7
         {}
 
 template < uint32_t N> 
-        void            ImpressWith( Fs_CharDistrib *distrib)
+        void            ImpressWith( Sg_CharDistrib *distrib)
         {
             uint16_t    grMap[ Sg_ChSet::SzChBits << N];                   // keep a map if the group has been encountered.
             memset( grMap, -1, sizeof( grMap));
@@ -120,13 +120,13 @@ template < uint32_t N>
     class CCLImpressor 
     {
     protected:
-        Fs_CharDistrib          *m_Distrib;
+        Sg_CharDistrib          *m_Distrib;
         Sg_ChSet                  m_CCLs[ 7];
         uint32_t                m_Ind;
         Sg_ChSet                  m_ValidCCL; 
 
     public:
-        CCLImpressor( Fs_CharDistrib *distrib);
+        CCLImpressor( Sg_CharDistrib *distrib);
 
         const Sg_ChSet    &ValidCCL( void) const { return m_ValidCCL; }
     
@@ -146,7 +146,7 @@ template < uint32_t N>
         std::set< uint32_t>         m_Processed;
 
     public:
-        CCLIdImpressor( Fs_CharDistrib *distrib)
+        CCLIdImpressor( Sg_CharDistrib *distrib)
             : CCLImpressor( distrib)
         {}
 
@@ -155,21 +155,21 @@ template < uint32_t N>
 };
 
 template < uint32_t N>          //  N < 7
-inline uint16_t        Fs_CharDistrib::CCLImpressCntl::EqClassCode( uint32_t k) const { return ( uint16_t( m_CCLs->Get( k)) << ( N -1)) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
+inline uint16_t        Sg_CharDistrib::CCLImpressCntl::EqClassCode( uint32_t k) const { return ( uint16_t( m_CCLs->Get( k)) << ( N -1)) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
 
 template <>          
-inline uint16_t        Fs_CharDistrib::CCLImpressCntl::EqClassCode< 1>( uint32_t k) const { return uint16_t( m_CCLs->Get( k));  }
+inline uint16_t        Sg_CharDistrib::CCLImpressCntl::EqClassCode< 1>( uint32_t k) const { return uint16_t( m_CCLs->Get( k));  }
 
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Fs_BaseDistrib :  public Fs_CharDistrib
+class Sg_BaseDistrib :  public Sg_CharDistrib
 {
 protected:
     std::vector< Sg_ChSet>    m_Domain;
     
 public: 
-    Fs_BaseDistrib( uint32_t id = 0) 
+    Sg_BaseDistrib( uint32_t id = 0) 
     {}
 
     void                    Freeze( void);
@@ -182,22 +182,22 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Fs_ECDistrib : public Fs_Distrib
+class Sg_ECDistrib : public Sg_Distrib
 {
 protected:
     uint32_t                m_RefCount;         // NumTotalRefs
-    const Fs_BaseDistrib    *m_BaseDistrib;     
+    const Sg_BaseDistrib    *m_BaseDistrib;     
     uint16_t                *m_Map;             // map over the equivalence class ids.
     uint32_t                m_Hashval;    
     bool                    m_LockFlg;          // Blut Migration is inhibited.
     bool                    m_ZeroFailFlg;
 
 public:
-    Fs_ECDistrib( const Fs_BaseDistrib *distrib);
+    Sg_ECDistrib( const Sg_BaseDistrib *distrib);
 
-    Fs_ECDistrib( const Fs_ECDistrib &ecd);
+    Sg_ECDistrib( const Sg_ECDistrib &ecd);
 
-    ~Fs_ECDistrib( void);
+    ~Sg_ECDistrib( void);
 
     uint32_t        SzRef( void) const { return m_RefCount; }
     void            RaiseRef( void) {  ++m_RefCount; }
@@ -212,7 +212,7 @@ public:
     bool            IsZeroFail( void) const { return m_ZeroFailFlg; }
     void            SetZeroFail( bool t) { m_ZeroFailFlg = t; }
 
-    const Fs_BaseDistrib  *BaseDistrib( void) const { return m_BaseDistrib; }
+    const Sg_BaseDistrib  *BaseDistrib( void) const { return m_BaseDistrib; }
 
     uint16_t        Image( uint16_t t) const {  return m_Map[ m_BaseDistrib->Image( t)]; }
     uint32_t        SzImage( void) const;
@@ -226,12 +226,12 @@ public:
 
     uint32_t        Thickness( void) const;      //  in-use ECs spanned in BaseDistrib
     
-    bool            IsEqual( const Fs_ECDistrib &ecd) const;
-    bool            operator<( const Fs_ECDistrib &s) const;
+    bool            IsEqual( const Sg_ECDistrib &ecd) const;
+    bool            operator<( const Sg_ECDistrib &s) const;
 
-    Fs_CharDistrib  CharDistrib( void) const;
+    Sg_CharDistrib  CharDistrib( void) const;
 
-    void            SwitchBase( Fs_BaseDistrib *base);
+    void            SwitchBase( Sg_BaseDistrib *base);
 
 };
 
