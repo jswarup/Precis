@@ -50,8 +50,16 @@ public:
     //_________________________________________________________________________________________________________________________
 
     Sg_ChSet( void) { Init(); }
-
  
+
+    Sg_ChSet( const Sg_ChSet &chSet)
+    {
+        m_ChSet[ 0] = chSet.m_ChSet[ 0];
+        m_ChSet[ 1] = chSet.m_ChSet[ 1];
+        m_ChSet[ 2] = chSet.m_ChSet[ 2];
+        m_ChSet[ 3] = chSet.m_ChSet[ 3]; 
+    }
+
     uint8_t         GetU8( uint32_t c) const  { return ( ( uint8_t *) &m_ChSet[ 0])[ c / 8]; }
 
     bool            Get( uint32_t c) const  { return ( m_ChSet[ c / 64] & (uint64_t( 1) << (c % 64))) != 0; }

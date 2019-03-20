@@ -50,17 +50,23 @@ struct     CharFilter : public Filter
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct     ChSetFilter : public Filter 
-{ 
-    Sg_ChSet     m_ChSet;
-
+struct     ChSetFilter : public Filter, public Sg_ChSet
+{   
     ChSetFilter( void)
-        : m_ChSet()
+        : Sg_ChSet()
+    {}
+    
+    ChSetFilter( Sg_ChSet &&chSet)
+        : Sg_ChSet( chSet)
     {}
 
-    std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", m_ChSet.ToString(), "]"); } 
+    ChSetFilter( const Sg_ChSet &chSet)
+        : Sg_ChSet( chSet)
+    {}
 
-    bool    IsLess( ChSetFilter *filt) const { return m_ChSet.IsLess( filt->m_ChSet); }
+    std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
+
+    bool    IsLess( ChSetFilter *filt) const { return Sg_ChSet::IsLess( *filt); }
 };
 
 //_____________________________________________________________________________________________________________________________

@@ -59,8 +59,9 @@ std::vector< Sg_ChSet>    FsaSupState::RefineCharDistrib(  void)
     Cv_CArr< FsaVar>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
-        FsaVar      state = subStates[ i];
-/*  
+        FsaClip             state = subStates[ i];
+        Cv_CArr< FiltVar>   filters = state.Filters();
+/*
         m_SubStates[ i].
         const std::vector< Fs_TransEdge>    &outEdges = ListOutEdges( );
 

@@ -22,7 +22,7 @@ typedef Cv_Slot< AutomCnstr>    AutomSlot;
 struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
     AutomReposCnstr                 *m_Repos;
-    FsaElem                       *m_State;
+    FsaElem                         *m_State;
     std::set< AutomCnstr *>         m_EpsDests; 
     std::set< uint32_t>             m_EpsSourceIds;
 

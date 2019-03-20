@@ -72,7 +72,7 @@ struct  Action
 struct  FsaElem   : public FsaState
 {      
     Action                          *m_Action;
-    std::vector< Sg_ChSet>          m_ChSets;
+    std::vector< ChSetFilter>       m_ChSets;
     std::vector< FsaVar>            m_Dests;
 
     FsaElem( void)
@@ -100,10 +100,18 @@ struct  FsaElem   : public FsaState
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct FsaVarA : public FsaCrate::Var
+struct FsaClip  : public FsaCrate::Var
 {
     typedef FsaCrate::Var       FsaVar;
     typedef FilterCrate::Var    FiltVar;
+    
+    FsaClip( const FsaVar &v)
+        : FsaVar( v)
+    {}
+
+    FsaClip( FsaVar &&v)
+        : FsaVar( v)
+    {}
 
     Cv_CArr< uint64_t>          Tokens( void) { return SELF( [this]( auto k) { return k->Tokens(); }); }
 
