@@ -13,10 +13,10 @@ namespace Sg_RExp
 
 struct    FsaRepos;
 struct    FsaState;
-struct    AutomElem;
+struct    FsaElem;
 struct    FsaSupState;
 
-typedef Cv_Crate< FsaSupState, AutomElem, FsaState>                                                          FsaCrate;  
+typedef Cv_Crate< FsaSupState, FsaElem, FsaState>                                                          FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -69,23 +69,23 @@ struct  Action
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomElem   : public FsaState
+struct  FsaElem   : public FsaState
 {      
     Action                          *m_Action;
     std::vector< Sg_ChSet>          m_ChSets;
     std::vector< FsaVar>            m_Dests;
 
-    AutomElem( void)
+    FsaElem( void)
         : m_Action( NULL)
     {}
 
-    ~AutomElem( void)
+    ~FsaElem( void)
     {
         if ( m_Action)
             delete m_Action;
     }
 
-    void            AddEdge( const Sg_ChSet &chSet, AutomElem *dest) 
+    void            AddEdge( const Sg_ChSet &chSet, FsaElem *dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);

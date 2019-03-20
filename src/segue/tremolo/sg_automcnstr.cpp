@@ -31,7 +31,7 @@ void    AutomCnstr::FinalizeEpsLinks( void)
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
     {
   
-        AutomElem       *srcState = static_cast< AutomElem *>( m_Repos->m_AutomRepos.Get( *sIt).GetEntry()) ;
+        FsaElem       *srcState = static_cast< FsaElem *>( m_Repos->m_AutomRepos.Get( *sIt).GetEntry()) ;
 
         // export all this state transistions to the eps-source  
         if ( srcState)
