@@ -13,7 +13,7 @@ bool        FsaRepos::WriteDot( Cv_DotStream &strm)
     {
         Var     si = Get( i);
         if (si)
-            si( [&strm]( auto k) { k->WriteDot( strm); });
+            si( [this, &strm]( auto k) { k->WriteDot( this, strm); });
     }
     return true;
 }
@@ -21,7 +21,7 @@ bool        FsaRepos::WriteDot( Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________  
 
-bool  FsaElem::WriteDot( Cv_DotStream &strm)  
+bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)  
 {
     strm << 'R' << GetId() << " [ shape=";
 
@@ -34,10 +34,10 @@ bool  FsaElem::WriteDot( Cv_DotStream &strm)
         strm << 'T' << m_Action->m_Value;
     strm << " </FONT>>];\n "; 
 
-    Cv_CArr< FsaVar>    dests = Dests(); 
+    Cv_CArr< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        FsaElem      *regex = ( FsaElem *) dests[ k];
+        FsaElem      *regex = ( FsaElem *) fsaRepos->ToVar( dests[ k]);
         strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
         strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
         strm << "</FONT>>] ; \n" ;  
@@ -47,7 +47,7 @@ bool  FsaElem::WriteDot( Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
-Sg_CharDistrib  FsaSupState::RefineCharDistrib(  void)
+Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
 { 
     Sg_CharDistrib      distrib;
 
@@ -55,10 +55,10 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib(  void)
 
     Sg_CharDistrib::CCLIdImpressor      prtnIntersector(  &distrib);
  
-    Cv_CArr< FsaVar>                    subStates = SubStates();
+    Cv_CArr< FsaId>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
-        FsaClip             state = subStates[ i];
+        FsaClip             state = fsaRepos->ToVar( subStates[ i]);
         Cv_CArr< FiltVar>   filters = state.Filters();
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
@@ -76,9 +76,9 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib(  void)
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaSupState::DoConstructTransisition( void)
+void    FsaSupState::DoConstructTransisition( FsaRepos *fsaRepos)
 {
-    Sg_CharDistrib          distrib = RefineCharDistrib();
+    Sg_CharDistrib          distrib = RefineCharDistrib( fsaRepos);
     std::vector< Sg_ChSet>  domain = distrib.Domain();
     
     uint32_t                sz = domain.size();

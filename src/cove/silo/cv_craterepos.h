@@ -121,6 +121,11 @@ public:
 
     uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
+template < typename Element>
+    static Id   ToId( Element *e) { return Id( e->GetId(), TypeOf< Element>()); }
+
+    static Id   ToId( Var v) { return Id( v.Entry()->GetId(), v.GetType()); }
+
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
     Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
@@ -135,7 +140,7 @@ public:
         return;
     }
 
-    template<  class Object>
+template<  class Object>
     Id    Store( Object *x)
     {
         TypeStor	typeVal = Crate::AssignIndex( x);  

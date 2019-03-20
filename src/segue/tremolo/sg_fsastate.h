@@ -23,16 +23,16 @@ typedef Cv_Crate< FsaSupState, FsaElem, FsaState>                               
 
 struct FsaState  : public Cv_CrateEntry, public Cv_Shared
 {
-    typedef FsaCrate::Var       FsaVar;
+    typedef  Id                 FsaId;
     typedef FilterCrate::Var    FiltVar;
 
     Cv_CArr< uint64_t>          Tokens( void) { return Cv_CArr< uint64_t>(); } 
 
     Cv_CArr< FiltVar>           Filters( void) { return Cv_CArr< FiltVar>(); }
-    Cv_CArr< FsaVar>            Dests( void) { return Cv_CArr< FsaVar>(); }
-    Cv_CArr< FsaVar>            SubStates( void) { return Cv_CArr< FsaVar>(); } 
+    Cv_CArr< FsaId>             Dests( void) { return Cv_CArr< FsaId>(); }
+    Cv_CArr< FsaId>             SubStates( void) { return Cv_CArr< FsaId>(); } 
 
-    bool            WriteDot( Cv_DotStream &strm) { return false; }
+    bool            WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
 };
 
 
@@ -49,12 +49,12 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
 struct FsaSupState  : public FsaState
 { 
-    std::vector< FsaVar>     m_SubStates; 
+    std::vector< FsaId>     m_SubStates; 
     
-    Cv_CArr< FsaVar>        SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaVar>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaVar>(); } 
+    Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
     
-    Sg_CharDistrib          RefineCharDistrib(  void);
-    void                    DoConstructTransisition( void);
+    Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
+    void                    DoConstructTransisition( FsaRepos *fsaRepos);
 }; 
 
 //_____________________________________________________________________________________________________________________________ 
@@ -74,7 +74,7 @@ struct  FsaElem   : public FsaState
 {      
     Action                          *m_Action;
     std::vector< ChSetFilter>       m_ChSets;
-    std::vector< FsaVar>            m_Dests;
+    std::vector< FsaId>            m_Dests;
 
     FsaElem( void)
         : m_Action( NULL)
@@ -86,17 +86,16 @@ struct  FsaElem   : public FsaState
             delete m_Action;
     }
 
-    void            AddEdge( const Sg_ChSet &chSet, FsaElem *dest) 
+    void            AddEdge( const Sg_ChSet &chSet, FsaId  dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
-        dest->RaiseRef();
     } 
 
     Cv_CArr< uint64_t>      Tokens( void) { return m_Action ? Cv_CArr< uint64_t>() : Cv_CArr< uint64_t>( &m_Action->m_Value, 1); } 
-    Cv_CArr< FsaVar>        Dests( void) { return m_Dests.size() ? Cv_CArr< FsaVar>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaVar>(); }  
+    Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
 
-    bool        WriteDot( Cv_DotStream &strm);
+    bool        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -104,6 +103,7 @@ struct  FsaElem   : public FsaState
 struct FsaClip  : public FsaCrate::Var
 {
     typedef FsaCrate::Var       FsaVar;
+    typedef FsaRepos::Id        FsaId;
     typedef FilterCrate::Var    FiltVar;
     
     FsaClip( const FsaVar &v)
@@ -116,9 +116,9 @@ struct FsaClip  : public FsaCrate::Var
 
     Cv_CArr< uint64_t>          Tokens( void) { return SELF( [this]( auto k) { return k->Tokens(); }); }
 
-    Cv_CArr< FsaVar>            Dests( void) { return SELF( [this]( auto k) { return k->Dests(); }); }
+    Cv_CArr< FsaId>             Dests( void) { return SELF( [this]( auto k) { return k->Dests(); }); }
     Cv_CArr< FiltVar>           Filters( void) { return SELF( [this]( auto k) { return k->Filters(); }); } 
-    Cv_CArr< FsaVar>            SubStates( void) { return SELF( [this]( auto k) { return k->SubStates(); }); }
+    Cv_CArr< FsaId>             SubStates( void) { return SELF( [this]( auto k) { return k->SubStates(); }); }
 };
 
 //_____________________________________________________________________________________________________________________________ 

@@ -11,7 +11,7 @@ template < typename Crate>
 struct	Cv_Var 
 {
 	typedef typename Crate::TypeStor	TypeStor;
-    typedef typename Crate::Entry		Entry;  
+    typedef typename Crate::Entry		Entry;   
 
 	Entry			    *m_Entry;
 	TypeStor			m_Type; 
@@ -35,6 +35,7 @@ template < typename Element>
   
     TypeStor        GetType( void) const { return m_Type; } 
 	Entry			*GetEntry( void) const { return m_Entry; } 
+ 
 
 template < typename Element>    
     operator Element *( void) { return m_Type == Crate::TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
@@ -149,8 +150,8 @@ struct Cv_CrateT
 	typedef Cv_CrateT< T,void>			    Crate;
     typedef T								Entry;
     typedef T								Elem;
-	typedef typename Entry::TypeStor		TypeStor; 
-	typedef  Cv_Var< Crate>			        Var; 
+	typedef typename Entry::TypeStor		TypeStor;  
+    typedef  Cv_Var< Crate>			        Var; 
     
 
 

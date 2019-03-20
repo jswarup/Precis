@@ -4,7 +4,7 @@
 #include    "cove/barn/cv_cexpr.h"
 #include 	"cove/barn/cv_aid.h"
 #include    "segue/timbre/sg_chset.h"
-#include 	"cove/silo/cv_crate.h" 
+#include 	"cove/silo/cv_craterepos.h" 
 
 //_____________________________________________________________________________________________________________________________  
 
@@ -19,8 +19,8 @@ typedef Cv_Crate< ChSetFilter, CharFilter, Filter>   FilterCrate;
 
 //_____________________________________________________________________________________________________________________________ 
  
-struct  Filter  
-{ 
+struct  Filter : public Cv_CrateEntry
+{  
     typedef uint8_t     TypeStor;
     typedef uint16_t    IndexStor;
 

@@ -20,7 +20,8 @@ AutomCnstr::~AutomCnstr( void)
 
 void    AutomCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
 { 
-    m_State->AddEdge( chSet, dest->m_State);
+    dest->m_State->RaiseRef();
+    m_State->AddEdge( chSet, FsaRepos::ToId( dest->m_State));
 }
 
 //_____________________________________________________________________________________________________________________________   
