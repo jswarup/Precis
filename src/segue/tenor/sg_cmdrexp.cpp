@@ -102,9 +102,15 @@ int     Sg_RExpCmdProcessor::Test(void)
     parser.SetLogStream( &std::cout);
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
-    AutomReposCnstr         automRepos(  &rexpRepos);
-    automRepos.Process();  
-    automRepos.WriteDot( "a.dot");
+    FsaRepos                automRepos;
+    AutomReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
+    automReposCnstr.Process();  
+    FsaDfaCnstr             dfaCnstr( &automRepos);
+    dfaCnstr.SubsetConstruction();
+    std::ofstream           fsaOStrm( "a.dot");
+    Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+
+    automRepos.WriteDot( fsaDotStrm);
      
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);

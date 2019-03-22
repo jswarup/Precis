@@ -63,12 +63,12 @@ public:
  
 struct AutomReposCnstr 
 {
-    FsaRepos                        m_AutomRepos;
     RExpRepos				        *m_RexpRepos; 
+    FsaRepos                        *m_AutomRepos;
     std::vector< AutomCnstr *>      m_Cnstrs;
 
-    AutomReposCnstr(  RExpRepos *rexpRepos)
-        : m_RexpRepos( rexpRepos)
+    AutomReposCnstr(  RExpRepos *rexpRepos, FsaRepos *automRepos)
+        : m_RexpRepos( rexpRepos), m_AutomRepos( automRepos)
     { 
         m_Cnstrs.push_back( NULL);
     } 
@@ -76,8 +76,8 @@ struct AutomReposCnstr
     AutomSlot   ConstructCnstr( void)
     {
         AutomSlot   x = new AutomCnstr( this);  
-        x->SetId( m_AutomRepos.Size()); 
-        x->m_State = m_AutomRepos.Construct< FsaElem>();  
+        x->SetId( m_AutomRepos->Size()); 
+        x->m_State = m_AutomRepos->Construct< FsaElem>();  
         m_Cnstrs.push_back( x);
         return x;
     }

@@ -39,7 +39,8 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     {
         FsaElem      *regex = ( FsaElem *) fsaRepos->ToVar( dests[ k]);
         strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
-        strm << Cv_Aid::XmlEncode(  m_ChSets[ k].ToString());
+        ChSetFilter     *chSet = fsaRepos->m_FilterRepos.ToVar( m_ChSets[ k]);
+        strm << Cv_Aid::XmlEncode( chSet->ToString());
         strm << "</FONT>>] ; \n" ;  
     }
     return true;
@@ -59,10 +60,10 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaClip             state = fsaRepos->ToVar( subStates[ i]);
-        Cv_CArr< FiltVar>   filters = state.Filters();
+        Cv_CArr< FiltId>   filters = state.Filters();
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
-            ChSetFilter *chSet = filters[ i];
+            ChSetFilter     *chSet = fsaRepos->m_FilterRepos.ToVar( filters[ i]);
             prtnIntersector.Process( *chSet, CV_UINT32_MAX);
         }
          
@@ -76,44 +77,92 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaSupState::DoConstructTransisition( FsaRepos *fsaRepos)
-{
-    Sg_CharDistrib          distrib = RefineCharDistrib( fsaRepos);
-    std::vector< Sg_ChSet>  domain = distrib.Domain();
-    
-    uint32_t                sz = domain.size();
-    for ( uint32_t i = 0; i < sz; ++i)
+void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
+{ 
+    FsaRepos                        *fsaRepos = dfaCnstr->m_FsaRepos;
+    Cv_CArr< FsaId>                 subStates = SubStates();
+    if ( !subStates.Size())
     {
-        FsaSupState     *supState = new FsaSupState();
+        fsaRepos->Destroy( GetId());
+        return;
     }
-/*
-    if ( m_Tokens && !m_Tokens->HasTokens())
+    Sg_CharDistrib                  distrib = RefineCharDistrib( fsaRepos);
+    std::vector< Sg_ChSet>          domain = distrib.Domain();
+    uint32_t                        sz = domain.size();
+    Cv_Array< FsaSupState *, 256>   subSupStates;
+    FsaDfaState                     *dfaState = new FsaDfaState();
+    for ( uint32_t k = 0; k < sz; ++k)
     {
-        delete m_Tokens;
-        m_Tokens = NULL;
+        FsaSupState     *supState = fsaRepos->Construct< FsaSupState>();
+        subSupStates.Append( supState); 
+        dfaState->m_Dests.push_back( FsaRepos::ToId( supState)); 
+        dfaCnstr->m_FsaStk.push_back( supState);
+    } 
+    for ( uint32_t i = 0; i < subStates.Size(); ++i) 
+    {
+        FsaId               stateId = subStates[ i];
+        FsaClip             state = fsaRepos->ToVar( stateId);
+        Cv_CArr< FsaId>     dests = state.Dests();
+        Cv_CArr< FiltId>   filters = state.Filters();
+        for ( uint32_t j = 0; j < dests.Size(); ++j)
+        {
+            FsaId               dest =  dests[ i];
+            ChSetFilter         *chSet = fsaRepos->m_FilterRepos.ToVar( filters[ i]);
+            for ( uint32_t k = 0; k < sz; ++k)
+            {
+                const Sg_ChSet  &ccl = domain[ k]; 
+                if ( chSet->IsIntersect( ccl))
+                    subSupStates[ k]->m_SubStates.push_back( dest);  
+            }
+        }
     }
-
-    if ( m_Tokens)
-    { 
-        // mark all the shorter match tokens as greedy, as longer match exist
-        if ( domain.size() && m_Tokens->GreedyTokens().size())
-            m_Tokens->SetGreedyTokenAsShort();
-        m_Tokens->SetDepthInfo( Depth());
-        if ( IsLoopUp())
-            m_Tokens->SetDepthInfo( AX_UINT32_MAX);
-        m_Tokens->DoAttach( aggregator, dfaState);
-    }
-    // ignore the transitions out of this state for swarm && matchall && sc-changes
-    if ( !aggregator->CfgParams()->TestTarget( Fs_EngineProp::Txxxx) || !m_Tokens || m_Tokens->GreedyTokens().size() || !m_Tokens->CanChangeSc() )
-        DoConstructTransisition( aggregator, dfaState, domain);
-
-    dfaState->SetSaveTH( IsSaveTH());
-    if ( aggregator->CfgParams()->TestTarget( Fs_EngineProp::Txxxx) && !aggregator->Context()->ScanFlavor().IsMatchAll())
-        dfaState->SetStall( true);
-    m_Tokens = NULL;
-*/
+    fsaRepos->StoreAt( GetId(), dfaState);
     return;
 }
+
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+{ 
+    strm << 'R' << GetId() << " [ shape=";
+
+    if ( m_Action)
+        strm << "box";
+    else
+        strm << "ellipse";
+    strm << " color=cyan label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
+    if ( m_Action)
+        strm << 'T' << m_Action->m_Value;
+    strm << " </FONT>>];\n "; 
+
+    Cv_CArr< FsaId>    dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
+    {
+        FsaClip         regex = fsaRepos->ToVar( dests[ k]);
+        if ( !regex)
+            continue;
+        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << "</FONT>>] ; \n" ;  
+    }
+    return false; 
+}
+//_____________________________________________________________________________________________________________________________
+
+void    FsaDfaCnstr::SubsetConstruction( void)
+{ 
+
+    FsaSupState     *supRootState = m_FsaRepos->Construct< FsaSupState>(); 
+    supRootState->m_SubStates.push_back( m_FsaRepos->m_RootId);
+    m_FsaStk.push_back( supRootState);
+    while ( m_FsaStk.size())
+    {
+        FsaSupState     *supState = m_FsaStk.back();
+        m_FsaStk.pop_back();
+        supState->DoConstructTransisition( this);
+    }
+    return;
+}
+
 
 //_____________________________________________________________________________________________________________________________
  

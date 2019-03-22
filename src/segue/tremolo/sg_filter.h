@@ -137,8 +137,8 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
         
         bool    operator()( const Id &id1, const Id &id2)  
         { 
-            FilterCrate::Var    var1 = m_FiltRepos->Var( id1);
-            FilterCrate::Var    var2 = m_FiltRepos->Var( id2);
+            FilterCrate::Var    var1 = m_FiltRepos->ToVar( id1);
+            FilterCrate::Var    var2 = m_FiltRepos->ToVar( id2);
             if ( var1.GetType() != var2.GetType())
                 return var1.GetType() < var2.GetType();
             var1( [this]( auto e1, auto e2) {
@@ -159,7 +159,7 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
         Base::SetupFilterIndFns( m_FilterIndFns);
     }
     
-    FilterCrate::Var    Var( const Id &id)  
+    FilterCrate::Var    ToVar( const Id &id)  
     {  
         return id.m_TypeInd ? FilterCrate::Var( m_FilterIndFns[ id.Type() -1]( id.Index()), id.Type()) : m_TVar; 
     }

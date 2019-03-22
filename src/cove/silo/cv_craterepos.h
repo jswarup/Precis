@@ -151,6 +151,18 @@ template<  class Object>
         return Id( ind, typeVal);
     }
 
+template<  class Object>
+    Id    StoreAt( uint32_t ind, Object *x)
+    {
+        TypeStor	typeVal = Crate::AssignIndex( x);   
+        x->SetId( ind);
+        if ( m_Elems[ ind])
+            Destroy( ind);
+        m_Elems[ ind] = x; 
+        m_Types[ ind] = typeVal; 
+        return Id( ind, typeVal);
+    }
+
     template<  class Object>
     Object  *Construct( void)
     {

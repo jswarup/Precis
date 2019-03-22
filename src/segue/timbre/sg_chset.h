@@ -77,6 +77,11 @@ public:
         m_ChSet[ 3] = ~m_ChSet[ 3]; 
         return *this;
     }
+    
+    bool                    IsIntersect( const Sg_ChSet &chSet) const
+    {
+        return ( m_ChSet[ 0] & chSet.m_ChSet[ 0]) || ( m_ChSet[ 1] & chSet.m_ChSet[ 1]) || ( m_ChSet[ 2] & chSet.m_ChSet[ 2]) || ( m_ChSet[ 3] & chSet.m_ChSet[ 3]);
+    }
 
     Sg_ChSet                  &UnionWith( const Sg_ChSet &src2)
     {

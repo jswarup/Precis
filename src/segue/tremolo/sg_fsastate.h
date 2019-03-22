@@ -16,46 +16,10 @@ struct    FsaRepos;
 struct    FsaState;
 struct    FsaElem;
 struct    FsaSupState;
+struct    FsaDfaState;
+struct    FsaDfaCnstr;
 
-typedef Cv_Crate< FsaSupState, FsaElem, FsaState>                                                          FsaCrate;  
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct FsaState  : public Cv_CrateEntry, public Cv_Shared
-{
-    typedef  Id                 FsaId;
-    typedef FilterCrate::Var    FiltVar;
-
-    Cv_CArr< uint64_t>          Tokens( void) { return Cv_CArr< uint64_t>(); } 
-
-    Cv_CArr< FiltVar>           Filters( void) { return Cv_CArr< FiltVar>(); }
-    Cv_CArr< FsaId>             Dests( void) { return Cv_CArr< FsaId>(); }
-    Cv_CArr< FsaId>             SubStates( void) { return Cv_CArr< FsaId>(); } 
-
-    bool            WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
-};
-
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
-{
-    FilterRepos     m_FilterRepos;
-
-    bool        WriteDot( Cv_DotStream &strm);
-};
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct FsaSupState  : public FsaState
-{ 
-    std::vector< FsaId>     m_SubStates; 
-    
-    Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
-    
-    Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
-    void                    DoConstructTransisition( FsaRepos *fsaRepos);
-}; 
+typedef Cv_Crate< FsaDfaState, FsaSupState, FsaElem, FsaState>                                                          FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -70,11 +34,74 @@ struct  Action
 
 //_____________________________________________________________________________________________________________________________ 
 
+struct FsaState  : public Cv_CrateEntry, public Cv_Shared
+{
+    typedef  Id                 FsaId;
+
+    typedef FilterRepos::Id     FiltId;
+    typedef FilterCrate::Var    FiltVar;
+    
+public:
+    virtual     ~FsaState( void){}
+
+    Cv_CArr< uint64_t>          Tokens( void) { return Cv_CArr< uint64_t>(); } 
+
+    Cv_CArr< FiltId>            Filters( void) { return Cv_CArr< FiltId>(); }
+    Cv_CArr< FsaId>             Dests( void) { return Cv_CArr< FsaId>(); }
+    Cv_CArr< FsaId>             SubStates( void) { return Cv_CArr< FsaId>(); } 
+
+    bool            WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
+};
+
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
+{   
+    typedef  Id                 FsaId;
+    FsaId                       m_RootId;
+    FilterRepos                 m_FilterRepos; 
+
+    bool        WriteDot( Cv_DotStream &strm);
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct FsaSupState  : public FsaState
+{ 
+    std::vector< FsaId>     m_SubStates; 
+    
+    Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
+    
+    Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
+    void                    DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+}; 
+
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct FsaDfaState  : public FsaState
+{ 
+    std::vector< FsaId>     m_Dests; 
+    Action                  *m_Action;
+    
+    FsaDfaState( void)
+        : m_Action( NULL)
+    {}
+    Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); } 
+ 
+
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+}; 
+
+
+//_____________________________________________________________________________________________________________________________ 
+
 struct  FsaElem   : public FsaState
 {      
     Action                          *m_Action;
-    std::vector< ChSetFilter>       m_ChSets;
-    std::vector< FsaId>            m_Dests;
+    std::vector< FiltId>            m_ChSets;
+    std::vector< FsaId>             m_Dests;
 
     FsaElem( void)
         : m_Action( NULL)
@@ -86,7 +113,7 @@ struct  FsaElem   : public FsaState
             delete m_Action;
     }
 
-    void            AddEdge( const Sg_ChSet &chSet, FsaId  dest) 
+    void            AddEdge( FiltId chSet, FsaId  dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);
@@ -94,6 +121,8 @@ struct  FsaElem   : public FsaState
 
     Cv_CArr< uint64_t>      Tokens( void) { return m_Action ? Cv_CArr< uint64_t>() : Cv_CArr< uint64_t>( &m_Action->m_Value, 1); } 
     Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
+    Cv_CArr< FiltId>        Filters( void) { return m_ChSets.size() ? Cv_CArr< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_CArr< FiltId>(); } 
+
 
     bool        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 };
@@ -105,20 +134,34 @@ struct FsaClip  : public FsaCrate::Var
     typedef FsaCrate::Var       FsaVar;
     typedef FsaRepos::Id        FsaId;
     typedef FilterCrate::Var    FiltVar;
+    typedef FilterRepos::Id     FiltId;
     
     FsaClip( const FsaVar &v)
         : FsaVar( v)
-    {}
-
-    FsaClip( FsaVar &&v)
-        : FsaVar( v)
-    {}
+    {} 
 
     Cv_CArr< uint64_t>          Tokens( void) { return SELF( [this]( auto k) { return k->Tokens(); }); }
 
     Cv_CArr< FsaId>             Dests( void) { return SELF( [this]( auto k) { return k->Dests(); }); }
-    Cv_CArr< FiltVar>           Filters( void) { return SELF( [this]( auto k) { return k->Filters(); }); } 
+    Cv_CArr< FiltId>            Filters( void) { return SELF( [this]( auto k) { return k->Filters(); }); } 
     Cv_CArr< FsaId>             SubStates( void) { return SELF( [this]( auto k) { return k->SubStates(); }); }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct  FsaDfaCnstr 
+{
+    typedef FsaRepos::Id            FsaId;
+    
+    FsaRepos                        *m_FsaRepos; 
+
+    std::vector< FsaSupState *>     m_FsaStk;
+    
+    FsaDfaCnstr( FsaRepos *fsaRepos)
+        : m_FsaRepos( fsaRepos)
+    {}
+    
+    void    SubsetConstruction( void);
 };
 
 //_____________________________________________________________________________________________________________________________ 
