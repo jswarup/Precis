@@ -48,6 +48,8 @@ public:
     Cv_CrateId      &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
 
     friend	bool    operator<( const Cv_CrateId &id1, const Cv_CrateId &id2) { return id1.m_IPtr < id2.m_IPtr;  } 
+    friend	bool    operator==( const Cv_CrateId &id1, const Cv_CrateId &id2) { return id1.m_IPtr == id2.m_IPtr;  } 
+    friend	bool    operator!=( const Cv_CrateId &id1, const Cv_CrateId &id2) { return !( id1.m_IPtr == id2.m_IPtr);  } 
 
     friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateId &x)  
     { 
@@ -143,7 +145,8 @@ template < typename Element>
 template<  class Object>
     Id    Store( Object *x)
     {
-        TypeStor	typeVal = Crate::AssignIndex( x);  
+        TypeStor	typeVal = Crate::TypeOf( x); 
+        x->SetType(  typeVal); 
         IndexStor	ind = IndexStor( m_Elems.size());
         x->SetId( ind);
         m_Elems.push_back( x); 
@@ -154,13 +157,15 @@ template<  class Object>
 template<  class Object>
     Id    StoreAt( uint32_t ind, Object *x)
     {
-        TypeStor	typeVal = Crate::AssignIndex( x);   
+        TypeStor	typeVal = Crate::TypeOf( x);
+        x->SetType(  typeVal);   
         x->SetId( ind);
+        Id   id;
         if ( m_Elems[ ind])
-            Destroy( ind);
+            id = Id( ind, m_Elems[ ind]->GetType());
         m_Elems[ ind] = x; 
         m_Types[ ind] = typeVal; 
-        return Id( ind, typeVal);
+        return id;
     }
 
     template<  class Object>
@@ -174,8 +179,8 @@ template<  class Object>
     void            Shrivel( uint32_t m)
     { 
         CV_ERROR_ASSERT( m <= Size())
-            for ( ; m < Size(); ++m)
-                Destroy( m);
+        for ( ; m < Size(); ++m)
+            Destroy( m);
         m_Elems.resize( m);
         return;
     }

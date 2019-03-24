@@ -104,15 +104,15 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     }     
 
 template <typename X, typename std::enable_if< std ::is_base_of< T, X>::value, void>::type * = nullptr>
-	TypeStor AssignIndex( X *obj)
+	TypeStor TypeOf( X *obj)
     {
-        return obj->SetType(  Sz);
+        return Sz;
     } 
 
 template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value, void>::type * = nullptr>
-	TypeStor AssignIndex( X *obj)
+	TypeStor TypeOf( X *obj)
     {
-		return CrateBase::AssignIndex( obj);
+		return CrateBase::TypeOf( obj);
     } 
   
 template <  typename Lambda, typename... Args>
@@ -156,9 +156,9 @@ struct Cv_CrateT
 
 
 template < typename X = void>    
-	TypeStor	AssignIndex( X *obj)
+	TypeStor	TypeOf( X *obj)
     { 
-		return obj->m_Type =  Sz;
+		return Sz;
     }
 
 template <  typename Lambda, typename... Args>

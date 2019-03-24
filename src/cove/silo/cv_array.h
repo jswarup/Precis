@@ -90,8 +90,8 @@ public:
     X           *Ptr( void) const { return m_CStr; }
     uint32_t    Size( void) const { return m_Len; }
 
-    X           *Begin( void) const { return m_CStr; }
-    X           *End( void) const { return m_CStr +m_Len; }
+    X           *Begin( void) const { return Ptr(); }
+    X           *End( void) const { return Ptr() +m_Len; }
 
     const X     &operator[]( uint32_t i) const { return m_CStr[ i]; } 
     X           &operator[]( uint32_t i) { return m_CStr[ i]; } 
@@ -107,3 +107,46 @@ public:
 };
 
 //_____________________________________________________________________________________________________________________________
+
+template < typename X, typename TypeSZ = uint32_t>
+struct Cv_LinArr
+{
+    TypeSZ      m_Sz;
+
+    TypeSZ      Size( void) const { return m_Sz; }
+
+    const X     *Ptr( void) const { return ( &m_Sz +1); }
+    X           *Ptr( void) { return ( &m_Sz +1); }
+
+    X           *Begin( void) const { return Ptr(); }
+    X           *End( void) const { return Ptr() +m_Len; }
+
+    const X     &operator[]( uint32_t i) const { return Ptr()[ i]; } 
+    X           &operator[]( uint32_t i) { return Ptr()[ i]; } 
+    
+    static Cv_LinArr   *Construct( TypeSZ sz)
+    {
+        Cv_LinArr   *arr = ::new ( new char[ sizeof( Cv_LinArr) + sz * sizeof( X)]) Cv_LinArr();
+        arr->m_Sz = sz;
+        for ( uint32_t i = 0; i < Size(); ++i) 
+            ::new (Ptr() +i) X(); 
+    }
+
+    struct LessOp
+    {
+        bool operator()( const X *x1,  const X *x2) const 
+        {
+            if ( x1->Size() != x2->Size())
+                return x1->Size() < x2->Size();
+            const X       *arr1 = x1->Ptr();
+            const X       *arr2 = x2->Ptr();
+            for ( uint32_t i = 0; i < x1->Size(); ++i)
+                if ( arr1[ i] != arr2[ i])
+                    return arr1[ i] < arr2[ i];
+            return false;
+        }
+    };
+};
+
+//_____________________________________________________________________________________________________________________________
+
