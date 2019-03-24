@@ -77,33 +77,31 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
+FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
     FsaRepos                        *fsaRepos = dfaCnstr->m_FsaRepos;
     Cv_CArr< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
         fsaRepos->Destroy( GetId());
-        return;
+        return NULL;
     }
     Sg_CharDistrib                  distrib = RefineCharDistrib( fsaRepos);
     std::vector< Sg_ChSet>          domain = distrib.Domain();
-    uint32_t                        sz = domain.size();
+    uint32_t                        sz = uint32_t( domain.size());
     Cv_Array< FsaSupState *, 256>   subSupStates;
     FsaDfaState                     *dfaState = new FsaDfaState();
     for ( uint32_t k = 0; k < sz; ++k)
     {
         FsaSupState     *supState = fsaRepos->Construct< FsaSupState>();
-        subSupStates.Append( supState); 
-        dfaState->m_Dests.push_back( FsaRepos::ToId( supState)); 
-        dfaCnstr->m_FsaStk.push_back( supState);
+        subSupStates.Append( supState);
     } 
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaId               stateId = subStates[ i];
         FsaClip             state = fsaRepos->ToVar( stateId);
         Cv_CArr< FsaId>     dests = state.Dests();
-        Cv_CArr< FiltId>   filters = state.Filters();
+        Cv_CArr< FiltId>    filters = state.Filters();
         for ( uint32_t j = 0; j < dests.Size(); ++j)
         {
             FsaId               dest =  dests[ i];
@@ -116,8 +114,15 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             }
         }
     }
+    for ( uint32_t k = 0; k < sz; ++k)
+    {
+        FsaSupState     *supState = subSupStates[ k];
+        std::sort( supState->m_SubStates.begin(), supState->m_SubStates.end()); 
+        dfaState->m_Dests.push_back( FsaRepos::ToId( supState)); 
+        dfaCnstr->m_FsaStk.push_back( supState);
+    }
     fsaRepos->StoreAt( GetId(), dfaState);
-    return;
+    return dfaState;
 }
 
 //_____________________________________________________________________________________________________________________________

@@ -2,6 +2,7 @@
 #pragma once
 
 #include    "cove/silo/cv_array.h"
+#include    "cove/silo/cv_stack.h"
 #include 	"cove/barn/cv_ptrslot.h" 
 #include    "segue/tremolo/sg_filter.h"
 #include    "cove/silo/cv_craterepos.h"
@@ -68,13 +69,27 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 //_____________________________________________________________________________________________________________________________ 
 
 struct FsaSupState  : public FsaState
-{ 
-    std::vector< FsaId>     m_SubStates; 
-    
+{   
+    std::vector< FsaId>             m_SubStates;  
+
+    struct LessOp
+    {
+        bool operator()( const FsaSupState *x1,  const FsaSupState *x2) const 
+        {
+            if ( x1->m_SubStates.size() != x2->m_SubStates.size())
+                return x1->m_SubStates.size() < x2->m_SubStates.size();
+            const FsaId       *arr1 = &x1->m_SubStates[ 0];
+            const FsaId       *arr2 = &x2->m_SubStates[ 0];
+            for ( uint32_t i = 0; i < x1->m_SubStates.size(); ++i)
+                if ( arr1[ i] != arr2[ i])
+                    return arr1[ i] < arr2[ i];
+            return false;
+        }
+    };
     Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
     
     Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
-    void                    DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+    FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
 }; 
 
 
