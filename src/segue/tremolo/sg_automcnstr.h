@@ -94,7 +94,9 @@ struct AutomReposCnstr
         elemVar( [ this, &start, &end](  auto k) {
                 Proliferate( k, start, end);
             });
-        end->m_State->m_Action = new Action( elm->m_Token);
+        if ( !end->m_State->m_Action)
+            end->m_State->m_Action = new Action();
+        end->m_State->m_Action->Push( elm->m_Token);
         return;   
     }
 

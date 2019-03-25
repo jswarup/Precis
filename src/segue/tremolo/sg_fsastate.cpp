@@ -38,8 +38,8 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     else
         strm << "ellipse";
     strm << " color=cyan label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
-    if ( m_Action)
-        strm << 'T' << m_Action->m_Value;
+    for ( uint32_t i = 0; m_Action && ( i < m_Action->m_Values.size()); ++i)
+        strm << " T" << m_Action->m_Values[ i];
     strm << " </FONT>>];\n "; 
 
     Cv_CArr< FsaId>    dests = Dests(); 
@@ -129,6 +129,8 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     {
         FsaId               stateId = subStates[ i];
         FsaClip             state = fsaRepos->ToVar( stateId);
+        dfaState->ExtractActionFrom( state.Tokens());
+
         Cv_CArr< FsaId>     dests = state.Dests();
         Cv_CArr< FiltId>    filters = state.Filters();
         for ( uint32_t j = 0; j < dests.Size(); ++j)
@@ -142,7 +144,9 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
                     subSupStates[ k]->m_SubStates.push_back( dest);  
             }
         }
-    } 
+    }  
+    fsaRepos->StoreAt( GetId(), dfaState);
+    dfaCnstr->m_SupDfaMap.insert( std::pair( this, dfaState));
     for ( uint32_t k = 0; k < sz; ++k)
     {
         FsaSupState     *subSupState = subSupStates[ k];
@@ -154,12 +158,12 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             delete subSupState;
             continue;
         }
+        
         auto            subId = fsaRepos->Store( subSupState);
         dfaState->m_Dests.push_back( subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
-    }
-    fsaRepos->StoreAt( GetId(), dfaState);
-    dfaCnstr->m_SupDfaMap.insert( std::pair( this, dfaState));
+    } 
+    
     return dfaState;
 }
 
@@ -174,8 +178,8 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     else
         strm << "ellipse";
     strm << " color=Red label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
-    if ( m_Action)
-        strm << 'T' << m_Action->m_Value;
+    for ( uint32_t i = 0; m_Action && ( i < m_Action->m_Values.size()); ++i)
+        strm << " T" << m_Action->m_Values[ i];
     strm << " </FONT>>];\n "; 
 
     Cv_CArr< FsaId>    dests = Dests(); 

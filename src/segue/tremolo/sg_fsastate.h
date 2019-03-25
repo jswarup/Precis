@@ -27,11 +27,21 @@ typedef Cv_Crate< FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaC
 
 struct  Action
 {
-    uint64_t        m_Value;
+    std::vector< uint64_t>        m_Values;
 
-    Action( uint64_t value)
-        : m_Value( value)
+    Action( void)
     {}
+    
+
+    Cv_CArr< uint64_t>      Tokens( void) { return m_Values.size() ? Cv_CArr< uint64_t>( &m_Values[ 0], uint32_t( m_Values.size())) : Cv_CArr< uint64_t>(); } 
+
+    void         Push( uint64_t v) { m_Values.push_back( v); }
+    void         Push( const Cv_CArr< uint64_t> &tokens)
+    {   
+        uint32_t        oldSz = uint32_t( m_Values.size());
+        m_Values.resize( oldSz + tokens.Size());
+        std::copy( tokens.Begin(), tokens.End(), &m_Values[ oldSz]);
+    }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -109,8 +119,17 @@ struct FsaDfaState  : public FsaState
     {}
     Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); } 
  
-
+    
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    void                    ExtractActionFrom( const Cv_CArr< uint64_t> &tokens)
+    {
+        if ( !tokens.Size())
+            return;
+        if ( !m_Action)
+            m_Action = new Action();
+        m_Action->Push( tokens);
+        return;
+    }
 }; 
 
 
@@ -138,12 +157,12 @@ struct  FsaElem   : public FsaState
         m_Dests.push_back( dest);
     } 
 
-    Cv_CArr< uint64_t>      Tokens( void) { return m_Action ? Cv_CArr< uint64_t>() : Cv_CArr< uint64_t>( &m_Action->m_Value, 1); } 
+    Cv_CArr< uint64_t>      Tokens( void) { return m_Action ?  Cv_CArr< uint64_t>( &m_Action->m_Values[ 0], uint32_t( m_Action->m_Values.size())) : Cv_CArr< uint64_t>(); } 
     Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
     Cv_CArr< FiltId>        Filters( void) { return m_ChSets.size() ? Cv_CArr< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_CArr< FiltId>(); } 
+ 
 
-
-    bool        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 };
 
 //_____________________________________________________________________________________________________________________________ 
