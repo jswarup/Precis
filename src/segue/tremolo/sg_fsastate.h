@@ -4,6 +4,7 @@
 #include    "cove/silo/cv_array.h"
 #include    "cove/silo/cv_stack.h"
 #include 	"cove/barn/cv_ptrslot.h" 
+#include 	"cove/barn/cv_compare.h" 
 #include    "segue/tremolo/sg_filter.h"
 #include    "cove/silo/cv_craterepos.h"
 #include    "segue/timbre/sg_distrib.h"  
@@ -20,7 +21,7 @@ struct    FsaSupState;
 struct    FsaDfaState;
 struct    FsaDfaCnstr;
 
-typedef Cv_Crate< FsaDfaState, FsaSupState, FsaElem, FsaState>                                                          FsaCrate;  
+typedef Cv_Crate< FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -64,6 +65,7 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
     FilterRepos                 m_FilterRepos; 
 
     bool        WriteDot( Cv_DotStream &strm);
+    bool        DumpDot( const char *path);
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -72,24 +74,26 @@ struct FsaSupState  : public FsaState
 {   
     std::vector< FsaId>             m_SubStates;  
 
-    struct LessOp
+    ~FsaSupState( void)
+    {}
+
+    int32_t     Compare( const FsaSupState &x2) const 
     {
-        bool operator()( const FsaSupState *x1,  const FsaSupState *x2) const 
-        {
-            if ( x1->m_SubStates.size() != x2->m_SubStates.size())
-                return x1->m_SubStates.size() < x2->m_SubStates.size();
-            const FsaId       *arr1 = &x1->m_SubStates[ 0];
-            const FsaId       *arr2 = &x2->m_SubStates[ 0];
-            for ( uint32_t i = 0; i < x1->m_SubStates.size(); ++i)
-                if ( arr1[ i] != arr2[ i])
-                    return arr1[ i] < arr2[ i];
-            return false;
-        }
-    };
+        if ( m_SubStates.size() != x2.m_SubStates.size())
+            return m_SubStates.size() < x2.m_SubStates.size() ? 1 : -1;
+        const FsaId       *arr1 = &m_SubStates[ 0];
+        const FsaId       *arr2 = &x2.m_SubStates[ 0];
+        for ( uint32_t i = 0; i < m_SubStates.size(); ++i)
+            if ( arr1[ i] != arr2[ i])
+                return arr1[ i] < arr2[ i] ? 1 : -1;
+        return 0;
+    } 
+
     Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
     
     Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
     FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 }; 
 
 
@@ -166,10 +170,12 @@ struct FsaClip  : public FsaCrate::Var
 
 struct  FsaDfaCnstr 
 {
-    typedef FsaRepos::Id            FsaId;
+    typedef std::map< FsaSupState*, FsaDfaState *, Cv_TPtrLess< void> >  SupDfaMap;
+    typedef FsaRepos::Id                            FsaId;
     
+     
     FsaRepos                        *m_FsaRepos; 
-
+    SupDfaMap                       m_SupDfaMap;                  
     std::vector< FsaSupState *>     m_FsaStk;
     
     FsaDfaCnstr( FsaRepos *fsaRepos)
