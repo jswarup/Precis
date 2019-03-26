@@ -56,13 +56,13 @@ struct FsaState  : public Cv_CrateEntry, public Cv_Shared
 public:
     virtual     ~FsaState( void){}
 
-    Cv_CArr< uint64_t>          Tokens( void) { return Cv_CArr< uint64_t>(); } 
+    Cv_CArr< uint64_t>  Tokens( void) { return Cv_CArr< uint64_t>(); } 
 
-    Cv_CArr< FiltId>            Filters( void) { return Cv_CArr< FiltId>(); }
-    Cv_CArr< FsaId>             Dests( void) { return Cv_CArr< FsaId>(); }
-    Cv_CArr< FsaId>             SubStates( void) { return Cv_CArr< FsaId>(); } 
+    Cv_CArr< FiltId>    Filters( void) { return Cv_CArr< FiltId>(); }
+    Cv_CArr< FsaId>     Dests( void) { return Cv_CArr< FsaId>(); }
+    Cv_CArr< FsaId>     SubStates( void) { return Cv_CArr< FsaId>(); } 
 
-    bool            WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
+    bool                WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
 };
 
 
@@ -74,8 +74,8 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
     FsaId                       m_RootId;
     FilterRepos                 m_FilterRepos; 
 
-    bool        WriteDot( Cv_DotStream &strm);
-    bool        DumpDot( const char *path);
+    bool                WriteDot( Cv_DotStream &strm);
+    bool                DumpDot( const char *path);
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -117,6 +117,13 @@ struct FsaDfaState  : public FsaState
     FsaDfaState( void)
         : m_Action( NULL)
     {}
+
+    ~FsaDfaState( void)
+    {
+        if ( m_Action)
+            delete m_Action;
+    }
+
     Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); } 
  
     
@@ -137,9 +144,9 @@ struct FsaDfaState  : public FsaState
 
 struct  FsaElem   : public FsaState
 {      
-    Action                          *m_Action;
-    std::vector< FiltId>            m_ChSets;
-    std::vector< FsaId>             m_Dests;
+    Action                      *m_Action;
+    std::vector< FiltId>        m_ChSets;
+    std::vector< FsaId>         m_Dests;
 
     FsaElem( void)
         : m_Action( NULL)
@@ -157,12 +164,12 @@ struct  FsaElem   : public FsaState
         m_Dests.push_back( dest);
     } 
 
-    Cv_CArr< uint64_t>      Tokens( void) { return m_Action ?  Cv_CArr< uint64_t>( &m_Action->m_Values[ 0], uint32_t( m_Action->m_Values.size())) : Cv_CArr< uint64_t>(); } 
-    Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
-    Cv_CArr< FiltId>        Filters( void) { return m_ChSets.size() ? Cv_CArr< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_CArr< FiltId>(); } 
+    Cv_CArr< uint64_t>          Tokens( void) { return m_Action ?  Cv_CArr< uint64_t>( &m_Action->m_Values[ 0], uint32_t( m_Action->m_Values.size())) : Cv_CArr< uint64_t>(); } 
+    Cv_CArr< FsaId>             Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
+    Cv_CArr< FiltId>            Filters( void) { return m_ChSets.size() ? Cv_CArr< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_CArr< FiltId>(); } 
  
 
-    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -190,12 +197,13 @@ struct FsaClip  : public FsaCrate::Var
 struct  FsaDfaCnstr 
 {
     typedef std::map< FsaSupState*, FsaDfaState *, Cv_TPtrLess< void> >  SupDfaMap;
+
     typedef FsaRepos::Id                            FsaId;
     
      
-    FsaRepos                        *m_FsaRepos; 
-    SupDfaMap                       m_SupDfaMap;                  
-    std::vector< FsaSupState *>     m_FsaStk;
+    FsaRepos                    *m_FsaRepos; 
+    SupDfaMap                   m_SupDfaMap;                  
+    std::vector< FsaSupState *> m_FsaStk;
     
     FsaDfaCnstr( FsaRepos *fsaRepos)
         : m_FsaRepos( fsaRepos)

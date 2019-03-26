@@ -115,15 +115,15 @@ template < typename T>
 
     //_____________________________________________________________________________________________________________________________
 
-template < typename TimbreShard>
-    static auto Dump( TimbreShard *shard, std::ostream &ostr, int k) ->   decltype( std::declval<TimbreShard>().Dump( std::declval<std::ostream>()), bool())
+template < typename T>
+    static auto Dump( T *shard, std::ostream &ostr, int k) ->   decltype( std::declval<T>().Dump( std::declval<std::ostream>()), bool())
     {         
         shard->Dump( ostr);
         return true;
     }
 
- template < typename TimbreShard>
-    static auto Dump( TimbreShard *shard, std::ostream &ostr, ...) -> bool
+ template < typename T>
+    static auto Dump( T *shard, std::ostream &ostr, ...) -> bool
     {         
         return false;
     }

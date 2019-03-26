@@ -427,7 +427,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
     auto		BackrefListener(void) const {
         return [](auto forge) {
-            std::cout << forge->MatchStr() << "\n";
+            //std::cout << forge->MatchStr() << "\n";
             return true;  }; }
 
     auto		WhiteSpaceListener(void) const {
@@ -643,19 +643,19 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
         return [this]( auto forge) {
             forge->Pred< RExpAtom>()->m_ChSet = forge->m_ChSet;
 
-            std::cout << forge->MatchStr() << "\n";
+           // std::cout << forge->MatchStr() << "\n";
             return true;  }; } 
 
     auto        SeqListener(void) const {
         return [this]( auto forge) { 
-            std::cout << forge->MatchStr() << "\n"; 
+           //std::cout << forge->MatchStr() << "\n"; 
             auto            docWhorl = forge->Bottom< RExpDoc>();
             forge->Pred< RExpAtom>()->m_Id = forge->FetchId( docWhorl->m_Repos);
             return true;  }; }
 
     auto        RexpListener(void) const {
         return [this]( auto forge) { 
-            std::cout << forge->MatchStr() << "\n"; 
+            //std::cout << forge->MatchStr() << "\n"; 
             return true;  }; }
 
     auto		Atom( void) const { 
@@ -830,7 +830,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
  
 	auto           RExpressionListener(void) const {
 		return []( auto forge) {
-			std::cout << forge->MatchStr() << "\n"; 
+			//std::cout << forge->MatchStr() << "\n"; 
 			return true;  }; }
 
 	auto          IndexListener(void) const {
@@ -840,7 +840,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 
 	auto          SeqListener(void) const {
 		return [this]( auto forge) { 
-            std::cout << forge->MatchStr() << "\n";
+            //std::cout << forge->MatchStr() << "\n";
             auto        docWhorl = forge->Bottom< RExpDoc>();
  	        forge->Pred< RExpEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
 			return true;  }; }
@@ -857,7 +857,7 @@ template < typename Forge>
 		auto	rexpLine = RExpLine( ); 
 		if (!rexpLine.DoMatch(forge))
 			return false;
-		std::cout << forge->m_Index << "\n";
+		//std::cout << forge->m_Index << "\n";
 		return true;
 	}
 	 

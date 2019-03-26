@@ -13,16 +13,26 @@
 ///_____________________________________________________________________________________________________________________________ 
 
 static Cv_CmdOption     s_RExpIfcOptions[] = 
-{     
-    { 0, 0,  0},
+{         
+    { "-i",     "<input>",  "input rule-file"},
+    { "-d",     0 ,         "debug"},
+    { "-odot",  "<dot>",    0},
+    { "-o",     "<output>", 0},
+    { 0,        0,          0},
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_RExpCmdProcessor : public Cv_CmdExecutor
 { 
+    std::string     m_InputFile;
+    std::string     m_DotFile;
+    bool            m_DebugFlg;
+    std::string     m_OutputFile;
+
 public:
     Sg_RExpCmdProcessor( void)  
+        :  m_DebugFlg( false)
     {}
 
     int     Execute( void);
@@ -36,7 +46,26 @@ public:
 
     bool    ParseArg( const std::string &key, const std::string &arg)
     {
-         
+        if ("-i" == key)
+        {
+            m_InputFile = arg;
+            return true;
+        }
+        if ("-d" == key)
+        {
+            m_DebugFlg = true;
+            return true;
+        }  
+        if ("-odot" == key)
+        {
+            m_DotFile = arg;
+            return true;
+        }  
+        if ("-o" == key)
+        {
+            m_OutputFile = arg;
+            return true;
+        }  
         return false;
     }
 };
@@ -92,29 +121,36 @@ int     Sg_RExpCmdProcessor::Test(void)
 { 
     RExpQuanta                   tx;
     Cv_TypeEngage::Dump( &tx, std::cout, 0);
+    if ( !m_InputFile.size())
+        return 0;
+
 	StrInStream			    memVector;
-	bool	                res = Cv_Aid::ReadVec( &memVector, "ip.rules"); 
+	bool	                res = Cv_Aid::ReadVec( &memVector, m_InputFile.c_str()); 
 	Parser< StrInStream>	parser( &memVector);  
-    parser.SetLogStream( &std::cout);
+    if ( m_DebugFlg)
+        parser.SetLogStream( &std::cout);
     RExpRepos				rexpRepos;
     RExpDoc					rexpDoc; 
-    RExpDoc::XAct           xact( &rexpRepos);
-    parser.SetLogStream( &std::cout);
+    RExpDoc::XAct           xact( &rexpRepos); 
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
     FsaRepos                automRepos;
     AutomReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
     automReposCnstr.Process();  
     FsaDfaCnstr             dfaCnstr( &automRepos);
-    dfaCnstr.SubsetConstruction();
-    std::ofstream           fsaOStrm( "a.dot");
-    Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-
-    automRepos.WriteDot( fsaDotStrm);
+   // dfaCnstr.SubsetConstruction();
+    if ( m_DotFile.size())
+    {
+        std::ofstream           fsaOStrm( m_DotFile);
+        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+        automRepos.WriteDot( fsaDotStrm);
+    }
      
+/*
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);
+    
 	std::ofstream							ostrm( "b.dot");
 	Cv_DotStream						    synDotStrm( &ostrm, false); 
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
@@ -122,6 +158,7 @@ int     Sg_RExpCmdProcessor::Test(void)
 	});
 	synCrate.Clear();
 	bool                    t = true; 
+*/
     return 0;
 }
 
