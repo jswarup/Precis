@@ -1,7 +1,7 @@
-// automcnstr.cpp ___________________________________________________________________________________________________________________
+// sg_fsaelemcnstr.cpp ___________________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_automcnstr.h"
+#include    "segue/tremolo/sg_fsaelemcnstr.h"
 
 using namespace Sg_RExp;
  
