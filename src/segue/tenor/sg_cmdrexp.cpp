@@ -16,7 +16,8 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 {         
     { "-i",     "<input>",  "input rule-file"},
     { "-d",     0 ,         "debug"},
-    { "-odot",  "<dot>",    0},
+    { "-oelem",  "<dot>",    0},
+    { "-odfa",  "<dot>",    0},
     { "-o",     "<output>", 0},
     { 0,        0,          0},
 };
@@ -25,10 +26,11 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 
 class Sg_RExpCmdProcessor : public Cv_CmdExecutor
 { 
-    std::string     m_InputFile;
-    std::string     m_DotFile;
-    bool            m_DebugFlg;
-    std::string     m_OutputFile;
+    std::string         m_InputFile;
+    std::string         m_ElemDotFile;
+    std::string         m_DfaDotFile;
+    bool                m_DebugFlg;
+    std::string         m_OutputFile;
 
 public:
     Sg_RExpCmdProcessor( void)  
@@ -56,11 +58,16 @@ public:
             m_DebugFlg = true;
             return true;
         }  
-        if ("-odot" == key)
+        if ("-oelem" == key)
         {
-            m_DotFile = arg;
+            m_ElemDotFile = arg;
             return true;
         }  
+        if ("-odfa" == key)
+        {
+            m_DfaDotFile = arg;
+            return true;
+        }
         if ("-o" == key)
         {
             m_OutputFile = arg;
@@ -137,13 +144,20 @@ int     Sg_RExpCmdProcessor::Test(void)
     FsaRepos                automRepos;
     FsaElemReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
     automReposCnstr.Process();  
-    FsaDfaCnstr             dfaCnstr( &automRepos);
-    dfaCnstr.SubsetConstruction();
-    if ( m_DotFile.size())
+    if ( m_ElemDotFile.size())
     {
-        std::ofstream           fsaOStrm( m_DotFile);
+        std::ofstream           fsaOStrm( m_ElemDotFile);
         Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
         automRepos.WriteDot( fsaDotStrm);
+    }
+    FsaRepos                dfaRepos;
+    FsaDfaCnstr             dfaCnstr( &automRepos, &dfaRepos);
+    dfaCnstr.SubsetConstruction();
+    if ( m_DfaDotFile.size())
+    {
+        std::ofstream           fsaOStrm( m_DfaDotFile);
+        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+        dfaRepos.WriteDot( fsaDotStrm);
     }
      
 /*

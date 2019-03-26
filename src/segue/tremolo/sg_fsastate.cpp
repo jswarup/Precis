@@ -56,7 +56,7 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
-Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
+Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
 { 
     Sg_CharDistrib      distrib;
 
@@ -67,11 +67,11 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *fsaRepos)
     Cv_CArr< FsaId>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
-        FsaClip             state = fsaRepos->ToVar( subStates[ i]);
+        FsaClip             state = elemRepos->ToVar( subStates[ i]);
         Cv_CArr< FiltId>   filters = state.Filters();
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
-            ChSetFilter     *chSet = fsaRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             prtnIntersector.Process( *chSet, CV_UINT32_MAX);
         }
          
@@ -108,14 +108,14 @@ bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
-    FsaRepos                        *fsaRepos = dfaCnstr->m_FsaRepos;
+    FsaRepos                        *dfaRepos = dfaCnstr->m_DfaRepos;
     Cv_CArr< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
-        fsaRepos->Destroy( GetId());
+        dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    Sg_CharDistrib                  distrib = RefineCharDistrib( fsaRepos);
+    Sg_CharDistrib                  distrib = RefineCharDistrib( dfaCnstr->m_ElemRepos);
     std::vector< Sg_ChSet>          domain = distrib.Domain();
     uint32_t                        sz = uint32_t( domain.size());
     Cv_Array< FsaSupState *, 256>   subSupStates;
@@ -128,7 +128,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaId               stateId = subStates[ i];
-        FsaClip             state = fsaRepos->ToVar( stateId);
+        FsaClip             state = dfaCnstr->m_ElemRepos->ToVar( stateId);
         dfaState->ExtractActionFrom( state.Tokens());
 
         Cv_CArr< FsaId>     dests = state.Dests();
@@ -136,7 +136,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         for ( uint32_t j = 0; j < dests.Size(); ++j)
         {
             FsaId               dest =  dests[ j];
-            ChSetFilter         *chSet = fsaRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter         *chSet = dfaCnstr->m_ElemRepos->m_FilterRepos.ToVar( filters[ j]);
             for ( uint32_t k = 0; k < sz; ++k)
             {
                 const Sg_ChSet  &ccl = domain[ k]; 
@@ -145,7 +145,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             }
         }
     }  
-    fsaRepos->StoreAt( GetId(), dfaState);
+    dfaRepos->StoreAt( GetId(), dfaState);
     dfaCnstr->m_SupDfaMap.insert( std::pair( this, dfaState));
     for ( uint32_t k = 0; k < sz; ++k)
     {
@@ -159,7 +159,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             continue;
         }
         
-        auto            subId = fsaRepos->Store( subSupState);
+        auto            subId = dfaRepos->Store( subSupState);
         dfaState->m_Dests.push_back( subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
@@ -199,8 +199,8 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 void    FsaDfaCnstr::SubsetConstruction( void)
 { 
     
-    FsaSupState     *supRootState = m_FsaRepos->Construct< FsaSupState>(); 
-    supRootState->m_SubStates.push_back( m_FsaRepos->m_RootId);
+    FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
+    supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     m_FsaStk.push_back( supRootState);
     while ( m_FsaStk.size())
     {

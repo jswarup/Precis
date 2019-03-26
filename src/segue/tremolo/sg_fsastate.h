@@ -101,7 +101,7 @@ struct FsaSupState  : public FsaState
 
     Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); } 
     
-    Sg_CharDistrib          RefineCharDistrib( FsaRepos *fsaRepos);
+    Sg_CharDistrib          RefineCharDistrib( FsaRepos *elemRepos);
     FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 }; 
@@ -201,12 +201,13 @@ struct  FsaDfaCnstr
     typedef FsaRepos::Id                            FsaId;
     
      
-    FsaRepos                    *m_FsaRepos; 
+    FsaRepos                    *m_ElemRepos; 
+    FsaRepos                    *m_DfaRepos;
     SupDfaMap                   m_SupDfaMap;                  
     std::vector< FsaSupState *> m_FsaStk;
     
-    FsaDfaCnstr( FsaRepos *fsaRepos)
-        : m_FsaRepos( fsaRepos)
+    FsaDfaCnstr( FsaRepos *elemRepos, FsaRepos *dfaRepos)
+        : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos)
     {}
     
     void    SubsetConstruction( void);
