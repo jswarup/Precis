@@ -1,4 +1,4 @@
-//  fsaelemcnstr.h ___________________________________________________________________________________________________________________
+//  sg_fsaelemcnstr.h ___________________________________________________________________________________________________________________
 #pragma once
 
 
@@ -12,26 +12,26 @@ namespace Sg_RExp
 {
 //_____________________________________________________________________________________________________________________________ 
 
-struct      AutomCnstr;
-struct      AutomReposCnstr;
+struct      FsaElemCnstr;
+struct      FsaElemReposCnstr;
 
-typedef Cv_Slot< AutomCnstr>    AutomSlot;
+typedef Cv_Slot< FsaElemCnstr>    AutomSlot;
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  AutomCnstr   : public Cv_ReposEntry, public Cv_Shared
+struct  FsaElemCnstr   : public Cv_ReposEntry, public Cv_Shared
 { 
-    AutomReposCnstr                 *m_Repos;
-    FsaElem                         *m_State;
-    std::set< AutomCnstr *>         m_EpsDests; 
-    std::set< uint32_t>             m_EpsSourceIds;
+    FsaElemReposCnstr           *m_Repos;
+    FsaElem                     *m_State;
+    std::set< FsaElemCnstr *>   m_EpsDests; 
+    std::set< uint32_t>         m_EpsSourceIds;
 
 public:
-    AutomCnstr( AutomReposCnstr *repos)  
+    FsaElemCnstr( FsaElemReposCnstr *repos)  
         : m_Repos( repos)
     {}  
  
-    ~AutomCnstr( void); 
+    ~FsaElemCnstr( void); 
     
     const char		*GetName( void) const { return "Spur"; }
 
@@ -61,13 +61,13 @@ public:
 
 //_____________________________________________________________________________________________________________________________  
  
-struct AutomReposCnstr 
+struct FsaElemReposCnstr 
 {
     RExpRepos				        *m_RexpRepos; 
     FsaRepos                        *m_AutomRepos;
-    std::vector< AutomCnstr *>      m_Cnstrs;
+    std::vector< FsaElemCnstr *>      m_Cnstrs;
 
-    AutomReposCnstr(  RExpRepos *rexpRepos, FsaRepos *automRepos)
+    FsaElemReposCnstr(  RExpRepos *rexpRepos, FsaRepos *automRepos)
         : m_RexpRepos( rexpRepos), m_AutomRepos( automRepos)
     { 
         m_Cnstrs.push_back( NULL);
@@ -75,7 +75,7 @@ struct AutomReposCnstr
 
     AutomSlot   ConstructCnstr( void)
     {
-        AutomSlot   x = new AutomCnstr( this);  
+        AutomSlot   x = new FsaElemCnstr( this);  
         x->SetId( m_AutomRepos->Size()); 
         x->m_State = m_AutomRepos->Construct< FsaElem>();  
         m_Cnstrs.push_back( x);

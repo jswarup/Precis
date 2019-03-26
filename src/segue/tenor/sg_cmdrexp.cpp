@@ -5,7 +5,7 @@
 #include    "cove/snip/cv_cmdexec.h" 
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
-#include    "segue/tremolo/sg_automcnstr.h"
+#include    "segue/tremolo/sg_fsaelemcnstr.h"
 
 #include	<utility>
 #include	<tuple>
@@ -135,10 +135,10 @@ int     Sg_RExpCmdProcessor::Test(void)
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
     FsaRepos                automRepos;
-    AutomReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
+    FsaElemReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
     automReposCnstr.Process();  
     FsaDfaCnstr             dfaCnstr( &automRepos);
-   // dfaCnstr.SubsetConstruction();
+    dfaCnstr.SubsetConstruction();
     if ( m_DotFile.size())
     {
         std::ofstream           fsaOStrm( m_DotFile);

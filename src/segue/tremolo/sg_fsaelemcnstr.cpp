@@ -7,7 +7,7 @@ using namespace Sg_RExp;
  
 //_____________________________________________________________________________________________________________________________
 
-AutomCnstr::~AutomCnstr( void)  
+FsaElemCnstr::~FsaElemCnstr( void)  
 {
 
     FinalizeEpsLinks(); 
@@ -18,7 +18,7 @@ AutomCnstr::~AutomCnstr( void)
 
 //_____________________________________________________________________________________________________________________________  
 
-void    AutomCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
+void    FsaElemCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
 { 
     dest->m_State->RaiseRef();
     auto        filtId = m_Repos->m_AutomRepos->m_FilterRepos.Push( ChSetFilter( chSet));
@@ -27,7 +27,7 @@ void    AutomCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest)
 
 //_____________________________________________________________________________________________________________________________   
 
-void    AutomCnstr::FinalizeEpsLinks( void)
+void    FsaElemCnstr::FinalizeEpsLinks( void)
 {  
     // state is frozen: It should meet its obligation to export its OutTransitions to its eps-sourcces.
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
@@ -44,11 +44,11 @@ void    AutomCnstr::FinalizeEpsLinks( void)
                 srcState->AddEdge( m_State->m_ChSets[ i], m_State->m_Dests[ i]);  
         }
 
-        AutomCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
+        FsaElemCnstr      *srcCnstr = m_Repos->m_Cnstrs.at( *sIt);
         // export all this state eps-transistions to the eps-source  
         for ( auto dIt = m_EpsDests.begin(); dIt != m_EpsDests.end(); ++dIt)
         {
-            AutomCnstr      *destCnstr = *dIt;
+            FsaElemCnstr      *destCnstr = *dIt;
             if ( srcCnstr)
                 srcCnstr->AddEpsDest( destCnstr); 
             else
@@ -62,7 +62,7 @@ void    AutomCnstr::FinalizeEpsLinks( void)
 
 //_____________________________________________________________________________________________________________________________   
 
-bool    AutomCnstr::WriteDot( Cv_DotStream &strm)  
+bool    FsaElemCnstr::WriteDot( Cv_DotStream &strm)  
 {
 
     for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
@@ -74,7 +74,7 @@ bool    AutomCnstr::WriteDot( Cv_DotStream &strm)
 }
 //_____________________________________________________________________________________________________________________________
 
-void    AutomReposCnstr::Process( void)
+void    FsaElemReposCnstr::Process( void)
 { 
     AutomSlot                       start =  ConstructCnstr();
     start->m_State->RaiseRef();
@@ -89,7 +89,7 @@ void    AutomReposCnstr::Process( void)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    AutomReposCnstr::WriteDot( const std::string &str)
+bool    FsaElemReposCnstr::WriteDot( const std::string &str)
 {
     std::ofstream           rexpOStrm( str);
     Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
@@ -97,7 +97,7 @@ bool    AutomReposCnstr::WriteDot( const std::string &str)
     m_AutomRepos->WriteDot( rexpDotStrm);
     for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
     {
-        AutomCnstr  *si = m_Cnstrs[ i];
+        FsaElemCnstr  *si = m_Cnstrs[ i];
         if (si)
             si->WriteDot( rexpDotStrm); 
     }
