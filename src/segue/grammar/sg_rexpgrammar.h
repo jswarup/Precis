@@ -18,15 +18,20 @@ using namespace Sg_Timbre;
 struct      RExpDoc;
 struct      RExpQuanta;
 struct      RExpDocSynElem;
-struct      RExpSynElem;
+struct      RExpEntrySeqElem;
 
-typedef Cv_Crate< RExpDocSynElem, RExpSynElem,  SynParserCrate>     RExpCrate; 
+typedef Cv_Crate<  RExpEntrySeqElem,  SynParserCrate>     RExpCrate; 
 
 //_____________________________________________________________________________________________________________________________
 
 struct RExpRepos : public Cv_CrateRepos< RExpCrate>                                   
 {
-    RExpRepos::Id     m_RootId;
+    RExpRepos::Id               m_RootId; 
+    uint32_t                    m_RuleSz;
+        
+    RExpRepos( void)
+        : m_RuleSz( 0)
+    {}
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -49,18 +54,13 @@ struct RExpPrimitive
 
 //_____________________________________________________________________________________________________________________________
 
-struct      RExpSynElem : public SynElem 
+struct      RExpEntrySeqElem : public SeqSynElem 
 { 
-	Cv_CrateId		m_Item;
-
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "XMLElem", GetId()); } 
-
-	bool    WriteDot( Cv_DotStream &strm)  
-	{
-		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
-		strm << " </FONT>>];\n "; 
-		return true;
-	} 
+	uint32_t    m_RuleIndex;  
+    
+    RExpEntrySeqElem( uint32_t rInd)
+        : m_RuleIndex( rInd)
+    {}
 };
 
 
@@ -820,7 +820,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
         RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
             auto    actElem = new ActionSynElem();
-            auto    synElem = new SeqSynElem();
+            auto    synElem = new RExpEntrySeqElem( repos->m_RuleSz++);
             synElem->m_SeqList = m_RExps; 
             actElem->m_Elem = repos->Store( synElem);  
             actElem->m_Token = m_Index;
@@ -858,15 +858,11 @@ template < typename Forge>
 		if (!rexpLine.DoMatch(forge))
 			return false;
 		//std::cout << forge->m_Index << "\n";
+        auto        docWhorl = forge->Bottom< RExpDoc>(); 
 		return true;
 	}
 	 
-template < typename Cnstr>
-	auto        FetchElemId( Cnstr *cnstr)
-	{  
-		auto	elem = new RExpSynElem();  
-		return cnstr->Store( elem);
-	}
+ 
     void    Dump( std::ostream &ostr) const
     {
         ostr << "Entry";
@@ -891,7 +887,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
-        std::vector< RExpRepos::Id>     m_RExps; 
+        std::vector< RExpRepos::Id>     m_RExps;  
         
         bool    PrimeIn( XAct *xact)
         {
@@ -907,7 +903,7 @@ struct RExpDoc  : public Shard< RExpDoc>
 
         RExpRepos::Id           FetchId( RExpRepos *repos) 
         {
-            auto    synElem = new AltSynElem();
+            auto    synElem = new RExpDocSynElem();
             synElem->m_AltList = m_RExps; 
             return repos->Store( synElem);        
         }
@@ -939,15 +935,7 @@ template < typename Forge>
 			return false;   
 		return true;
 	} 
-
-template < typename Cnstr>
-	auto        FetchElemId( Cnstr *cnstr)
-	{  
-		auto	elem = new RExpDocSynElem();  
-		auto	node = Document();
-		elem->m_Item = cnstr->FetchElemId( &node);
-		return cnstr->Store( elem);
-	} 
+ 
     void    Dump( std::ostream &ostr) const
     {
         return;

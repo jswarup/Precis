@@ -7,7 +7,7 @@
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
       "args": [
-        "rexp -i ip_5hk.rules -odot a.dot"
+        "rexp -i ip.rules -odfa a.dot"
       ]
     }
   ],

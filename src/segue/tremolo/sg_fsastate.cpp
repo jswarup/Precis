@@ -109,13 +109,14 @@ bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
     FsaRepos                        *dfaRepos = dfaCnstr->m_DfaRepos;
+    FsaElemRepos                    *elemRepos = dfaCnstr->m_ElemRepos;
     Cv_CArr< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
         dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    Sg_CharDistrib                  distrib = RefineCharDistrib( dfaCnstr->m_ElemRepos);
+    Sg_CharDistrib                  distrib = RefineCharDistrib( elemRepos);
     std::vector< Sg_ChSet>          domain = distrib.Domain();
     uint32_t                        sz = uint32_t( domain.size());
     Cv_Array< FsaSupState *, 256>   subSupStates;
@@ -128,7 +129,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaId               stateId = subStates[ i];
-        FsaClip             state = dfaCnstr->m_ElemRepos->ToVar( stateId);
+        FsaClip             state = elemRepos->ToVar( stateId);
         dfaState->ExtractActionFrom( state.Tokens());
 
         Cv_CArr< FsaId>     dests = state.Dests();
@@ -136,7 +137,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         for ( uint32_t j = 0; j < dests.Size(); ++j)
         {
             FsaId               dest =  dests[ j];
-            ChSetFilter         *chSet = dfaCnstr->m_ElemRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter         *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             for ( uint32_t k = 0; k < sz; ++k)
             {
                 const Sg_ChSet  &ccl = domain[ k]; 
@@ -146,20 +147,22 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         }
     }  
     dfaRepos->StoreAt( GetId(), dfaState);
-    dfaCnstr->m_SupDfaMap.insert( std::pair( this, dfaState));
+    m_DfaStateMap->Insert( this, dfaState);
     for ( uint32_t k = 0; k < sz; ++k)
     {
-        FsaSupState     *subSupState = subSupStates[ k];
+        FsaSupState         *subSupState = subSupStates[ k];
         std::sort( subSupState->m_SubStates.begin(), subSupState->m_SubStates.end()); 
-        auto            it = dfaCnstr->m_SupDfaMap.find( subSupState);
-        if ( it != dfaCnstr->m_SupDfaMap.end())
+        FsaDfaStateMap      *dfaStateMap = dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
+        FsaDfaState         *subDfaState = dfaStateMap->Find( subSupState);
+        if ( subDfaState)
         {
-            dfaState->m_Dests.push_back( FsaRepos::ToId( it->second)); 
+            dfaState->m_Dests.push_back( FsaRepos::ToId( subDfaState)); 
             delete subSupState;
             continue;
         }
         
         auto            subId = dfaRepos->Store( subSupState);
+        subSupState->m_DfaStateMap = dfaStateMap;
         dfaState->m_Dests.push_back( subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
@@ -201,6 +204,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
+    supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
     m_FsaStk.push_back( supRootState);
     while ( m_FsaStk.size())
     {

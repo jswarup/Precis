@@ -141,7 +141,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     RExpDoc::XAct           xact( &rexpRepos); 
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
-    FsaRepos                automRepos;
+    FsaElemRepos                automRepos;
     FsaElemReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
     automReposCnstr.Process();  
     if ( m_ElemDotFile.size())
