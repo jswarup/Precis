@@ -3,7 +3,7 @@
 #include    "segue/tenor/sg_include.h"
 #include    "segue/tremolo/sg_fsastate.h" 
 
-using namespace Sg_RExp;
+using namespace Sg_RExp; 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -120,7 +120,6 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     std::vector< Sg_ChSet>          domain = distrib.Domain();
     uint32_t                        sz = uint32_t( domain.size());
     Cv_Array< FsaSupState *, 256>   subSupStates;
-    FsaDfaState                     *dfaState = new FsaDfaState();
     for ( uint32_t k = 0; k < sz; ++k)
     {
         FsaSupState     *subSupState = new FsaSupState();
@@ -130,30 +129,39 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     {
         FsaId               stateId = subStates[ i];
         FsaClip             state = elemRepos->ToVar( stateId);
-        dfaState->ExtractActionFrom( state.Tokens());
+        
 
-        Cv_CArr< FsaId>     dests = state.Dests();
+        Cv_CArr< FsaId>     destStateIds = state.Dests();
         Cv_CArr< FiltId>    filters = state.Filters();
-        for ( uint32_t j = 0; j < dests.Size(); ++j)
+        for ( uint32_t j = 0; j < destStateIds.Size(); ++j)
         {
-            FsaId               dest =  dests[ j];
+            FsaId               destStateId =  destStateIds[ j];
             ChSetFilter         *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             for ( uint32_t k = 0; k < sz; ++k)
             {
                 const Sg_ChSet  &ccl = domain[ k]; 
                 if ( chSet->IsIntersect( ccl))
-                    subSupStates[ k]->m_SubStates.push_back( dest);  
+                {
+                    subSupStates[ k]->m_SubStates.push_back( destStateId);  
+                    subSupStates[ k]->PushAction( FsaClip( elemRepos->ToVar( destStateId)).Tokens());
+                }
             }
         }
     }  
+    FsaDfaState             *dfaState = new FsaDfaState();
+    
     dfaRepos->StoreAt( GetId(), dfaState);
+    dfaState->m_Action = DetachAction();
     m_DfaStateMap->Insert( this, dfaState);
     for ( uint32_t k = 0; k < sz; ++k)
     {
-        FsaSupState         *subSupState = subSupStates[ k];
-        std::sort( subSupState->m_SubStates.begin(), subSupState->m_SubStates.end()); 
-        FsaDfaStateMap      *dfaStateMap = dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
-        FsaDfaState         *subDfaState = dfaStateMap->Find( subSupState);
+        FsaSupState                 *subSupState = subSupStates[ k];
+        std::sort( subSupState->m_SubStates.begin(), subSupState->m_SubStates.end());
+        if ( subSupState->m_Action)
+            std::sort( subSupState->m_Action->m_Values.begin(), subSupState->m_Action->m_Values.end()); 
+ 
+        Cv_Slot< FsaDfaStateMap>    dfaStateMap = dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
+        FsaDfaState                 *subDfaState = dfaStateMap->Find( subSupState);
         if ( subDfaState)
         {
             dfaState->m_Dests.push_back( FsaRepos::ToId( subDfaState)); 
@@ -166,8 +174,21 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaState->m_Dests.push_back( subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
-    
+    m_DfaStateMap = Cv_Slot< FsaDfaStateMap>();
     return dfaState;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+FsaDfaStateMap::~FsaDfaStateMap( void)
+{
+    if ( m_Cltn)
+    {
+        m_Cltn->Erase( this);
+        FsaRepos    *dfaRepos = m_Cltn->m_DfaCnstr->m_DfaRepos;
+        for ( auto it = m_SupDfaMap.begin(); it != m_SupDfaMap.end(); ++it) 
+            delete it->first; 
+    }
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -200,8 +221,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 //_____________________________________________________________________________________________________________________________
 
 void    FsaDfaCnstr::SubsetConstruction( void)
-{ 
-    
+{  
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
@@ -209,11 +229,9 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     while ( m_FsaStk.size())
     {
         FsaSupState     *supState = m_FsaStk.back();
-        m_FsaStk.pop_back();
- 
+        m_FsaStk.pop_back(); 
 
-        FsaDfaState             *dfaState = supState->DoConstructTransisition( this); 
-        
+        FsaDfaState             *dfaState = supState->DoConstructTransisition( this);  
     }
     return;
 }

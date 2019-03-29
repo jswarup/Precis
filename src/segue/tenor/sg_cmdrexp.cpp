@@ -141,13 +141,13 @@ int     Sg_RExpCmdProcessor::Test(void)
     RExpDoc::XAct           xact( &rexpRepos); 
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
 
-    FsaElemRepos                automRepos;
-    FsaElemReposCnstr         automReposCnstr(  &rexpRepos, &automRepos);
+    FsaElemRepos            automRepos;
+    FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &automRepos);
     automReposCnstr.Process();  
     if ( m_ElemDotFile.size())
     {
-        std::ofstream           fsaOStrm( m_ElemDotFile);
-        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+        std::ofstream       fsaOStrm( m_ElemDotFile);
+        Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
         automRepos.WriteDot( fsaDotStrm);
     }
     FsaRepos                dfaRepos;

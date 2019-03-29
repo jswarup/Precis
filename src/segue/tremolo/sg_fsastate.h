@@ -22,6 +22,7 @@ struct    FsaSupState;
 struct    FsaDfaState;
 struct    FsaDfaCnstr;
 struct    FsaDfaStateMap;
+struct    FsaDfaStateMapCltn;
 
 typedef Cv_Crate< FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 
@@ -43,6 +44,18 @@ struct  Action
         uint32_t        oldSz = uint32_t( m_Values.size());
         m_Values.resize( oldSz + tokens.Size());
         std::copy( tokens.Begin(), tokens.End(), &m_Values[ oldSz]);
+    }
+
+    int32_t         Compare( const Action &x2) const 
+    {
+        if ( m_Values.size() != x2.m_Values.size())
+            return m_Values.size() < x2.m_Values.size() ? 1 : -1;
+        const uint64_t       *arr1 = &m_Values[ 0];
+        const uint64_t       *arr2 = &x2.m_Values[ 0];
+        for ( uint32_t i = 0; i < m_Values.size(); ++i)
+            if ( arr1[ i] != arr2[ i])
+                return arr1[ i] < arr2[ i] ? 1 : -1;
+        return 0;
     }
 };
 
@@ -99,11 +112,19 @@ struct  FsaElemRepos  : public FsaRepos
 
 struct FsaSupState  : public FsaState
 {   
-    FsaDfaStateMap                  *m_DfaStateMap;
+    Cv_Slot< FsaDfaStateMap>        m_DfaStateMap;
     std::vector< FsaId>             m_SubStates;  
+    Action                          *m_Action; 
+
+    FsaSupState( void)
+        : m_Action( NULL)
+    {}
 
     ~FsaSupState( void)
-    {}
+    {
+        if ( m_Action)
+            delete m_Action;
+    }
 
     int32_t     Compare( const FsaSupState &x2) const 
     {
@@ -114,7 +135,11 @@ struct FsaSupState  : public FsaState
         for ( uint32_t i = 0; i < m_SubStates.size(); ++i)
             if ( arr1[ i] != arr2[ i])
                 return arr1[ i] < arr2[ i] ? 1 : -1;
-        return 0;
+        if ( !m_Action != !x2.m_Action)
+            return !m_Action > !x2.m_Action ? -1 : 1;
+        if ( m_Action == x2.m_Action) 
+            return 0;         
+        return m_Action->Compare( *x2.m_Action);
     } 
 
     Cv_CArr< FsaId>             SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); }
@@ -127,6 +152,25 @@ struct FsaSupState  : public FsaState
         return ruleIds;
     }
 
+    void                        PushAction( const Cv_CArr< uint64_t>  &tokens)
+    { 
+        if ( !tokens.Size())
+            return;
+        if ( !m_Action)
+            m_Action = new Action();
+         
+        m_Action->Push( tokens);
+ 
+        return;
+    }
+    
+    Action                      *DetachAction( void) 
+    { 
+        Action  *act = m_Action; 
+        m_Action = NULL;
+        return act;
+    }
+    
     Sg_CharDistrib              RefineCharDistrib( FsaRepos *elemRepos);
     FsaDfaState                 *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
@@ -154,15 +198,7 @@ struct FsaDfaState  : public FsaState
  
     
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
-    void                    ExtractActionFrom( const Cv_CArr< uint64_t> &tokens)
-    {
-        if ( !tokens.Size())
-            return;
-        if ( !m_Action)
-            m_Action = new Action();
-        m_Action->Push( tokens);
-        return;
-    }
+    
 }; 
 
 
@@ -224,13 +260,16 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
 {   
     typedef std::map< FsaSupState*, FsaDfaState *, Cv_TPtrLess< void> >     SupDfaMap;
 
+    FsaDfaStateMapCltn      *m_Cltn; 
     std::set< uint32_t>     m_Ruleset;
     SupDfaMap               m_SupDfaMap;
     
-    FsaDfaStateMap( const std::set< uint32_t> &ruleset)
-        : m_Ruleset( ruleset)
+    FsaDfaStateMap(  const std::set< uint32_t> &ruleset)
+        : m_Cltn( NULL), m_Ruleset( ruleset)
     {}
 
+    ~FsaDfaStateMap( void);
+  
     int32_t     Compare( const FsaDfaStateMap &dsMap) const
     {
         if ( m_Ruleset.size() != dsMap.m_Ruleset.size())
@@ -259,21 +298,32 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
 
 struct  FsaDfaStateMapCltn
 {
-    std::set< FsaDfaStateMap *, Cv_TPtrLess< void> >      m_Maps;
-      
-    FsaDfaStateMap    *Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
+    FsaDfaCnstr                                         *m_DfaCnstr;
+    std::set< FsaDfaStateMap *, Cv_TPtrLess< void> >    m_Maps;
+    
+    FsaDfaStateMapCltn( FsaDfaCnstr *cnstr)
+        : m_DfaCnstr( cnstr)
+    {}
+    void    Erase( FsaDfaStateMap  *dsMap)
+    {
+        m_Maps.erase( dsMap);
+    }
+    
+    Cv_Slot< FsaDfaStateMap>    Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
     {
         FsaDfaStateMap  *dfaStatemap = new FsaDfaStateMap( supState->RuleIds( elemRepos));
         auto            it =  m_Maps.lower_bound( dfaStatemap);
-        if (( it == m_Maps.end())  || m_Maps.key_comp()( *it, dfaStatemap))
+        if (( it == m_Maps.end())  || m_Maps.key_comp()( dfaStatemap, *it))
         {   
             m_Maps.insert( it, dfaStatemap);
+            dfaStatemap->m_Cltn = this;         
             return dfaStatemap;
         }
         delete dfaStatemap;
         return *it;           
     }
-  
+    
+    
 };
  
 //_____________________________________________________________________________________________________________________________ 
@@ -289,7 +339,7 @@ struct  FsaDfaCnstr
     FsaDfaStateMapCltn                  m_SupDfaCltn;
     
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaRepos *dfaRepos)
-        : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos)
+        : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_SupDfaCltn( this)
     {}
     
     void    SubsetConstruction( void);

@@ -90,14 +90,18 @@ struct FsaElemReposCnstr
     
     void    Proliferate( ActionSynElem *elm, const AutomSlot &start, const AutomSlot &end)
     {
+
+        AutomSlot       actor =  ConstructCnstr();
+        actor->AddEpsDest( end);
+
         RExpCrate::Var      elemVar = m_RexpRepos->ToVar( elm->m_Elem); 
 
-        elemVar( [ this, &start, &end](  auto k) {
-                Proliferate( k, start, end);
+        elemVar( [ this, &start, &actor](  auto k) {
+                Proliferate( k, start, actor);
             });
-        if ( !end->m_State->m_Action)
-            end->m_State->m_Action = new Action();
-        end->m_State->m_Action->Push( elm->m_Token);
+        if ( !actor->m_State->m_Action)
+            actor->m_State->m_Action = new Action();
+        actor->m_State->m_Action->Push( elm->m_Token);
         return;   
     }
 
