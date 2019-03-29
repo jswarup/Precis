@@ -3,6 +3,7 @@
 
 
 #include    "segue/tremolo/sg_fsastate.h"
+#include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 
