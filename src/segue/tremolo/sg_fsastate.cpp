@@ -156,11 +156,9 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     for ( uint32_t k = 0; k < sz; ++k)
     {
         FsaSupState                 *subSupState = subSupStates[ k];
-        std::sort( subSupState->m_SubStates.begin(), subSupState->m_SubStates.end());
-        if ( subSupState->m_Action)
-            std::sort( subSupState->m_Action->m_Values.begin(), subSupState->m_Action->m_Values.end()); 
- 
-        Cv_Slot< FsaDfaStateMap>    dfaStateMap = dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
+        subSupState->Freeze();
+    
+        Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
         FsaDfaState                 *subDfaState = dfaStateMap->Find( subSupState);
         if ( subDfaState)
         {

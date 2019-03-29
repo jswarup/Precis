@@ -101,9 +101,8 @@ struct  FsaElemRepos  : public FsaRepos
 
     uint32_t        RuleIdFromState( uint32_t k) const 
     {
-        auto it = std::lower_bound( m_RuleIdSzList.begin(), m_RuleIdSzList.end(), k);
-        CV_ERROR_ASSERT( it != m_RuleIdSzList.end());
-        return *it;
+        auto it = std::upper_bound( m_RuleIdSzList.begin(), m_RuleIdSzList.end(), k); 
+        return std::distance(  m_RuleIdSzList.begin(), it);
     }
  
 };
@@ -148,7 +147,7 @@ struct FsaSupState  : public FsaState
     {  
         std::set< uint32_t>    ruleIds; 
         for ( uint32_t i = 0; i < m_SubStates.size(); ++i)
-            ruleIds.insert( fsaElemRepos->RuleIdFromState( m_SubStates[ 0].GetId()));
+            ruleIds.insert( fsaElemRepos->RuleIdFromState( m_SubStates[ i].GetId()));
         return ruleIds;
     }
 
@@ -157,13 +156,19 @@ struct FsaSupState  : public FsaState
         if ( !tokens.Size())
             return;
         if ( !m_Action)
-            m_Action = new Action();
-         
+            m_Action = new Action(); 
         m_Action->Push( tokens);
- 
         return;
     }
-    
+
+    void                        Freeze( void)
+    {
+        std::sort( m_SubStates.begin(), m_SubStates.end());
+        if ( m_Action)
+            std::sort( m_Action->m_Values.begin(), m_Action->m_Values.end()); 
+        return;
+    }
+ 
     Action                      *DetachAction( void) 
     { 
         Action  *act = m_Action; 
@@ -304,6 +309,7 @@ struct  FsaDfaStateMapCltn
     FsaDfaStateMapCltn( FsaDfaCnstr *cnstr)
         : m_DfaCnstr( cnstr)
     {}
+
     void    Erase( FsaDfaStateMap  *dsMap)
     {
         m_Maps.erase( dsMap);
