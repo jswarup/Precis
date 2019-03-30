@@ -83,38 +83,38 @@ struct FsaSupState  : public FsaState
     bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 }; 
 
-
 //_____________________________________________________________________________________________________________________________ 
 
 struct FsaDfaState  : public FsaState
 {  
 private:
-    Action                  *m_Action;
-    std::vector< FsaId>     m_Dests; 
+    uint8_t                 m_DestSz;
+    uint8_t                 m_TokSz; 
 
-    FsaDfaState( void)
-        : m_Action( NULL)
+    FsaDfaState( uint8_t dSz, uint8_t tokSz) 
+        : m_DestSz( dSz), m_TokSz( tokSz)
     {}
 
 public:
     ~FsaDfaState( void)
-    {
-        if ( m_Action)
-            delete m_Action;
-    }
+    {} 
 
+    uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
     static FsaDfaState      *Construct( uint8_t sz, Action *action)
     {
-        FsaDfaState     *dfaState = new FsaDfaState();
-        dfaState->m_Action = action;
-        dfaState->m_Dests.resize( sz);
+        uint8_t         szTok = action  ? uint8_t( action->m_Values.size()) : 0;
+        auto            memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
+        FsaDfaState     *dfaState = new (new uint8_t[ memSz]) FsaDfaState( sz, szTok); 
+        uint64_t        *toks = dfaState->Tokens().Ptr();
+        for ( uint32_t i = 0; i < szTok; ++i)
+            toks[ i] = action->m_Values[ i];
         return dfaState;
     }
 
-    void                    SetDest( uint8_t k, FsaId fsaId) {   m_Dests[ k] = fsaId; }
+    Cv_CArr< FsaId>         Dests( void) { return m_DestSz ? Cv_CArr< FsaId>( ( FsaId *) PastPtr(), uint32_t( m_DestSz)) : Cv_CArr< FsaId>(); } 
+    void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }
 
-    Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); } 
-
+    Cv_CArr< uint64_t>      Tokens( void) { return m_TokSz ? Cv_CArr< uint64_t>( ( uint64_t *) ( PastPtr() + m_DestSz * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_CArr< uint64_t>(); } 
 
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 

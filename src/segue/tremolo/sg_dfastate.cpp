@@ -146,13 +146,14 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 { 
     strm << 'R' << GetId() << " [ shape=";
 
-    if ( m_Action)
+    uint64_t        *toks = Tokens().Ptr();
+    if ( toks)
         strm << "box";
     else
         strm << "ellipse";
     strm << " color=Red label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
-    for ( uint32_t i = 0; m_Action && ( i < m_Action->m_Values.size()); ++i)
-        strm << " T" << m_Action->m_Values[ i];
+    for ( uint32_t i = 0; i < m_TokSz; ++i)
+        strm << " T" << toks[ i];
     strm << " </FONT>>];\n "; 
 
     Cv_CArr< FsaId>    dests = Dests(); 
