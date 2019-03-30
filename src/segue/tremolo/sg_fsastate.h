@@ -61,7 +61,7 @@ struct  Action
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct FsaState  : public Cv_CrateEntry, public Cv_Shared
+struct FsaState  : public Cv_CrateEntry
 {
     typedef  Id                 FsaId;
 
@@ -109,7 +109,7 @@ struct  FsaElemRepos  : public FsaRepos
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  FsaElem   : public FsaState
+struct  FsaElem   : public FsaState, public Cv_Shared
 {      
     Action                      *m_Action;
     std::vector< FiltId>        m_ChSets;

@@ -40,7 +40,7 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
 bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << 'R' << GetId() << " [ shape=oval";
-    strm << " color=purple label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ; 
+    strm << " color=purple label= <<FONT> N" << GetId() << "<BR />" << "<BR />" ; 
     strm << " </FONT>>];\n "; 
 
     Cv_CArr< FsaId>    subStates = SubStates(); 
@@ -151,7 +151,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=Red label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
+    strm << " color=Red label= <<FONT> N" << GetId() << "<BR />" <<   "<BR />" ;
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n "; 

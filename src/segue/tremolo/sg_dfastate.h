@@ -88,8 +88,8 @@ struct FsaSupState  : public FsaState
 struct FsaDfaState  : public FsaState
 {  
 private:
-    uint8_t                 m_DestSz;
-    uint8_t                 m_TokSz; 
+    uint16_t                 m_DestSz;
+    uint16_t                 m_TokSz; 
 
     FsaDfaState( uint8_t dSz, uint8_t tokSz) 
         : m_DestSz( dSz), m_TokSz( tokSz)
