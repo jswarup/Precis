@@ -99,10 +99,10 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             }
         }
     }  
-    FsaDfaState             *dfaState = new FsaDfaState();
+    Action                  *action = DetachAction();
+    FsaDfaState             *dfaState = FsaDfaState::Construct( sz, action);
 
-    dfaRepos->StoreAt( GetId(), dfaState);
-    dfaState->m_Action = DetachAction();
+    dfaRepos->StoreAt( GetId(), dfaState); 
     m_DfaStateMap->Insert( this, dfaState);
     for ( uint32_t k = 0; k < sz; ++k)
     {
@@ -113,14 +113,14 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         FsaDfaState                 *subDfaState = dfaStateMap->Find( subSupState);
         if ( subDfaState)
         {
-            dfaState->m_Dests.push_back( FsaRepos::ToId( subDfaState)); 
+            dfaState->SetDest( k, FsaRepos::ToId( subDfaState)); 
             delete subSupState;
             continue;
         }
 
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_DfaStateMap = dfaStateMap;
-        dfaState->m_Dests.push_back( subId); 
+        dfaState->SetDest( k, subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
     m_DfaStateMap = Cv_Slot< FsaDfaStateMap>();

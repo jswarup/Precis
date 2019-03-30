@@ -19,7 +19,7 @@ struct    FsaRepos;
 struct    FsaState;
 struct    FsaElem;
 struct    FsaSupState;
-struct    FsaDfaState;
+struct     FsaDfaState;
 struct    FsaDfaCnstr;
 struct    FsaDfaStateMap;
 struct    FsaDfaStateMapCltn;
@@ -69,7 +69,7 @@ struct FsaState  : public Cv_CrateEntry, public Cv_Shared
     typedef FilterCrate::Var    FiltVar;
     
 public:
-    virtual     ~FsaState( void){}
+    ~FsaState( void) {}
 
     Cv_CArr< uint64_t>  Tokens( void) { return Cv_CArr< uint64_t>(); } 
 
@@ -101,10 +101,9 @@ struct  FsaElemRepos  : public FsaRepos
 
     uint32_t        RuleIdFromState( uint32_t k) const 
     {
-        auto it = std::upper_bound( m_RuleIdSzList.begin(), m_RuleIdSzList.end(), k); 
-        return std::distance(  m_RuleIdSzList.begin(), it);
-    }
- 
+        auto        it = std::upper_bound( m_RuleIdSzList.begin(), m_RuleIdSzList.end(), k); 
+        return uint32_t( std::distance(  m_RuleIdSzList.begin(), it));
+    } 
 };
 
 
@@ -126,7 +125,7 @@ struct  FsaElem   : public FsaState
             delete m_Action;
     }
 
-    void            AddEdge( FiltId chSet, FsaId  dest) 
+    void    AddEdge( FiltId chSet, FsaId  dest) 
     {
         m_ChSets.push_back( chSet);
         m_Dests.push_back( dest);

@@ -87,19 +87,31 @@ struct FsaSupState  : public FsaState
 //_____________________________________________________________________________________________________________________________ 
 
 struct FsaDfaState  : public FsaState
-{ 
-    std::vector< FsaId>     m_Dests; 
+{  
+private:
     Action                  *m_Action;
+    std::vector< FsaId>     m_Dests; 
 
     FsaDfaState( void)
         : m_Action( NULL)
     {}
 
+public:
     ~FsaDfaState( void)
     {
         if ( m_Action)
             delete m_Action;
     }
+
+    static FsaDfaState      *Construct( uint8_t sz, Action *action)
+    {
+        FsaDfaState     *dfaState = new FsaDfaState();
+        dfaState->m_Action = action;
+        dfaState->m_Dests.resize( sz);
+        return dfaState;
+    }
+
+    void                    SetDest( uint8_t k, FsaId fsaId) {   m_Dests[ k] = fsaId; }
 
     Cv_CArr< FsaId>         Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); } 
 
