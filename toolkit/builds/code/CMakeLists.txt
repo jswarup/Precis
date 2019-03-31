@@ -90,6 +90,8 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/segue/tenor/sg_cmdfilt.cpp
     ${SOURCE_PATH}/segue/timbre/sg_chset.cpp
     ${SOURCE_PATH}/segue/timbre/sg_distrib.cpp
+    ${SOURCE_PATH}/segue/timbre/sg_ecdistribdb.cpp
+	${SOURCE_PATH}/segue/timbre/sg_ecoptimize.cpp
 	${SOURCE_PATH}/segue/tremolo/sg_filter.cpp
 	${SOURCE_PATH}/segue/tremolo/sg_fsastate.cpp 
 	${SOURCE_PATH}/segue/tremolo/sg_dfastate.cpp 
