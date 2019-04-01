@@ -7,6 +7,7 @@
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/tremolo/sg_fsaelemcnstr.h"
 #include    "segue/tremolo/sg_dfastate.h"
+#include    "segue/timbre/sg_partition.h" 
 
 #include	<utility>
 #include	<tuple>
