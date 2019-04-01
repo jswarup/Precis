@@ -262,7 +262,7 @@ void    Sg_ECTableOptimize::DoOptimizeFull( uint32_t SzBlut)
 //    AX_TRACEPOST(())
     
     if ( m_ECStewards.size() < SzBlut)
-        SzBlut = m_ECStewards.size();
+        SzBlut = uint32_t( m_ECStewards.size());
 
 //    AX_TRACE(( "BeginCost : %d\n", CurrentCost()))
 

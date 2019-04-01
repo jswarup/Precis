@@ -45,7 +45,7 @@ struct     CharFilter : public Filter
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
-    bool    IsLess( CharFilter *filt) const { return m_Char < filt->m_Char; }
+    int32_t         Compare( CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -66,7 +66,7 @@ struct     ChSetFilter : public Filter, public Sg_ChSet
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
-    bool    IsLess( ChSetFilter *filt) const { return Sg_ChSet::IsLess( *filt); }
+    int32_t         Compare( ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
 };
 
 //_____________________________________________________________________________________________________________________________

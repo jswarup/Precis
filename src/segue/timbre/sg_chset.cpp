@@ -196,36 +196,10 @@ const Sg_ChSet    &Sg_ChSet::Dot( void)
 
 const Sg_ChSet    &Sg_ChSet::DotAll( void)
 {
-    static Sg_ChSet   s_CCL = Sg_ChSet().Negate();
+    static Sg_ChSet   s_CCL = Sg_ChSet().Negative();
     return s_CCL;
 }
-
-//_____________________________________________________________________________________________________________________________
-
-void   Sg_ChSet::SetByteRange(uint32_t start, uint32_t stop, bool value)
-{
-	for (uint32_t i = start; i <= stop; ++i)
-		Set( i, value);
-	return;
-}
-
-//_____________________________________________________________________________________________________________________________
-
-int Sg_ChSet::ListChars( int *list) const
-{
-    int     n = 0;
-    for ( uint32_t i = 0; i < 4; i++) 
-    {
-        uint64_t   b = m_ChSet[i];
-        for ( uint32_t j = 0; b; j++, b >>= 1) 
-        {
-            if ( b & 1)
-                list[n++] = (i << 6) | j;
-        }
-    }
-    return n;
-}
-
+ 
 //_____________________________________________________________________________________________________________________________ 
 
 char *charPrettyPrint( int c, char *p, bool chrClsFlg )
@@ -330,9 +304,9 @@ std::string Sg_ChSet::ToString( bool negFlg) const
 std::string     Sg_ChSet::ToString ( void) const
 {
  
-    if ( IsEqual( Word()))
+    if ( Compare( Word()) == 0)
         return "[[Word]]";
-    if ( IsEqual( NonWord()))
+    if ( Compare( NonWord()) == 0)
         return "[[NonWord]]";
     
     std::string     posStr =  ToString( false); 
