@@ -181,6 +181,13 @@ int     Sg_RExpCmdProcessor::Test(void)
 
 int     Sg_RExpCmdProcessor::Execute( void)
 {
+    Sg_Bitset< 7> a;
+    Sg_Bitset< 64> b;
+    Sg_Bitset< 194> c;
+
+    a.Set( 4, true);
+    bool    a1 = a.Get( 4);
+
     int     apiErrCode = 0;
     //AC_API_BEGIN() 
 	Test();
