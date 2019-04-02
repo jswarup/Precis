@@ -3,6 +3,8 @@
 
 
 #include    "segue/timbre/sg_bitset.h"
+#include    "segue/timbre/sg_partition.h"
+
 //_____________________________________________________________________________________________________________________________
 
 class Sg_ChSet : public Sg_Bitset< 256>
@@ -24,7 +26,10 @@ protected:
 public:
     Sg_ChSet( void)
     {}
-
+    
+    Sg_ChSet( const Sg_Bitset< 256> &bitset)
+        : Sg_Bitset< 256>( bitset)
+    {}
     static const Sg_ChSet    &All( void); 
     static const Sg_ChSet    &Digit( void);
     static const Sg_ChSet    &NonDigit( void);
@@ -56,5 +61,24 @@ public:
     std::string     ToString( void) const;
 };
  
+
+//_____________________________________________________________________________________________________________________________
+
+struct Sg_Partition : public Sg_CharPartition< 256>
+{
+    std::string     ToString( void) const
+    {
+        std::stringstream       strStrm;
+        strStrm << "[ ";
+        std::vector< Sg_Bitset< 256> >    dom = Domain();
+        for ( uint32_t k = 0; k < dom.size(); ++k)
+        {
+            Sg_ChSet    chSet( dom[ k]);
+            strStrm <<  chSet.ToString() << " ";
+        }
+        strStrm << "]";
+        return strStrm.str();
+    }
+};
 
 //_____________________________________________________________________________________________________________________________

@@ -183,6 +183,9 @@ struct Sg_Bitset
     typedef Sg_Bit64< Sz8>  Bit8;
 
     Sg_Bitset( void) { Init(); }
+    Sg_Bitset( const Sg_Bitset &bitset)
+        : m_Bits64( bitset.m_Bits64), m_Bits8( bitset.m_Bits8)
+    {}
 
     void            Init(  void) { m_Bits64.Init(); m_Bits8.Init();  }
 

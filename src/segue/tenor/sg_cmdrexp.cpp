@@ -182,6 +182,10 @@ int     Sg_RExpCmdProcessor::Test(void)
 
 int     Sg_RExpCmdProcessor::Execute( void)
 {
+    Sg_Partition        prtn;
+    Sg_ChSet            ws = Sg_ChSet::Word();
+    prtn.ImpressCCL( ws);
+    std::cout << prtn.ToString() << '\n';
     Sg_Bitset< 7> a;
     Sg_Bitset< 64> b;
     Sg_Bitset< 194> c;

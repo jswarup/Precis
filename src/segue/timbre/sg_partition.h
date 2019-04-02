@@ -12,8 +12,8 @@ protected:
     uint8_t        m_MxEqClass;
     uint8_t        m_EqClassIds[  SzChBits];         
 
-public:
-    typedef  std::bitset< SzChBits>     BitSet;
+public: 
+    typedef Sg_Bitset< SzChBits>    Bitset;
 
     Sg_CharPartition( void) { MakeUniversal(); }
 
@@ -71,10 +71,10 @@ public:
         return;
     }
  
-    bool            IsCutByCCL( const BitSet &ccl) const
+    bool            IsCutByCCL( const Bitset &ccl) const
     {
-        BitSet      eqClassEnc;              // whether a equivalence class was encountered
-        BitSet      eqClassInCCL;            // whether a equivalence class is in CCL
+        std::bitset< SzChBits>          eqClassEnc;              // whether a equivalence class was encountered
+        std::bitset< SzChBits>          eqClassInCCL;            // whether a equivalence class is in CCL
 
         for ( uint16_t i = 0; i < SzChBits; ++i) 
         {
@@ -95,9 +95,9 @@ public:
     }
  
     // Extracts the partition subset containing a given EC
-    Sg_Bitset< SzChBits>    EqClassCCL( uint8_t grId) const 
+    Bitset    EqClassCCL( uint8_t grId) const 
     {
-        Sg_Bitset< SzChBits>      ccl;
+        Bitset      ccl;
         for ( uint16_t i = 0; i < SzChBits; ++i) 
             if ( grId ==  m_EqClassIds[ i])
                 ccl.Set( i, true);
@@ -105,7 +105,7 @@ public:
     }
 
     // Extracts the partition subset containing a given character
-    Sg_Bitset< SzChBits>    ClassContainingChar( uint8_t c) const { return EqClassCCL( Image( c)); }
+    Bitset    ClassContainingChar( uint8_t c) const { return EqClassCCL( Image( c)); }
     
 
     // Checks if two characters are in the same subset
@@ -117,20 +117,18 @@ public:
     {          
         std::bitset< SzChBits * SzChBits>       m_MatchedFlg;
         uint8_t                                 grid[ SzChBits * SzChBits];
-        uint8_t                                 numGr = 0;
+        uint8_t                                 grId = -1;
         for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
-            uint8_t             &locValue = grid[ m_EqClassIds[ i]][ q.m_EqClassIds[ i]];
-            bool                &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
-            if ( matchedFlg)    // we found a match 
-                m_EqClassIds[ i] = locValue;      // use the group code for it 
-            else
+            bool                                &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
+            if ( !matchedFlg)    
             {
-                matchedFlg = true; ;   // register a new group and remember for future ref.
-                m_EqClassIds[ i] = locValue = numGr++;          
+                matchedFlg = true; ;                             // register a new group and remember for future ref.
+                grid[ m_EqClassIds[ i]][ q.m_EqClassIds[ i]] = ++grId;
             }
+            m_EqClassIds[ i] = grId;          
         }
-        m_MxEqClass = numGr -1;
+        m_MxEqClass = grId;
         return;
     }
 
@@ -138,8 +136,7 @@ public:
     {
         Sg_CharPartition  cdist( SELF);
         cdist.ImpressWith( q);
-        return cdist;
-
+        return cdist; 
     }
 
     // Returns true if every subset in the first partition is contained in some subset in the second
@@ -148,7 +145,7 @@ public:
     // in any subset of q.
     bool            TestFiner( const Sg_CharPartition &q, int *sampleChar) const
     {
-        BitSet      m_MatchedFlg;
+        std::bitset< SzChBits>      m_MatchedFlgs;
         uint8_t                     mapToQSubsets[ SzChBits];         
         
         for ( uint32_t i = 0; i < SzChBits; ++i) 
@@ -171,125 +168,76 @@ public:
         return true;
     }
 
-    std::vector< BitSet>    Domain( void) const
+    std::vector< Bitset >    Domain( void) const
     {
-        std::vector< BitSet>    ccls( SzImage());
+        std::vector< Bitset>    ccls( SzImage());
         for ( uint16_t i = 0; i < SzChBits; ++i) 
             ccls[ m_EqClassIds[ i] ].SetChar( i);
 
         return ccls;
     }
-
+    
     class CCLImpressCntl
     {
-        const BitSet    *m_CCLs;
+        const Bitset    *m_CCLs;
 
-    template < uint32_t N>          //  N < 7
-        uint8_t         EqClassCode( uint32_t k) const;
+    template < uint32_t N>           
+        uint8_t        EqClassCode( uint32_t k) const { return ( uint8_t( m_CCLs->Get( k)) << 1) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
+
+    template <>  
+        uint8_t        EqClassCode< 1>( uint32_t k) const { return uint8_t( m_CCLs->Get( k));  }
 
 
     public:
-        CCLImpressCntl( const BitSet *ccls)
+        CCLImpressCntl( const Bitset *ccls)
             :   m_CCLs( ccls)
         {}
-
-        template < uint32_t N> 
+      
+    template < uint32_t N> 
         void            ImpressWith( Sg_CharPartition *distrib)
         {
-            std::bitset< SzChBits << N>     matchFlgs;
-            uint8_t                         grMap[ SzChBits << N];                   // keep a map if the group has been encountered. 
-
-            uint16_t    newGr = 0;
-            for ( uint32_t i = 0; i < SzChBits; ++i) 
+            std::bitset< SzChBits << N> matchFlgs;                    
+            uint8_t                     grMap[ SzChBits << N];                   // keep a map if the group has been encountered.
+            
+            uint8_t     mxId = -1;
+            for ( uint16_t i = 0; i < SzChBits; ++i) 
             {
-                uint8_t     *pEqClassId = &distrib->m_EqClassIds[ i];
-                // potentially any group group can split.  one part in ccl and other outside. get the code for new group.
-                uint8_t     eqClassCode = ( *pEqClassId << N) | EqClassCode< N>( i);     
-                uint8_t     *pMap = &grMap[ eqClassCode];                   // get location where we keep ids about these groups.
-                bool        &matchFlg = matchFlgs[ eqClassCode];
+                uint8_t     *pEqClassId = &distrib->m_EqClassIds[ i]; 
+                uint64_t    eqClassCode = ( uint64_t( *pEqClassId) << N) | EqClassCode< N>( i);     
+                auto        &matchFlg = matchFlgs[ eqClassCode]; 
+                uint8_t     *pGrId = &grMap[ eqClassCode];
                 if ( !matchFlg) 
                 {
                     matchFlg = true;
-                    *pMap = newGr++;                                        // assign a new id.
+                    *pGrId = ++mxId;                          // assign a new id.
                 }
-                *pEqClassId = *pMap;                                        // reuse id if we have encountered them before.
+                *pEqClassId = *pGrId;     
             }
-            distrib->m_MxEqClass = uint8_t( newGr -1);
+            distrib->m_MxEqClass = mxId;
             return;
         }
-    };
-
-    //_____________________________________________________________________________________________________________________________ 
+    }; 
 
     class CCLImpressor 
     {
     protected:
-        Sg_CharPartition        *m_Distrib;
-        BitSet                  m_CCLs[ 7];
+        Sg_CharPartition          *m_Distrib;
+        Bitset                  m_CCLs[ 7];
         uint32_t                m_Ind;
-        BitSet                  m_ValidCCL; 
+        Bitset                  m_ValidCCL; 
 
     public:
-        CCLImpressor( Sg_CharPartition *distrib)
-            :   m_Distrib( distrib), m_Ind( 0)
-        {}
+        CCLImpressor( Sg_CharPartition *distrib);
 
-        const BitSet    &ValidCCL( void) const { return m_ValidCCL; }
+        const Bitset    &ValidCCL( void) const { return m_ValidCCL; }
 
-        bool            Process( const BitSet &ccl)
-        {
-            m_ValidCCL.UnionWith( ccl );
-            m_CCLs[ m_Ind++] = ccl;
-            if ( m_Ind < 7)
-                return false;
-            Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
-            m_Ind = 0;
-            return true;
-        }
-    
-        void            Over( void)
-        {
-            switch ( m_Ind)
-            { 
-                case 1: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
-                case 2: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
-                case 3: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
-                case 4: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
-                case 5: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
-                case 6: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
-            }
-            m_Ind = 0;
-        }
+        bool            Process( const Bitset &ccl);
+        void            Over( void);
     };
 
-    // Intersects a new BitSet with all subsets in a partition, making it finer.
+    // Intersects a new Bitset with all subsets in a partition, making it finer.
     // Returns 1 if anything changed (equivalent to partitionCutByCCL return value).
 
-    void            ImpressCCL(  const BitSet & ccl)  {  CCLImpressCntl( &ccl).ImpressWith< 1>( this); }
-    
-    //_____________________________________________________________________________________________________________________________ 
-
-    class CCLIdImpressor : public CCLImpressor 
-    {
-        std::set< uint32_t>         m_Processed;
-
-    public:
-        CCLIdImpressor( Sg_CharPartition *distrib)
-            : CCLImpressor( distrib)
-        {}
-
-        bool            Process( const BitSet &ccl, uint32_t id)
-        { 
-            if ( id == CV_UINT32_MAX)
-                return CCLImpressor::Process( ccl);
-
-            std::set< uint32_t>::iterator   it = m_Processed.find( id);
-            if ( it != m_Processed.end())
-                return true;
-
-            m_Processed.insert( it, id);
-            return CCLImpressor::Process( ccl);
-        }
-    };
+    void                ImpressCCL(  const Bitset & ccl)  {  CCLImpressCntl( &ccl).ImpressWith< 1>( this); }
 };
  
