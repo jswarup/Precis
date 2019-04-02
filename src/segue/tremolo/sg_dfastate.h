@@ -78,7 +78,7 @@ struct FsaSupState  : public FsaState
         return act;
     }
 
-    Sg_CharDistrib              RefineCharDistrib( FsaRepos *elemRepos);
+    Sg_Partition               RefineCharDistrib( FsaRepos *elemRepos);
     FsaDfaState                 *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 }; 

@@ -182,7 +182,7 @@ public:
         const Bitset    *m_CCLs;
 
     template < uint32_t N>           
-        uint8_t        EqClassCode( uint32_t k) const { return ( uint8_t( m_CCLs->Get( k)) << 1) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
+        uint8_t        EqClassCode( uint32_t k) const { return ( uint8_t( m_CCLs->Get( k)) << ( N -1)) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
 
     template <>  
         uint8_t        EqClassCode< 1>( uint32_t k) const { return uint8_t( m_CCLs->Get( k));  }
@@ -221,18 +221,42 @@ public:
     class CCLImpressor 
     {
     protected:
-        Sg_CharPartition          *m_Distrib;
+        Sg_CharPartition        *m_Distrib;
         Bitset                  m_CCLs[ 7];
         uint32_t                m_Ind;
         Bitset                  m_ValidCCL; 
 
     public:
-        CCLImpressor( Sg_CharPartition *distrib);
+        CCLImpressor( Sg_CharPartition *distrib)
+            :   m_Distrib( distrib), m_Ind( 0)
+        {}
 
         const Bitset    &ValidCCL( void) const { return m_ValidCCL; }
 
-        bool            Process( const Bitset &ccl);
-        void            Over( void);
+        bool            Process( const Bitset &ccl)
+        {
+            m_ValidCCL.UnionWith( ccl );
+            m_CCLs[ m_Ind++] = ccl;
+            if ( m_Ind < 7)
+                return false;
+            CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
+            m_Ind = 0;
+            return true;
+        }
+        void            Over( void)
+        {
+            switch ( m_Ind)
+            { 
+                case 1: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
+                case 2: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
+                case 3: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
+                case 4: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
+                case 5: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
+                case 6: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
+            }
+            m_Ind = 0;
+            return;
+        }
     };
 
     // Intersects a new Bitset with all subsets in a partition, making it finer.

@@ -7,13 +7,13 @@ using namespace Sg_RExp;
  
 //_____________________________________________________________________________________________________________________________
 
-Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
+Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
 { 
-    Sg_CharDistrib      distrib;
+    Sg_Partition      distrib;
 
     distrib.MakeUniversal();
 
-    Sg_CharDistrib::CCLIdImpressor      prtnIntersector(  &distrib);
+    Sg_Partition::CCLImpressor      prtnIntersector(  &distrib);
 
     Cv_CArr< FsaId>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
@@ -23,7 +23,7 @@ Sg_CharDistrib  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
             ChSetFilter     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
-            prtnIntersector.Process( *chSet, CV_UINT32_MAX);
+            prtnIntersector.Process( *chSet);
         }
 
     }
@@ -67,8 +67,8 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    Sg_CharDistrib                  distrib = RefineCharDistrib( elemRepos);
-    std::vector< Sg_ChSet>          domain = distrib.Domain();
+    Sg_Partition                    distrib = RefineCharDistrib( elemRepos);
+    auto                            domain = distrib.Domain();
     uint32_t                        sz = uint32_t( domain.size());
     Cv_Array< FsaSupState *, 256>   subSupStates;
     for ( uint32_t k = 0; k < sz; ++k)
@@ -90,7 +90,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
             ChSetFilter         *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             for ( uint32_t k = 0; k < sz; ++k)
             {
-                const Sg_ChSet  &ccl = domain[ k]; 
+                auto    ccl = domain[ k]; 
                 if ( chSet->IsIntersect( ccl))
                 {
                     subSupStates[ k]->m_SubStates.push_back( destStateId);  

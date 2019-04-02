@@ -184,7 +184,9 @@ int     Sg_RExpCmdProcessor::Execute( void)
 {
     Sg_Partition        prtn;
     Sg_ChSet            ws = Sg_ChSet::Word();
-    prtn.ImpressCCL( ws);
+    Sg_ChSet            digit = Sg_ChSet::Digit();
+    //prtn.ImpressCCL( ws);
+    //prtn.ImpressCCL( digit);
     std::cout << prtn.ToString() << '\n';
     Sg_Bitset< 7> a;
     Sg_Bitset< 64> b;
