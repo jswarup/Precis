@@ -8,6 +8,7 @@
 #include    "segue/tremolo/sg_fsaelemcnstr.h"
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
+#include    "cove/silo/cv_stash.h"
 
 #include	<utility>
 #include	<tuple>
@@ -128,8 +129,17 @@ auto ProcessMatch( TimbreShard *shard, ...) -> void
 
 int     Sg_RExpCmdProcessor::Test(void)
 { 
-    RExpQuanta                   tx;
-    Cv_TypeEngage::Dump( &tx, std::cout, 0);
+    typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
+
+    std::cout << PartitionStash::SizeOf( 256) << " ";
+    std::cout << PartitionStash::SizeOf( 128) << " ";
+    std::cout << PartitionStash::SizeOf( 64) << " ";
+    std::cout << PartitionStash::SizeOf( 32) << " ";
+    std::cout << PartitionStash::SizeOf( 16) << " ";
+    std::cout << PartitionStash::SizeOf( 8) << " ";
+    std::cout << PartitionStash::SizeOf( 4) << " " << "\n";
+    //RExpQuanta                   tx;
+    //Cv_TypeEngage::Dump( &tx, std::cout, 0);
     if ( !m_InputFile.size())
         return 0;
 
@@ -142,10 +152,13 @@ int     Sg_RExpCmdProcessor::Test(void)
     RExpDoc					rexpDoc; 
     RExpDoc::XAct           xact( &rexpRepos); 
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
+    std::cout << rexpRepos.m_Base.ToString() << '\n';
 
     FsaElemRepos            automRepos;
     FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &automRepos);
-    automReposCnstr.Process();  
+    automReposCnstr.Process(); 
+
+ 
     if ( m_ElemDotFile.size())
     {
         std::ofstream       fsaOStrm( m_ElemDotFile);
@@ -187,7 +200,7 @@ int     Sg_RExpCmdProcessor::Execute( void)
     Sg_ChSet            digit = Sg_ChSet::Digit();
     //prtn.ImpressCCL( ws);
     //prtn.ImpressCCL( digit);
-    std::cout << prtn.ToString() << '\n';
+    //std::cout << prtn.ToString() << '\n';
     Sg_Bitset< 7> a;
     Sg_Bitset< 64> b;
     Sg_Bitset< 194> c;

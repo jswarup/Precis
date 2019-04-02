@@ -6,6 +6,7 @@
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
+#include    "segue/timbre/sg_partitiondb.h" 
 
 //_____________________________________________________________________________________________________________________________  
 

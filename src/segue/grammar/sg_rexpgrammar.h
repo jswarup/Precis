@@ -6,6 +6,7 @@
 #include 	"segue/grammar/sg_xmlshard.h" 
 #include 	"segue/timbre/sg_parsenumerics.h" 
 #include    "segue/tremolo/sg_filter.h"
+#include    "segue/timbre/sg_partition.h" 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -28,6 +29,7 @@ struct RExpRepos : public Cv_CrateRepos< RExpCrate>
 {
     RExpRepos::Id               m_RootId; 
     uint32_t                    m_RuleSz;
+    Sg_Partition                m_Base;
         
     RExpRepos( void)
         : m_RuleSz( 0)
@@ -642,7 +644,8 @@ struct RExpAtom : public Shard< RExpAtom>, public RExpPrimitive
     auto        UnitListener(void) const {
         return [this]( auto forge) {
             forge->Pred< RExpAtom>()->m_ChSet = forge->m_ChSet;
-
+            auto            docWhorl = forge->Bottom< RExpDoc>();
+            docWhorl->m_Impressor->Process( forge->m_ChSet);
            // std::cout << forge->MatchStr() << "\n";
             return true;  }; } 
 
@@ -876,22 +879,26 @@ struct RExpDoc  : public Shard< RExpDoc>
 {   
     struct XAct
     {
-        RExpRepos       *m_Repos;
-        RExpRepos::Id   m_Id;
+        RExpRepos                       *m_Repos;
+        Sg_Partition::CCLImpressor      m_Impressor;
+
+        RExpRepos::Id                   m_Id;
 
         XAct( RExpRepos *repos) 
-            : m_Repos( repos)
+            : m_Repos( repos), m_Impressor( &repos->m_Base)
         {} 
     };
  
 	struct Whorl
 	{
         RExpRepos                       *m_Repos; 
-        std::vector< RExpRepos::Id>     m_RExps;  
+        Sg_Partition::CCLImpressor      *m_Impressor;
+        std::vector< RExpRepos::Id>     m_RExps;
         
         bool    PrimeIn( XAct *xact)
         {
             m_Repos = xact->m_Repos;
+            m_Impressor = &xact->m_Impressor;
             return true;
         }
         
