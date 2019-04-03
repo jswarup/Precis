@@ -76,11 +76,20 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 {
     typedef Cv_CratePile< typename Crate::CrateBase>    Base;
 
-    typedef typename Crate::Entry        Entry;
+    typedef typename Crate::Entry       Entry;
     typedef typename Crate::Elem        Elem;
+    typedef typename Entry::Id          Id;
+
     std::vector< Elem>                  m_Elems;
  
-    uint32_t    Push( const Elem &elm) { m_Elems.push_back( elm); return uint32_t( m_Elems.size()) -1; }
+    Id    Push( const Elem &elm) 
+    { 
+        m_Elems.push_back( elm); 
+        Elem    &insrt =  m_Elems.back();
+        insrt.SetId( m_Elems.size() -1);
+        insrt.SetType( Crate::Sz);
+        return insrt; 
+    }
 
  
 
@@ -97,9 +106,18 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
 
     typedef typename Crate::Entry       Entry;
     typedef typename Crate::Elem        Elem;
+    typedef typename Entry::Id          Id;
+
     std::vector< Elem>                  m_Elems; 
 
-    uint32_t    Push( const Elem &elm) { m_Elems.push_back( elm); return uint32_t( m_Elems.size()) -1; }  
+    Id    Push( const Elem &elm) 
+    { 
+        m_Elems.push_back( elm); 
+        Elem    &insrt =  m_Elems.back();
+        insrt.SetId( m_Elems.size() -1);
+        insrt.SetType( Crate::Sz);
+        return insrt;  
+    }  
 
     void        SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
     {
@@ -114,18 +132,8 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
     typedef Cv_CratePile< FilterCrate>      Base;
     typedef Filter::TypeStor                TypeStor;
     typedef Filter::IndexStor               IndexStor;
-    
-    struct Id
-    {   
-        uint32_t        m_TypeInd;
-        
-        Id( uint8_t type, uint32_t ind)
-            : m_TypeInd( ( type << 24) | ( 0xFFFFFF & ind))
-        {} 
-
-        uint8_t    Type( void) const { return uint8_t( m_TypeInd>> 24); }
-        uint32_t   Index( void) const { return 0xFFFFFF & m_TypeInd; }
-    };
+    typedef Filter::Id                     Id;
+     
 
     struct LessOp
     {
@@ -145,7 +153,7 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
                 typedef decltype( e1)           EntType;
                 return e1->IsLess( static_cast< EntType>( e2)); 
             }, var2.GetEntry());
-            return id2.m_TypeInd;  
+            return id2.m_IPtr;  
         } 
     };
 
@@ -161,11 +169,9 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
     
     FilterCrate::Var    ToVar( const Id &id)  
     {  
-        return id.m_TypeInd ? FilterCrate::Var( m_FilterIndFns[ id.Type() -1]( id.Index()), id.Type()) : m_TVar; 
+        return id.GetType() ? FilterCrate::Var( m_FilterIndFns[ id.GetType() -1]( id.GetId()), id.GetType()) : m_TVar; 
     }
 
-template < typename Filter>
-    Id          Push( const Filter &filter) {  return Id( FilterCrate::TypeOf< Filter>(), Base::Push( filter)); }
 };
 
 };
