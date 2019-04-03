@@ -260,12 +260,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
         insrt.SetType( Crate::Sz);
         return insrt; 
     }
- 
-    void    SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
-    {
-        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
-        Base::SetupFilterIndFns( filterIndFns);
-    }
+  
 
     Var     ToVar( const Id &id)  
     {  
@@ -298,12 +293,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
         insrt.SetType( Crate::Sz);
         return insrt;  
     }  
-
-    void        SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
-    {
-        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
-    }
-
+ 
     Var         ToVar( const Id &id)  
     {  
         return Var(  &m_Elems[ id.GetId()], id.GetType()); 

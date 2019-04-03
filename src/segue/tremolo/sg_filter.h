@@ -29,8 +29,8 @@ public:
     {} 
 
     std::string		GetName( void) const { return "Filter"; } 
-    
-    bool    IsLess( Filter *filt) const { return false; }
+     
+    int32_t         Compare( const Filter *filt) const { return 0; }
 };  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -45,7 +45,7 @@ struct     CharFilter : public Filter
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
-    int32_t         Compare( CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
+    int32_t         Compare( const CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -66,7 +66,7 @@ struct     ChSetFilter : public Filter, public Sg_ChSet
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
-    int32_t         Compare( ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
+    int32_t         Compare( const ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
 };
 
 
@@ -96,26 +96,19 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
                 return var1.GetType() < var2.GetType();
             return var1( [this]( auto e1, auto e2) {
                 typedef decltype( e1)           EntType;
-                return e1->IsLess( static_cast< EntType>( e2)); 
+                return e1->Compare( static_cast< EntType>( e2)) < 0; 
             }, var2.GetEntry()); 
         } 
     };
 
-    std::vector< std::set< Id, LessOp> >        m_IdTbl;
-    std::function< Filter *( uint32_t ind)>     m_FilterIndFns[ FilterCrate::Sz];
+    std::vector< std::set< Id, LessOp> >        m_IdTbl; 
     FilterCrate::Var                            m_TVar;
  
     FilterRepos( void) 
     {
-        m_IdTbl.resize( FilterCrate::Sz, std::set< Id, LessOp>( LessOp( this)));
-        Base::SetupFilterIndFns( m_FilterIndFns);
+        m_IdTbl.resize( FilterCrate::Sz, std::set< Id, LessOp>( LessOp( this))); 
     }
-    
-    FilterCrate::Var    ToVar( const Id &id)  
-    {  
-        return id.GetType() ? FilterCrate::Var( m_FilterIndFns[ id.GetType() -1]( id.GetId()), id.GetType()) : m_TVar; 
-    }
-
+     
 };
 
 };
