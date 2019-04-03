@@ -214,7 +214,7 @@ struct   Cv_CrateConstructor
     typedef typename Cv_CrateRepos< Crate>::Id			Id; 
 
     Cv_CrateRepos< Crate>				*m_Crate;
-    std::map< void *, Id>		m_CnstrMap;
+    std::map< void *, Id>		        m_CnstrMap;
 
     Cv_CrateConstructor( Cv_CrateRepos< Crate>  *crate) 
         : m_Crate( crate)
@@ -236,6 +236,78 @@ struct   Cv_CrateConstructor
         res.first->second = item;
         return item;
     }     
+};
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename Crate, typename=void>
+struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
+{
+    typedef Cv_CratePile< typename Crate::CrateBase>    Base;
+
+    typedef typename Base::Entry        Entry;
+    typedef typename Base::Elem         Elem;
+    typedef typename Base::Id           Id;
+    typedef typename Base::Var          Var;
+
+    std::vector< Elem>                  m_Elems;
+
+    Id    Push( const Elem &elm) 
+    { 
+        m_Elems.push_back( elm); 
+        Elem    &insrt =  m_Elems.back();
+        insrt.SetId( m_Elems.size() -1);
+        insrt.SetType( Crate::Sz);
+        return insrt; 
+    }
+ 
+    void    SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
+    {
+        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
+        Base::SetupFilterIndFns( filterIndFns);
+    }
+
+    Var     ToVar( const Id &id)  
+    {  
+        switch ( id.GetType())
+        {
+        case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
+        default :           return Base::ToVar( id);
+        }
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
+template<typename Crate>
+struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entry, typename Crate::Entry>::Note>  
+{ 
+
+    typedef typename Crate::Entry       Entry;
+    typedef typename Crate::Elem        Elem;
+    typedef typename Entry::Id          Id;
+    typedef typename Crate::Var         Var;
+
+    std::vector< Elem>                  m_Elems; 
+
+    Id    Push( const Elem &elm) 
+    { 
+        m_Elems.push_back( elm); 
+        Elem    &insrt =  m_Elems.back();
+        insrt.SetId( m_Elems.size() -1);
+        insrt.SetType( Crate::Sz);
+        return insrt;  
+    }  
+
+    void        SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
+    {
+        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
+    }
+
+    Var         ToVar( const Id &id)  
+    {  
+        return Var(  &m_Elems[ id.GetId()], id.GetType()); 
+    }
 };
 
 //_____________________________________________________________________________________________________________________________

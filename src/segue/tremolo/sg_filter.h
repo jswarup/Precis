@@ -69,61 +69,6 @@ struct     ChSetFilter : public Filter, public Sg_ChSet
     int32_t         Compare( ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
 };
 
-//_____________________________________________________________________________________________________________________________
- 
-template < typename Crate, typename=void>
-struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
-{
-    typedef Cv_CratePile< typename Crate::CrateBase>    Base;
-
-    typedef typename Crate::Entry       Entry;
-    typedef typename Crate::Elem        Elem;
-    typedef typename Entry::Id          Id;
-
-    std::vector< Elem>                  m_Elems;
- 
-    Id    Push( const Elem &elm) 
-    { 
-        m_Elems.push_back( elm); 
-        Elem    &insrt =  m_Elems.back();
-        insrt.SetId( m_Elems.size() -1);
-        insrt.SetType( Crate::Sz);
-        return insrt; 
-    }
-
- 
-
-    void    SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
-    {
-        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
-        Base::SetupFilterIndFns( filterIndFns);
-    }
-};
-
-template<typename Crate>
-struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entry, typename Crate::Entry>::Note>  
-{ 
-
-    typedef typename Crate::Entry       Entry;
-    typedef typename Crate::Elem        Elem;
-    typedef typename Entry::Id          Id;
-
-    std::vector< Elem>                  m_Elems; 
-
-    Id    Push( const Elem &elm) 
-    { 
-        m_Elems.push_back( elm); 
-        Elem    &insrt =  m_Elems.back();
-        insrt.SetId( m_Elems.size() -1);
-        insrt.SetType( Crate::Sz);
-        return insrt;  
-    }  
-
-    void        SetupFilterIndFns( std::function< Entry *( uint32_t ind)> *filterIndFns)
-    {
-        filterIndFns[ Crate::Sz -1] = [this]( uint32_t ind) { return &m_Elems[ ind]; };
-    }
-};
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -149,11 +94,10 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
             FilterCrate::Var    var2 = m_FiltRepos->ToVar( id2);
             if ( var1.GetType() != var2.GetType())
                 return var1.GetType() < var2.GetType();
-            var1( [this]( auto e1, auto e2) {
+            return var1( [this]( auto e1, auto e2) {
                 typedef decltype( e1)           EntType;
                 return e1->IsLess( static_cast< EntType>( e2)); 
-            }, var2.GetEntry());
-            return id2.m_IPtr;  
+            }, var2.GetEntry()); 
         } 
     };
 
