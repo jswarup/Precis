@@ -88,7 +88,7 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
             : m_FiltRepos( filtRepos)
         {}
         
-        bool    operator()( const Id &id1, const Id &id2)  
+        bool    operator()( const Id &id1, const Id &id2)  const
         { 
             FilterCrate::Var    var1 = m_FiltRepos->ToVar( id1);
             FilterCrate::Var    var2 = m_FiltRepos->ToVar( id2);
@@ -101,14 +101,28 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
         } 
     };
 
-    std::vector< std::set< Id, LessOp> >        m_IdTbl; 
-    FilterCrate::Var                            m_TVar;
+    std::set< Id, LessOp>       m_IdTbl; 
+    FilterCrate::Var            m_TVar;
  
     FilterRepos( void) 
-    {
-        m_IdTbl.resize( FilterCrate::Sz, std::set< Id, LessOp>( LessOp( this))); 
+        : m_IdTbl( LessOp( this))
+    {}
+      
+    FilterCrate::Var    ToVar( const Id &id)  
+    {  
+        return id.GetType() ? Base::ToVar( id) : m_TVar; 
     }
-     
+    
+template < typename Elem>
+    Id          Push(  Elem &&elm) 
+    {
+        m_TVar = Var( &elm, FilterCrate::TypeOf< Elem>());
+        auto    it = m_IdTbl.find( Id());
+        if ( it != m_IdTbl.end())
+            return *it;
+        m_TVar = Var();
+        return Base::Push( elm);
+    }
 };
 
 };

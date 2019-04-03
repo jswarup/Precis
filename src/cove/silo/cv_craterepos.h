@@ -285,11 +285,11 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
 
     std::vector< Elem>                  m_Elems; 
 
-    Id    Push( const Elem &elm) 
+    Id          Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
         Elem    &insrt =  m_Elems.back();
-        insrt.SetId( m_Elems.size() -1);
+        insrt.SetId( uint32_t( m_Elems.size() -1));
         insrt.SetType( Crate::Sz);
         return insrt;  
     }  
@@ -298,6 +298,8 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
     {  
         return Var(  &m_Elems[ id.GetId()], id.GetType()); 
     }
+
+
 };
 
 //_____________________________________________________________________________________________________________________________
