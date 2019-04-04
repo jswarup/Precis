@@ -217,19 +217,46 @@ struct Sg_Bitset
     {
         for ( uint32_t i = start; i <= stop; ++i)
             Set( i, value); 
-    }
-
+    } 
 
     int         ListChars( int *list) const   
     { 
-        int32_t  n = m_Bits64.ListChars( list);
-        return n + m_Bits8.ListChars( list +n); 
+        int32_t     n = m_Bits64.ListChars( list);
+        return  n + m_Bits8.ListChars( list +n); 
     }
 
     void    SetFilter(  int (*filter)( int c))
     {
         for ( uint32_t i = 0; i < SzChBits; ++i) 
             Set( i, filter( i));
+    }
+
+
+    std::string     ToString( void) const
+    {
+        std::stringstream   sstr;
+        sstr << '['; 
+        int         curChars[ 256];
+        int         curWeight = ListChars( curChars);   
+
+        for ( int i = 0; i < curWeight;  )
+        {
+            int     j = i + 1;
+            for ( ; j < curWeight; j++ )
+            {
+                if ( curChars[j] != curChars[j-1] + 1 )
+                    break;
+            }
+            int     len = j - i;
+            sstr << uint32_t( curChars[i]);
+            if ( len > 2 )
+                sstr<< '-';
+            if ( len > 1 )
+                sstr << uint32_t( curChars[ i +len -1]);
+            i += len;
+        } 
+        sstr << ']';
+        return sstr.str();
     }
 };
 

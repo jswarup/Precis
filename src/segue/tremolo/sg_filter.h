@@ -10,11 +10,13 @@
 
 namespace Sg_RExp
 {
+
+template < uint32_t N>
 struct      ChSetFilter;
 struct      CharFilter; 
 struct      Filter;
 
-typedef Cv_Crate< ChSetFilter, CharFilter, Filter>   FilterCrate; 
+typedef Cv_Crate< ChSetFilter< 256>, ChSetFilter< 128>, ChSetFilter< 64>, ChSetFilter< 32>, ChSetFilter< 16>, ChSetFilter< 8>, CharFilter, Filter>   FilterCrate; 
 
 
 //_____________________________________________________________________________________________________________________________ 
@@ -31,7 +33,8 @@ public:
     std::string		GetName( void) const { return "Filter"; } 
      
     int32_t         Compare( const Filter *filt) const { return 0; }
-    bool            Dump( std::ostream &ostr) { ostr <<  "\n"; return true; }
+    std::string     ToString( void) const { return std::string(); }
+    bool            Dump( std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
 };  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -47,31 +50,37 @@ struct     CharFilter : public Filter
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
     int32_t         Compare( const CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
-
-    bool            Dump( std::ostream &ostr) { ostr << char( m_Char) << "\n"; return true; }
+    
+    std::string     ToString( void) const { return std::string( &m_Char, &m_Char +1); }
+    bool            Dump( std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct     ChSetFilter : public Filter, public Sg_ChSet
+template < uint32_t N>
+struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 {   
+    typedef Sg_Bitset< N>       Base;
+
     ChSetFilter( void)
-        : Sg_ChSet()
+        : Base()
     {}
     
-    ChSetFilter( Sg_ChSet &&chSet)
-        : Sg_ChSet( chSet)
+    ChSetFilter( Base &&chSet)
+        : Base( chSet)
     {}
 
-    ChSetFilter( const Sg_ChSet &chSet)
-        : Sg_ChSet( chSet)
+    ChSetFilter( const Base &chSet)
+        : Base( chSet)
     {}
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
-    int32_t         Compare( const ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
+    int32_t         Compare( const ChSetFilter *filt) const { return Base::Compare( *filt); }
 
-    bool            Dump( std::ostream &ostr) { ostr << Sg_ChSet::ToString() << "\n"; return true; }
+    std::string     ToString( void) const { return Base::ToString(); }
+
+    bool            Dump( std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
 };
 
 
@@ -82,7 +91,7 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
     typedef Cv_CratePile< FilterCrate>      Base;
     typedef Filter::TypeStor                TypeStor;
     typedef Filter::IndexStor               IndexStor;
-    typedef Filter::Id                     Id;
+    typedef Filter::Id                      Id;
      
 
     struct LessOp

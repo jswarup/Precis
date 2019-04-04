@@ -22,7 +22,7 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         Cv_CArr< FiltId>   filters = state.Filters();
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
-            ChSetFilter     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter<256>     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             prtnIntersector.Process( *chSet);
         }
 
@@ -87,7 +87,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         for ( uint32_t j = 0; j < destStateIds.Size(); ++j)
         {
             FsaId               destStateId =  destStateIds[ j];
-            ChSetFilter         *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter<256>    *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
             for ( uint32_t k = 0; k < sz; ++k)
             {
                 auto    ccl = domain[ k]; 
