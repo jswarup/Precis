@@ -7,6 +7,14 @@ using namespace Sg_RExp;
  
 //_____________________________________________________________________________________________________________________________
 
+void       FsaSupState::FilterIt::FetchFilters( void)
+{
+    FsaRepos::Var        state = m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]);
+    m_Filters = state( [this]( auto k) { return k->Filters(); });
+}
+
+//_____________________________________________________________________________________________________________________________
+
 Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
 { 
     Sg_Partition      distrib;
@@ -14,7 +22,16 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
     distrib.MakeUniversal();
 
     Sg_Partition::CCLImpressor      prtnIntersector(  &distrib);
-
+    /*
+    FilterIt    filtIt( elemRepos, this);
+    
+    while ( filtIt.IsCurValid())
+    {
+        ChSetFilter<256>     *chSet = filtIt.Curr();
+        prtnIntersector.Process( *chSet);
+        filtIt.Next();
+    }
+    */
     Cv_CArr< FsaId>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
@@ -79,8 +96,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
         FsaId               stateId = subStates[ i];
-        FsaClip             state = elemRepos->ToVar( stateId);
-
+        FsaClip             state = elemRepos->ToVar( stateId); 
 
         Cv_CArr< FsaId>     destStateIds = state.Dests();
         Cv_CArr< FiltId>    filters = state.Filters();

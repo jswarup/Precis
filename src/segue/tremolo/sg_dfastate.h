@@ -81,6 +81,37 @@ struct FsaSupState  : public FsaState
     Sg_Partition               RefineCharDistrib( FsaRepos *elemRepos);
     FsaDfaState                 *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+
+    struct FilterIt
+    {
+        FsaRepos            *m_ElemRepos;
+        Cv_CArr< FsaId>     m_SubStates;
+        Cv_CArr< FiltId>    m_Filters;
+        uint32_t            m_StateCursor;
+        uint32_t            m_FilterCursor;
+
+ 
+        FilterIt( FsaRepos *elemRepos, FsaSupState *supState)
+            : m_ElemRepos( elemRepos), m_SubStates( supState->SubStates()), m_StateCursor( 0), m_FilterCursor( 0)
+        {
+            if ( m_SubStates.Size())
+                FetchFilters();
+        }
+
+        bool                IsCurValid( void) { return m_StateCursor < m_SubStates.Size() && m_FilterCursor < m_Filters.Size(); }
+        FilterRepos::Var    Curr( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
+        
+        void                Next( void) 
+        { 
+            if ( ++m_FilterCursor < m_Filters.Size())
+                return;
+            m_FilterCursor = 0;
+            if ( ++m_StateCursor < m_SubStates.Size())
+                FetchFilters();                
+        } 
+        
+        void        FetchFilters( void);
+    };
 }; 
 
 //_____________________________________________________________________________________________________________________________ 
