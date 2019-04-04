@@ -91,6 +91,12 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
+
+    bool                Dump( std::ostream &ostr)
+    {
+        m_FilterRepos.Dump( ostr);
+        return true;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -99,7 +105,7 @@ struct  FsaElemRepos  : public FsaRepos
 {    
     std::vector< uint32_t>      m_RuleIdSzList;
 
-    uint32_t        RuleIdFromState( uint32_t k) const 
+    uint32_t            RuleIdFromState( uint32_t k) const 
     {
         auto        it = std::upper_bound( m_RuleIdSzList.begin(), m_RuleIdSzList.end(), k); 
         return uint32_t( std::distance(  m_RuleIdSzList.begin(), it));

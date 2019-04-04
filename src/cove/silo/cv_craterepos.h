@@ -185,7 +185,7 @@ template<  class Object>
         return;
     }
 
-    template < typename Lambda, typename... Args>
+template < typename Lambda, typename... Args>
     auto    OperateAll(  Lambda lambda,  Args&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
@@ -259,16 +259,26 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
         insrt.SetId( m_Elems.size() -1);
         insrt.SetType( Crate::Sz);
         return insrt; 
-    }
-  
+    } 
 
     Var     ToVar( const Id &id)  
     {  
         switch ( id.GetType())
         {
-        case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
-        default :           return Base::ToVar( id);
+            case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
+            default :           return Base::ToVar( id);
         }
+    }
+
+template < typename Lambda, typename... Args>
+    auto    OperateAll(  Lambda lambda,  Args&... args)  
+    {   
+        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
+        Accum                                               accum;
+        for ( uint32_t i = 0; i < m_Elems.size(); ++i)         
+            if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))  
+                return accum; 
+        return accum.Accumulate( Base::OperateAll( lambda, args...));
     }
 };
 
@@ -299,7 +309,16 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
         return Var(  &m_Elems[ id.GetId()], id.GetType()); 
     }
 
-
+template < typename Lambda, typename... Args>
+    auto    OperateAll(  Lambda lambda,  Args&... args)  
+    {   
+        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
+        Accum                                               accum;
+        for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
+            if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))        
+                return accum; 
+        return accum;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________

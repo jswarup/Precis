@@ -31,6 +31,7 @@ public:
     std::string		GetName( void) const { return "Filter"; } 
      
     int32_t         Compare( const Filter *filt) const { return 0; }
+    bool            Dump( std::ostream &ostr) { ostr <<  "\n"; return true; }
 };  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -46,6 +47,8 @@ struct     CharFilter : public Filter
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
     int32_t         Compare( const CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
+
+    bool            Dump( std::ostream &ostr) { ostr << char( m_Char) << "\n"; return true; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -67,6 +70,8 @@ struct     ChSetFilter : public Filter, public Sg_ChSet
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
     int32_t         Compare( const ChSetFilter *filt) const { return Sg_ChSet::Compare( *filt); }
+
+    bool            Dump( std::ostream &ostr) { ostr << Sg_ChSet::ToString() << "\n"; return true; }
 };
 
 
@@ -110,9 +115,12 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
       
     FilterCrate::Var    ToVar( const Id &id)  
     {  
-        return id.GetType() ? Base::ToVar( id) : m_TVar; 
+        if ( id.IsValid())
+            return Base::ToVar( id); 
+        return m_TVar;
     }
     
+
 template < typename Elem>
     Id          Push(  Elem &&elm) 
     {
@@ -121,7 +129,14 @@ template < typename Elem>
         if ( it != m_IdTbl.end())
             return *it;
         m_TVar = Var();
-        return Base::Push( elm);
+        Id       id = Base::Push( elm);
+        m_IdTbl.insert( id);
+        return id;
+    }
+
+    bool            Dump( std::ostream &ostr) 
+    { 
+        return OperateAll( [&ostr]( auto k) {  return k->Dump( ostr); });
     }
 };
 
