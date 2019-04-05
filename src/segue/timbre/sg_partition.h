@@ -130,12 +130,12 @@ public:
     // Returns true if anything changed (equivalent to partitionCutByCCL return value).
     void            ImpressWith( const Sg_CharPartition &q)
     {          
-        std::bitset< SzChBits * SzChBits>       m_MatchedFlg;
+        std::bitset< SzChBits * SzChBits>       matchedFlgs;
         uint8_t                                 grid[ SzChBits * SzChBits];
         uint8_t                                 grId = -1;
         for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
-            bool                                &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
+            bool                                &matchedFlg = matchedFlgs[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
             if ( !matchedFlg)    
             {
                 matchedFlg = true; ;                             // register a new group and remember for future ref.
@@ -160,17 +160,17 @@ public:
     // in any subset of q.
     bool            TestFiner( const Sg_CharPartition &q, int *sampleChar) const
     {
-        std::bitset< SzChBits>      m_MatchedFlgs;
+        std::bitset< SzChBits>      matchedFlgs;
         uint8_t                     mapToQSubsets[ SzChBits];         
         
         for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
             uint8_t     g1 = m_EqClassIds[ i];
             uint8_t     g2 = q.m_EqClassIds[ i];
-            bool        &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]];
-            if ( !m_MatchedFlg[ g1])
+            auto        &matchedFlg = matchedFlgs[ g1];
+            if ( !matchedFlg)
             {
-                m_MatchedFlg = true;
+                matchedFlg = true;
                 mapToQSubsets[ g1] = g2;                // injective map from g1 to g2
             }
             else if ( mapToQSubsets[ g1] != g2)
@@ -192,6 +192,8 @@ public:
         return ccls;
     }
     
+
+    
     class CCLImpressCntl
     {
         const Bitset    *m_CCLs;
@@ -208,7 +210,9 @@ public:
     template < uint32_t N> 
         void            ImpressWith( Sg_CharPartition *distrib)
         {
-            std::bitset< SzChBits << N> matchFlgs;                    
+            typedef std::bitset< SzChBits << N>     MatchFlags;
+            
+            MatchFlags                  matchFlgs;                    
             uint8_t                     grMap[ SzChBits << N];                   // keep a map if the group has been encountered.
             
             uint8_t     mxId = -1;
