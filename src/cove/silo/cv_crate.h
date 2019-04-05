@@ -19,14 +19,18 @@ struct	Cv_Var
     Cv_Var( void)
         : m_Entry( NULL), m_Type( 0)
     {}
- 
+
+    Cv_Var( Entry *entry)
+        : m_Entry( elm), m_Type( entry->GetType())
+    {}
+
     Cv_Var( Entry *entry, TypeStor typeStor)
 		: m_Entry( entry), m_Type( typeStor)
 	{} 
 	
 template < typename Element>	 
     Cv_Var( Element *elm)
-        : m_Entry( elm), m_Type( Crate::template TypeOf<Element>())
+        : m_Entry( elm), m_Type( Crate::TypeOf<Element>())
     {} 
   
     TypeStor        GetType( void) const { return m_Type; } 
@@ -34,13 +38,13 @@ template < typename Element>
  
 
 template < typename Element>    
-    operator Element *( void) { return m_Type == Crate::template TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
+    operator Element *( void) { return m_Type == Crate::TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
 
     operator        bool( void) const { return !!m_Entry; }
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( Lambda lambda,  Args&&... args)     {
+	auto    operator()( Lambda &lambda,  Args&&... args)     {
 		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
@@ -81,12 +85,12 @@ struct Cv_CrateLambdaAccum< bool>
 template < typename T, typename... Rest>
 struct Cv_Crate : public Cv_Crate< Rest...>
 {   
-    typedef Cv_Crate< T, Rest...>               Crate;
-    typedef Cv_Crate< Rest...>                  CrateBase;
-    typedef T                                   Elem;
-    typedef typename CrateBase::Entry           Entry; 
-	typedef typename CrateBase::Var             Var; 
-	typedef typename CrateBase::TypeStor        TypeStor;  
+    typedef Cv_Crate< T, Rest...>       Crate;
+    typedef Cv_Crate< Rest...>          CrateBase;
+    typedef T                           Elem;
+    typedef typename CrateBase::Entry   Entry; 
+	typedef  Cv_Var< Crate>		        Var; 
+	typedef typename Entry::TypeStor    TypeStor; 
     
     
     enum {
@@ -112,7 +116,7 @@ template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value,
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
         switch ( typeStor)
 		{
@@ -130,7 +134,7 @@ template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>:
 template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
-		return CrateBase::template TypeOf<Entity> ();
+		return CrateBase::TypeOf<Entity> ();
 	}
 }; 
 
@@ -158,7 +162,7 @@ template < typename X = void>
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda lambda,  Args&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &lambda,  Args&... args)  
     {
 		 return lambda( static_cast< Elem *>( entry), args...); 
     }
