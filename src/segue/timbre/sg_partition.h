@@ -5,6 +5,21 @@
 
 //_____________________________________________________________________________________________________________________________ 
 
+template < uint32_t SzChBits, uint32_t N>
+struct Sg_CharPartitionHelper
+{ 
+    static uint8_t        GetEqClassCode( const Sg_Bitset< SzChBits>  *chSets, uint32_t k)  { return ( uint8_t( chSets->Get( k)) << ( N -1)) | 
+                                            Sg_CharPartitionHelper< SzChBits, N -1>::GetEqClassCode( chSets +1, k);  }
+};
+
+template < uint32_t SzChBits>
+struct Sg_CharPartitionHelper< SzChBits, 1>
+{ 
+    static uint8_t        GetEqClassCode( const Sg_Bitset< SzChBits>  *chSets, uint32_t k)  { return uint8_t( chSets->Get( k));  }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 template < uint32_t SzChBits>
 class Sg_CharPartition  
 {
@@ -115,12 +130,12 @@ public:
     // Returns true if anything changed (equivalent to partitionCutByCCL return value).
     void            ImpressWith( const Sg_CharPartition &q)
     {          
-        std::bitset< SzChBits * SzChBits>       m_MatchedFlg;
+        std::bitset< SzChBits * SzChBits>       matchedFlgs;
         uint8_t                                 grid[ SzChBits * SzChBits];
         uint8_t                                 grId = -1;
         for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
-            bool                                &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
+            bool                                &matchedFlg = matchedFlgs[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]]; 
             if ( !matchedFlg)    
             {
                 matchedFlg = true; ;                             // register a new group and remember for future ref.
@@ -145,17 +160,17 @@ public:
     // in any subset of q.
     bool            TestFiner( const Sg_CharPartition &q, int *sampleChar) const
     {
-        std::bitset< SzChBits>      m_MatchedFlgs;
+        std::bitset< SzChBits>      matchedFlgs;
         uint8_t                     mapToQSubsets[ SzChBits];         
         
         for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
             uint8_t     g1 = m_EqClassIds[ i];
             uint8_t     g2 = q.m_EqClassIds[ i];
-            bool        &matchedFlg = m_MatchedFlg[ m_EqClassIds[ i] * SzChBits + q.m_EqClassIds[ i]];
-            if ( !m_MatchedFlg[ g1])
+            bool        &matchedFlg = matchedFlgs[ g1];
+            if ( !matchedFlg)
             {
-                m_MatchedFlg = true;
+                matchedFlg = true;
                 mapToQSubsets[ g1] = g2;                // injective map from g1 to g2
             }
             else if ( mapToQSubsets[ g1] != g2)
@@ -177,16 +192,15 @@ public:
         return ccls;
     }
     
+
+    
     class CCLImpressCntl
     {
         const Bitset    *m_CCLs;
 
     template < uint32_t N>           
-        uint8_t        EqClassCode( uint32_t k) const { return ( uint8_t( m_CCLs->Get( k)) << ( N -1)) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
-
-    template <>  
-        uint8_t        EqClassCode< 1>( uint32_t k) const { return uint8_t( m_CCLs->Get( k));  }
-
+        uint8_t        EqClassCode( uint32_t k) const { return Sg_CharPartitionHelper<SzChBits, N>::GetEqClassCode( m_CCLs, k); }
+ 
 
     public:
         CCLImpressCntl( const Bitset *ccls)
@@ -196,7 +210,9 @@ public:
     template < uint32_t N> 
         void            ImpressWith( Sg_CharPartition *distrib)
         {
-            std::bitset< SzChBits << N> matchFlgs;                    
+            typedef std::bitset< SzChBits << N>     MatchFlags;
+            
+            MatchFlags                  matchFlgs;                    
             uint8_t                     grMap[ SzChBits << N];                   // keep a map if the group has been encountered.
             
             uint8_t     mxId = -1;
@@ -204,7 +220,7 @@ public:
             {
                 uint8_t     *pEqClassId = &distrib->m_EqClassIds[ i]; 
                 uint64_t    eqClassCode = ( uint64_t( *pEqClassId) << N) | EqClassCode< N>( i);     
-                auto        &matchFlg = matchFlgs[ eqClassCode]; 
+                typename MatchFlags::reference        matchFlg = matchFlgs[ eqClassCode]; 
                 uint8_t     *pGrId = &grMap[ eqClassCode];
                 if ( !matchFlg) 
                 {
@@ -239,7 +255,7 @@ public:
             m_CCLs[ m_Ind++] = ccl;
             if ( m_Ind < 7)
                 return false;
-            CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
+            CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith<7>( m_Distrib);
             m_Ind = 0;
             return true;
         }
@@ -247,12 +263,12 @@ public:
         {
             switch ( m_Ind)
             { 
-                case 1: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
-                case 2: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
-                case 3: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
-                case 4: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
-                case 5: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
-                case 6: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
+                case 1: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 1>( m_Distrib); break;
+                case 2: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 2>( m_Distrib); break;
+                case 3: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 3>( m_Distrib); break;
+                case 4: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 4>( m_Distrib); break;
+                case 5: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 5>( m_Distrib); break;
+                case 6: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 6>( m_Distrib); break;
             }
             m_Ind = 0;
             return;

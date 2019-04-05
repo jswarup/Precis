@@ -4,7 +4,7 @@
 #include    "cove/barn/cv_cexpr.h" 
 
 //_____________________________________________________________________________________________________________________________
-
+/* 
 template < template<uint32_t> typename Param, uint32_t N, uint32_t Last = 0>
 struct Cv_Stash : public Cv_Stash< Param, N -1, Last>
 {  
@@ -75,5 +75,5 @@ template <  typename Lambda, typename... Args>
             new (( (uint8_t *) p) + i * sizeof (Elem)) Elem(); 
     }
 };
-
+*/
 //_____________________________________________________________________________________________________________________________

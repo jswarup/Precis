@@ -124,7 +124,7 @@ public:
     uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
 template < typename Element>
-    static Id   ToId( Element *e) { return Id( e->GetId(), TypeOf< Element>()); }
+    static Id   ToId( Element *e) { return Id( e->GetId(), Crate::template TypeOf< Element>()); }
 
     static Id   ToId( Var v) { return Id( v.Entry()->GetId(), v.GetType()); }
 

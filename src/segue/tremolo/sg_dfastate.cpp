@@ -22,9 +22,9 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
     distrib.MakeUniversal();
 
     Sg_Partition::CCLImpressor      prtnIntersector(  &distrib);
-    /*
-    FilterIt    filtIt( elemRepos, this);
     
+    FilterIt    *filtIt = new FilterIt( elemRepos, this);
+    /*
     while ( filtIt.IsCurValid())
     {
         ChSetFilter<256>     *chSet = filtIt.Curr();
@@ -40,10 +40,15 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         for ( uint32_t j = 0; j < filters.Size(); ++j)
         {
             ChSetFilter<256>     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
+            ChSetFilter<256>     *chSet1 = filtIt->Curr();
+            if ( chSet != chSet1)
+               std::cout << "Mismatch" << std::endl;
+            filtIt->Next();
             prtnIntersector.Process( *chSet);
         }
 
     }
+    delete filtIt;
     Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
 
     prtnIntersector.Over();

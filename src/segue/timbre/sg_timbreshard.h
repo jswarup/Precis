@@ -40,33 +40,33 @@ struct RangeShard;
 //_____________________________________________________________________________________________________________________________  
 
 template < typename TimbreShard, typename Parser, typename = void>
-struct ShardForge : public  Parser::Forge
+struct ShardForge : public  Parser::PForge 
 {   
 	ShardForge( Parser *parser)
-		: Parser::Forge(parser) 
+		: Parser::PForge(parser) 
 	{}
 
 };
 
 template <typename TimbreShard, typename Parser>
-struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::Forge, public  TimbreShard::Whorl
+struct ShardForge< TimbreShard, Parser, typename Cv_TypeEngage::Exist< typename TimbreShard::Whorl>::Note> : public  Parser::PForge, public  TimbreShard::Whorl
 {
     typedef typename TimbreShard::Whorl  Whorl;
     
 	ShardForge( Parser *parser)
-		: Parser::Forge(parser)
+		: Parser::PForge(parser)
 	{} 
 }; 
 
 //_____________________________________________________________________________________________________________________________  
 
 template <typename TimbreShard, typename Parser,  typename Data>
-struct DataForge : public Parser::Forge
+struct DataForge : public Parser::PForge
 { 
     Data        *m_Data;
 
     DataForge( Parser *parser, Data *data)
-        : Parser::Forge( parser), m_Data( data)
+        : Parser::PForge( parser), m_Data( data)
     {}
 }; 
 
@@ -306,7 +306,7 @@ template < typename Cnstr>
 	{  
         typedef typename Cnstr::Crate Crate;
         
-		auto		seqType = Crate::TypeOf<SeqSynElem>();	
+		auto		seqType = Crate::template TypeOf<SeqSynElem>();	
 		auto		leftId = cnstr->FetchElemId( &m_Left);
 		auto		rightId = cnstr->FetchElemId( &m_Right);
 		
@@ -432,7 +432,7 @@ template < typename Forge>
 template < typename Cnstr>  
 	auto        FetchElemId( Cnstr *cnstr)
 	{  
-		auto		altType = Cnstr::Crate::TypeOf<AltSynElem>();	
+		auto		altType = Cnstr::Crate::template TypeOf<AltSynElem>();	
 		auto		leftId = cnstr->FetchElemId( &m_Left);
 		auto		rightId = cnstr->FetchElemId( &m_Right);
 

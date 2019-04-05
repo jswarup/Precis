@@ -135,9 +135,9 @@ template < typename Elem>
     {
         m_TVar = Var( &elm, FilterCrate::TypeOf< Elem>());
         auto    it = m_IdTbl.find( Id());
+        m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        m_TVar = Var();
         Id       id = Base::Push( elm);
         m_IdTbl.insert( id);
         return id;

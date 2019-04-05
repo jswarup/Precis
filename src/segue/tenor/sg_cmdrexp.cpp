@@ -19,6 +19,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 {         
     { "-i",     "<input>",  "input rule-file"},
     { "-d",     0 ,         "debug"},
+    { "-oshard",  "<dot>",    0},
     { "-oelem",  "<dot>",    0},
     { "-odfa",  "<dot>",    0},
     { "-o",     "<output>", 0},
@@ -31,6 +32,7 @@ class Sg_RExpCmdProcessor : public Cv_CmdExecutor
 { 
     std::string         m_InputFile;
     std::string         m_ElemDotFile;
+    std::string         m_ShardDotFile;
     std::string         m_DfaDotFile;
     bool                m_DebugFlg;
     std::string         m_OutputFile;
@@ -66,6 +68,12 @@ public:
             m_ElemDotFile = arg;
             return true;
         }  
+        if ("-oshard" == key)
+        {
+            m_ShardDotFile = arg;
+            return true;
+        }  
+        
         if ("-odfa" == key)
         {
             m_DfaDotFile = arg;
@@ -129,15 +137,16 @@ auto ProcessMatch( TimbreShard *shard, ...) -> void
 
 int     Sg_RExpCmdProcessor::Test(void)
 { 
-    typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
+   // typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
 
-    std::cout << PartitionStash::SizeOf( 256) << " ";
+  /*  std::cout << PartitionStash::SizeOf( 256) << " ";
     std::cout << PartitionStash::SizeOf( 128) << " ";
     std::cout << PartitionStash::SizeOf( 64) << " ";
     std::cout << PartitionStash::SizeOf( 32) << " ";
     std::cout << PartitionStash::SizeOf( 16) << " ";
     std::cout << PartitionStash::SizeOf( 8) << " ";
     std::cout << PartitionStash::SizeOf( 4) << " " << "\n";
+    */
     //RExpQuanta                   tx;
     //Cv_TypeEngage::Dump( &tx, std::cout, 0);
     if ( !m_InputFile.size())
@@ -152,6 +161,15 @@ int     Sg_RExpCmdProcessor::Test(void)
     RExpDoc					rexpDoc; 
     RExpDoc::XAct           xact( &rexpRepos); 
     bool					apiErrCode = parser.Match( &rexpDoc, &xact);
+
+    if ( m_ShardDotFile.size())
+    {
+        std::ofstream							ostrm( m_ShardDotFile);
+        Cv_DotStream						    synDotStrm( &ostrm, false); 
+        rexpRepos.OperateAll( [&synDotStrm]( auto k ){
+        return k->WriteDot( synDotStrm); 
+        });
+    }
     std::cout << rexpRepos.m_Base.ToString() << '\n';
 
     FsaElemRepos            automRepos;

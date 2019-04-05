@@ -59,7 +59,7 @@ struct Cv_Array
     {
         uint32_t        szBal = m_SzFill - from;
         for ( uint32_t i = 0; i < szBal; ++i)
-            ME[ i] = ME[ i +from];        
+            SELF[ i] = SELF[ i +from];        
         m_SzFill = szBal;
     }
 
@@ -102,7 +102,7 @@ public:
             k = m_Len;
         m_Len -= k;
         m_CStr = m_Len ? ( m_CStr + k) : NULL;
-        return ME;
+        return SELF;
     } 
 };
 
@@ -119,7 +119,7 @@ struct Cv_LinArr
     X           *Ptr( void) { return ( &m_Sz +1); }
 
     X           *Begin( void) const { return Ptr(); }
-    X           *End( void) const { return Ptr() +m_Len; }
+    X           *End( void) const { return Ptr() +m_Sz; }
 
     const X     &operator[]( uint32_t i) const { return Ptr()[ i]; } 
     X           &operator[]( uint32_t i) { return Ptr()[ i]; } 
