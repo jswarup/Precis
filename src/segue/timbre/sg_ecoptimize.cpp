@@ -97,7 +97,7 @@ void   Sg_ECDistribSteward::SwitchECBase( void)
 //_____________________________________________________________________________________________________________________________ 
 
 Sg_ECTableOptimize::Sg_ECTableOptimize( void)
-    : m_BaseDistribs( NULL)
+    : m_BaseDistribs()
 {
 }
 

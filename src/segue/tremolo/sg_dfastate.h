@@ -98,7 +98,7 @@ struct FsaSupState  : public FsaState
                 FetchFilters();
         }
 
-        bool                IsCurValid( void) { return m_StateCursor < m_SubStates.Size() && m_FilterCursor < m_Filters.Size(); }
+        bool                IsCurValid( void) { return ( m_StateCursor < m_SubStates.Size()) && ( m_FilterCursor < m_Filters.Size()); }
         FilterRepos::Var    Curr( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
         
         void                Next( void) 
@@ -199,7 +199,7 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
 
     void        Insert(  FsaSupState *supState, FsaDfaState *dfaState)
     {
-        m_SupDfaMap.insert( std::pair( supState, dfaState));
+        m_SupDfaMap.insert( std::make_pair( supState, dfaState));
     }
 
     FsaDfaState *Find( FsaSupState *supState)

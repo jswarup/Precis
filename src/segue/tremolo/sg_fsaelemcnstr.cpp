@@ -80,7 +80,7 @@ void    FsaElemReposCnstr::Process( void)
     start->m_State->RaiseRef();
     AutomSlot                       end =  ConstructCnstr(); 
     RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
-    docVar( [ this, start, end](  auto k) {
+    docVar( [ this, &start, &end](  auto k) {
         Proliferate( k, start, end);
     }); 
     m_AutomRepos->m_RootId = FsaRepos::ToId( start->m_State);

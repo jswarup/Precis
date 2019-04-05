@@ -97,11 +97,11 @@ template < typename TimbreShard>
 
 
 template < typename TimbreShard>
-	auto		*Pred(void) { return m_PushedFlg ? Parent()->Whorl< TimbreShard>() : m_Parser->TopForge()->Whorl< TimbreShard>(); }
+	auto		*Pred(void) { return m_PushedFlg ? Parent()->template Whorl< TimbreShard>() : m_Parser->TopForge()->template Whorl< TimbreShard>(); }
 
 
 template < typename TimbreShard>
-    auto		*Bottom(void) { return m_Parser->BottomForge()->Whorl< TimbreShard>(); }
+    auto		*Bottom(void) { return m_Parser->BottomForge()->template Whorl< TimbreShard>(); }
 };
 
 
@@ -114,11 +114,11 @@ public:
     typedef uint32_t                    Mark;  
     typedef char                        Item; 
     typedef Sg_Timbre::SynElem          SynElem; 
-	typedef Forge< Parser>				Forge;
+	typedef Forge< Parser>				PForge;
     
 protected:
     
-    Cv_Fifo< Forge>        m_ForgeStack;
+    Cv_Fifo< PForge>        m_ForgeStack;
     InStream                *m_InStream; 
     std::ostream            *m_LogStream; 
     Mark                    m_LastMatch;
@@ -133,11 +133,11 @@ public:
     std::ostream    *LogStream( void) { return m_LogStream; }
     void            SetLogStream( std::ostream *ostr) { m_LogStream = ostr; }
         
-    void            PushForge( Forge *forge) { m_ForgeStack.PushFront( forge); }
-    Forge           *PopForge( void)  { return m_ForgeStack.PopFront();  }
+    void            PushForge( PForge *forge) { m_ForgeStack.PushFront( forge); }
+    PForge          *PopForge( void)  { return m_ForgeStack.PopFront();  }
     
-    Forge           *TopForge( void) { return m_ForgeStack.Top(); }
-    Forge           *BottomForge( void) { return m_ForgeStack.Bottom(); } 
+    PForge          *TopForge( void) { return m_ForgeStack.Top(); }
+    PForge          *BottomForge( void) { return m_ForgeStack.Bottom(); } 
     bool            IsCurValid( void) { return m_InStream->IsCurValid(); }
     bool            Next( void) { return m_InStream->Next(); } 
     Item            Curr( void) { return m_InStream->Curr(); } 
@@ -150,15 +150,15 @@ public:
     
 
 template < typename TimbreShard>
-    auto		    *Bottom(void) { return BottomForge()->Whorl< TimbreShard>(); }
+    auto		    *Bottom(void) { return BottomForge()->template Whorl< TimbreShard>(); }
 
 template < typename TimbreShard>
-    auto		    *Top(void) { return TopForge()->Whorl< TimbreShard>(); }
+    auto		    *Top(void) { return TopForge()->template Whorl< TimbreShard>(); }
 
 template < typename Shard>    
     bool            Match( Shard *node)
     {
-        Forge  forge( this);
+        PForge  forge( this);
        
         bool    res = node->DoMatch( &forge); 
         return res;
@@ -167,7 +167,7 @@ template < typename Shard>
 template < typename Shard, typename Data>    
     bool            Match( Shard *node, Data *data)
     { 
-        ShardForge< Shard, typename Forge::Parser>      forge( this);
+        ShardForge< Shard, typename PForge::Parser>      forge( this);
         forge.PrimeIn( data);
   
         bool        match = node->DoParse( &forge);
