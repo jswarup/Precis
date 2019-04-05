@@ -169,7 +169,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         rexpRepos.OperateAll( [&synDotStrm]( auto k ){
         return k->WriteDot( synDotStrm); 
         });
-    }
+    } 
     std::cout << rexpRepos.m_Base.ToString() << '\n';
 
     FsaElemRepos            automRepos;

@@ -124,7 +124,7 @@ public:
     uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
 template < typename Element>
-    static Id   ToId( Element *e) { return Id( e->GetId(), TypeOf< Element>()); }
+    static Id   ToId( Element *e) { return Id( e->GetId(), Crate::template TypeOf< Element>()); }
 
     static Id   ToId( Var v) { return Id( v.Entry()->GetId(), v.GetType()); }
 
@@ -186,7 +186,7 @@ template<  class Object>
     }
 
 template < typename Lambda, typename... Args>
-    auto    OperateAll(  Lambda lambda,  Args&... args)  
+    auto    OperateAll(  Lambda &&lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
         Accum                                               accum;
@@ -271,7 +271,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     }
 
 template < typename Lambda, typename... Args>
-    auto    OperateAll(  Lambda lambda,  Args&... args)  
+    auto    OperateAll(  Lambda &lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
         Accum                                               accum;
@@ -310,7 +310,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
     }
 
 template < typename Lambda, typename... Args>
-    auto    OperateAll(  Lambda lambda,  Args&... args)  
+    auto    OperateAll(  Lambda &&lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
         Accum                                               accum;

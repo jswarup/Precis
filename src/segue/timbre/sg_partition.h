@@ -211,6 +211,7 @@ public:
         void            ImpressWith( Sg_CharPartition *distrib)
         {
             typedef std::bitset< SzChBits << N>     MatchFlags;
+            typedef typename MatchFlags::reference  MatchRef;
             
             MatchFlags                  matchFlgs;                    
             uint8_t                     grMap[ SzChBits << N];                   // keep a map if the group has been encountered.
@@ -220,7 +221,7 @@ public:
             {
                 uint8_t     *pEqClassId = &distrib->m_EqClassIds[ i]; 
                 uint64_t    eqClassCode = ( uint64_t( *pEqClassId) << N) | EqClassCode< N>( i);     
-                auto        &matchFlg = matchFlgs[ eqClassCode]; 
+                MatchRef    matchFlg = matchFlgs[ eqClassCode]; 
                 uint8_t     *pGrId = &grMap[ eqClassCode];
                 if ( !matchFlg) 
                 {
