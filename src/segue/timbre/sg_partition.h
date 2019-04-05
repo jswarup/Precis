@@ -5,6 +5,21 @@
 
 //_____________________________________________________________________________________________________________________________ 
 
+template < uint32_t SzChBits, uint32_t N>
+struct Sg_CharPartitionHelper
+{ 
+    static uint8_t        GetEqClassCode( const Sg_Bitset< SzChBits>  *chSets, uint32_t k)  { return ( uint8_t( chSets->Get( k)) << ( N -1)) | 
+                                            Sg_CharPartitionHelper< SzChBits, N -1>::GetEqClassCode( chSets +1, k);  }
+};
+
+template < uint32_t SzChBits>
+struct Sg_CharPartitionHelper< SzChBits, 1>
+{ 
+    static uint8_t        GetEqClassCode( const Sg_Bitset< SzChBits>  *chSets, uint32_t k)  { return uint8_t( chSets->Get( k));  }
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 template < uint32_t SzChBits>
 class Sg_CharPartition  
 {
@@ -182,11 +197,8 @@ public:
         const Bitset    *m_CCLs;
 
     template < uint32_t N>           
-        uint8_t        EqClassCode( uint32_t k) const { return ( uint8_t( m_CCLs->Get( k)) << ( N -1)) | CCLImpressCntl( m_CCLs +1).EqClassCode< N -1>( k);  }
-
-    template <>  
-        uint8_t        EqClassCode< 1>( uint32_t k) const { return uint8_t( m_CCLs->Get( k));  }
-
+        uint8_t        EqClassCode( uint32_t k) const { return Sg_CharPartitionHelper<SzChBits, N>::GetEqClassCode( m_CCLs, k); }
+ 
 
     public:
         CCLImpressCntl( const Bitset *ccls)
@@ -239,7 +251,7 @@ public:
             m_CCLs[ m_Ind++] = ccl;
             if ( m_Ind < 7)
                 return false;
-            CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
+            CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith<7>( m_Distrib);
             m_Ind = 0;
             return true;
         }
@@ -247,12 +259,12 @@ public:
         {
             switch ( m_Ind)
             { 
-                case 1: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
-                case 2: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
-                case 3: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
-                case 4: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
-                case 5: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
-                case 6: CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
+                case 1: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 1>( m_Distrib); break;
+                case 2: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 2>( m_Distrib); break;
+                case 3: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 3>( m_Distrib); break;
+                case 4: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 4>( m_Distrib); break;
+                case 5: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 5>( m_Distrib); break;
+                case 6: CCLImpressCntl( &m_CCLs[ 0]).template ImpressWith< 6>( m_Distrib); break;
             }
             m_Ind = 0;
             return;
