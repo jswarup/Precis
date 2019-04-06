@@ -22,7 +22,7 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
     distrib.MakeUniversal();
 
     Sg_Partition::CCLImpressor      prtnIntersector(  &distrib);
-    /*
+ 
     FilterIt    filtIt( elemRepos, this);
     
     while ( filtIt.IsCurValid())
@@ -31,7 +31,7 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         prtnIntersector.Process( *chSet);
         filtIt.Next();
     }
-    */
+/*   
     Cv_CArr< FsaId>                    subStates = SubStates();
     for ( uint32_t i = 0; i < subStates.Size(); ++i) 
     {
@@ -44,6 +44,7 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         }
 
     }
+*/
     Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
 
     prtnIntersector.Over();
@@ -139,7 +140,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaState->SetDest( k, subId); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
-    m_DfaStateMap = Cv_Slot< FsaDfaStateMap>();
+    //m_DfaStateMap.Purge();
     return dfaState;
 }
 

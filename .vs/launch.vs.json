@@ -1,16 +1,15 @@
 {
+  "version": "0.2.1",
+  "defaults": {},
   "configurations": [
     {
       "type": "default",
       "project": "toolkit\\builds\\code\\CMakeLists.txt",
-      "projectTarget": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
-      "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
-      "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\bin\\precis.exe)",
+      "projectTarget": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
+      "name": "precis",
       "args": [
         "rexp -i ip.rules -odfa a.dot"
       ]
     }
-  ],
-  "defaults": {},
-  "version": "0.2.1"
+  ]
 }

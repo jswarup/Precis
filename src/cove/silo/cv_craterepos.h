@@ -113,6 +113,8 @@ public:
         m_Elems.push_back( NULL); 
         m_Types.push_back( 0); 
     }
+    
+    ~Cv_CrateRepos( void)  { Clear(); }
 
     void Clear( void)
     {

@@ -26,6 +26,14 @@
         <df name="timbre">
           <in>sg_chset.cpp</in>
           <in>sg_distrib.cpp</in>
+          <in>sg_ecdistribdb.cpp</in>
+          <in>sg_ecoptimize.cpp</in>
+        </df>
+        <df name="tremolo">
+          <in>sg_dfastate.cpp</in>
+          <in>sg_filter.cpp</in>
+          <in>sg_fsaelemcnstr.cpp</in>
+          <in>sg_fsastate.cpp</in>
         </df>
       </df>
       <df name="trellis">
@@ -73,9 +81,12 @@
           <ccTool>
             <incDir>
               <pElem>../../src</pElem>
-              <pElem>../../delivery/bin</pElem>
+              <pElem>../../delivery/Linux/bin</pElem>
               <pElem>../../delivery</pElem>
             </incDir>
+            <preprocessorList>
+              <Elem>EBUG</Elem>
+            </preprocessorList>
           </ccTool>
         </makeTool>
         <preBuild>
@@ -125,9 +136,6 @@
             tool="1"
             flavor2="11">
         <ccTool flags="0">
-          <preprocessorList>
-            <Elem>EBUG</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
       <item path="../../src/segue/tenor/sg_cmdtimbre.cpp"
@@ -165,6 +173,48 @@
         <ccTool flags="0">
         </ccTool>
       </item>
+      <item path="../../src/segue/timbre/sg_ecdistribdb.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/timbre/sg_ecoptimize.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tremolo/sg_dfastate.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tremolo/sg_filter.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tremolo/sg_fsaelemcnstr.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tremolo/sg_fsastate.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
       <item path="../../src/trellis/swarm/tr_worker.cpp"
             ex="false"
             tool="1"
@@ -186,13 +236,6 @@
         <ccTool flags="0">
         </ccTool>
       </item>
-      <folder path="0/cove">
-        <ccTool>
-          <preprocessorList>
-            <Elem>EBUG</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
     </conf>
   </confs>
 </configurationDescriptor>

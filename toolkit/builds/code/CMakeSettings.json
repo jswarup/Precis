@@ -5,8 +5,8 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
-      "installRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "buildRoot": "${workspaceRoot}\\delivery\\Windows\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\delivery\\Windows\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "intelliSenseMode": "windows-msvc-x64",
@@ -15,35 +15,7 @@
           "name": "PR_DBG",
           "value": "False",
           "type": "BOOL"
-        },
-        {
-          "name": "PR_VISUALSTUDIO",
-          "value": "True",
-          "type": "BOOL"
-        }
-      ]
-    },
-    {
-      "name": "x64-Release",
-      "generator": "Ninja",
-      "configurationType": "RelWithDebInfo",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
-      "installRoot": "${workspaceRoot}\\delivery\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "-v",
-      "intelliSenseMode": "msvc_x64_x64",
-      "variables": [
-        {
-          "name": "PR_DBG",
-          "value": "False",
-          "type": "BOOL"
-        },
-        {
-          "name": "PR_VISUALSTUDIO",
-          "value": "True",
-          "type": "BOOL"
-        }
+        } 
       ]
     } 
   ]
