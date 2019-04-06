@@ -263,6 +263,15 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
         return insrt; 
     } 
 
+    Id          Store( const Entry &entry) 
+    { 
+        switch ( entry.GetType())
+        {
+            case  Crate::Sz : return Push( static_cast< const Elem &>( entry));
+            default :  return Base::Store( entry);
+        }
+    }   
+
     Var     ToVar( const Id &id)  
     {  
         switch ( id.GetType())
@@ -305,6 +314,11 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entr
         insrt.SetType( Crate::Sz);
         return insrt;  
     }  
+
+    Id          Store( const Entry &entry) 
+    {    
+        return Push( static_cast< const Elem &>( entry));
+    }   
  
     Var         ToVar( const Id &id)  
     {  

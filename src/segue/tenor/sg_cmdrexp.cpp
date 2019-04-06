@@ -154,6 +154,11 @@ int     Sg_RExpCmdProcessor::Test(void)
 
 	StrInStream			    memVector;
 	bool	                res = Cv_Aid::ReadVec( &memVector, m_InputFile.c_str()); 
+    if ( !res)
+    {
+        std::cerr << "Not Found : " << m_InputFile << '\n';
+        return -1;
+    }
 	Parser< StrInStream>	parser( &memVector);  
     if ( m_DebugFlg)
         parser.SetLogStream( &std::cout);

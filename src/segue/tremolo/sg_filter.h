@@ -83,7 +83,6 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
     bool            Dump( std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
 };
 
-
 //_____________________________________________________________________________________________________________________________ 
 
 struct FilterRepos  : public Cv_CratePile< FilterCrate>                                
@@ -93,6 +92,20 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
     typedef Filter::IndexStor               IndexStor;
     typedef Filter::Id                      Id;
      
+
+
+template < uint32_t N>
+    struct BitsetMapper
+    {
+        Sg_Partition        *m_Base;
+        const Sg_ChSet      *m_ChSet; 
+
+        BitsetMapper( Sg_Partition *prtn, const Sg_ChSet *chSet)
+            : m_Base( prtn), m_ChSet( chSet)
+        {}
+
+        ChSetFilter< N>     Map() { return ChSetFilter< N>(); }
+    };
 
     struct LessOp
     {
@@ -117,6 +130,7 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
 
     std::set< Id, LessOp>       m_IdTbl; 
     FilterCrate::Var            m_TVar;
+    Sg_Partition                m_Base;
  
     FilterRepos( void) 
         : m_IdTbl( LessOp( this))
@@ -138,10 +152,11 @@ template < typename Elem>
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Push( elm);
+        Id       id = Base::Store( elm);
         m_IdTbl.insert( id);
         return id;
     }
+
 
     bool            Dump( std::ostream &ostr) 
     { 
