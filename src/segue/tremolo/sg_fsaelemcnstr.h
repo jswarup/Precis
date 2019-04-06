@@ -66,21 +66,22 @@ public:
 struct FsaElemReposCnstr 
 {
     RExpRepos				        *m_RexpRepos; 
-    FsaElemRepos                    *m_AutomRepos;
+    FsaElemRepos                    *m_ElemRepos;
     std::vector< FsaElemCnstr *>    m_Cnstrs;
 
     FsaElemReposCnstr(  RExpRepos *rexpRepos, FsaElemRepos *automRepos)
-        : m_RexpRepos( rexpRepos), m_AutomRepos( automRepos)
+        : m_RexpRepos( rexpRepos), m_ElemRepos( automRepos)
     { 
         m_Cnstrs.push_back( NULL);
-        m_AutomRepos->m_RuleIdSzList.resize( m_RexpRepos->m_RuleSz, 0);
+        m_ElemRepos->m_RuleIdSzList.resize( m_RexpRepos->m_RuleSz, 0);
+        m_ElemRepos->m_FilterRepos.m_Base = rexpRepos->m_Base;
     } 
 
     AutomSlot   ConstructCnstr( void)
     {
         AutomSlot   x = new FsaElemCnstr( this);  
-        x->SetId( m_AutomRepos->Size()); 
-        x->m_State = m_AutomRepos->Construct< FsaElem>();  
+        x->SetId( m_ElemRepos->Size()); 
+        x->m_State = m_ElemRepos->Construct< FsaElem>();  
         m_Cnstrs.push_back( x);
         return x;
     }
@@ -137,7 +138,7 @@ struct FsaElemReposCnstr
     void    Proliferate( RExpEntrySeqElem *seqElm, const AutomSlot &start, const AutomSlot &end)
     { 
         Proliferate( static_cast< SeqSynElem *>( seqElm), start, end);
-        m_AutomRepos->m_RuleIdSzList[ seqElm->m_RuleIndex] = m_AutomRepos->Size(); 
+        m_ElemRepos->m_RuleIdSzList[ seqElm->m_RuleIndex] = m_ElemRepos->Size(); 
     }
 
     void    Proliferate( AltSynElem *altElm, const AutomSlot &start, const AutomSlot &end)

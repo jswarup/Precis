@@ -177,19 +177,19 @@ int     Sg_RExpCmdProcessor::Test(void)
     } 
     std::cout << rexpRepos.m_Base.ToString() << '\n';
 
-    FsaElemRepos            automRepos;
-    FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &automRepos); 
+    FsaElemRepos            elemRepos;
+    FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
     automReposCnstr.Process(); 
-    automRepos.Dump( std::cout);
+    elemRepos.Dump( std::cout);
     if ( m_ElemDotFile.size())
     {
         std::ofstream       fsaOStrm( m_ElemDotFile);
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
-        automRepos.WriteDot( fsaDotStrm);
+        elemRepos.WriteDot( fsaDotStrm);
     } 
 
     FsaRepos                dfaRepos;
-    FsaDfaCnstr             dfaCnstr( &automRepos, &dfaRepos);
+    FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
     if ( m_DfaDotFile.size())
     {

@@ -15,9 +15,9 @@ template < uint32_t N>
 struct      ChSetFilter;
 struct      CharFilter; 
 struct      Filter;
+struct      FilterRepos;
 
 typedef Cv_Crate< ChSetFilter< 256>, ChSetFilter< 128>, ChSetFilter< 64>, ChSetFilter< 32>, ChSetFilter< 16>, ChSetFilter< 8>, CharFilter, Filter>   FilterCrate; 
-
 
 //_____________________________________________________________________________________________________________________________ 
  
@@ -34,7 +34,7 @@ public:
      
     int32_t         Compare( const Filter *filt) const { return 0; }
     std::string     ToString( void) const { return std::string(); }
-    bool            Dump( std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    bool            Dump( FilterRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
 };  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -52,7 +52,7 @@ struct     CharFilter : public Filter
     int32_t         Compare( const CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
     
     std::string     ToString( void) const { return std::string( &m_Char, &m_Char +1); }
-    bool            Dump( std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
+    bool            Dump( FilterRepos *, std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -80,7 +80,10 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 
     std::string     ToString( void) const { return Base::ToString(); }
 
-    bool            Dump( std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
+    bool            Dump( FilterRepos *filterRepos, std::ostream &ostr) 
+    { 
+        ostr << ToString() << "\n"; return true; 
+    }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -104,7 +107,10 @@ template < uint32_t N>
             : m_Base( prtn), m_ChSet( chSet)
         {}
 
-        ChSetFilter< N>     Map() { return ChSetFilter< N>(); }
+        ChSetFilter< N>     Map() 
+        { 
+            return ChSetFilter< N>(); 
+        }
     };
 
     struct LessOp
@@ -156,11 +162,26 @@ template < typename Elem>
         m_IdTbl.insert( id);
         return id;
     }
-
+    
+    Id  FetchId( const Sg_ChSet &chSet)
+    {
+        uint32_t    szImg = m_Base.SzImage();
+        if ( szImg <= 8) 
+            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
+        if ( szImg <= 16) 
+            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
+        if ( szImg <= 32) 
+            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
+        if ( szImg <= 64) 
+            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
+        if ( szImg <= 128) 
+            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
+        return FilterRepos::Push( ChSetFilter< 256>( chSet)); 
+    }
 
     bool            Dump( std::ostream &ostr) 
     { 
-        return OperateAll( [&ostr]( auto k) {  return k->Dump( ostr); });
+        return OperateAll( [this, &ostr]( auto k) {  return k->Dump( this, ostr); });
     }
 };
 

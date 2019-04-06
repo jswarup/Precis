@@ -13,7 +13,7 @@ FsaElemCnstr::~FsaElemCnstr( void)
     FinalizeEpsLinks(); 
     m_Repos->m_Cnstrs[ GetId()] = NULL;
     if ( !m_State->RefCount())
-        m_Repos->m_AutomRepos->Destroy( m_State->GetId());
+        m_Repos->m_ElemRepos->Destroy( m_State->GetId());
 }
 
 //_____________________________________________________________________________________________________________________________  
@@ -21,7 +21,7 @@ FsaElemCnstr::~FsaElemCnstr( void)
 void    FsaElemCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
 { 
     dest->m_State->RaiseRef();
-    auto        filtId = m_Repos->m_AutomRepos->m_FilterRepos.Push( ChSetFilter( chSet));
+    auto        filtId = m_Repos->m_ElemRepos->m_FilterRepos.FetchId( chSet);
     m_State->AddEdge( filtId, FsaRepos::ToId( dest->m_State));
 }
 
@@ -33,7 +33,7 @@ void    FsaElemCnstr::FinalizeEpsLinks( void)
     for ( auto sIt = m_EpsSourceIds.begin(); sIt != m_EpsSourceIds.end(); ++sIt)
     {
   
-        FsaElem       *srcState = static_cast< FsaElem *>( m_Repos->m_AutomRepos->Get( *sIt).GetEntry()) ;
+        FsaElem       *srcState = static_cast< FsaElem *>( m_Repos->m_ElemRepos->Get( *sIt).GetEntry()) ;
 
         // export all this state transistions to the eps-source  
         if ( srcState)
@@ -83,7 +83,7 @@ void    FsaElemReposCnstr::Process( void)
     docVar( [ this, &start, &end](  auto k) {
         Proliferate( k, start, end);
     }); 
-    m_AutomRepos->m_RootId = FsaRepos::ToId( start->m_State);
+    m_ElemRepos->m_RootId = FsaRepos::ToId( start->m_State);
     return;
 }
 
@@ -94,7 +94,7 @@ bool    FsaElemReposCnstr::WriteDot( const std::string &str)
     std::ofstream           rexpOStrm( str);
     Cv_DotStream			rexpDotStrm( &rexpOStrm, true);  
 
-    m_AutomRepos->WriteDot( rexpDotStrm);
+    m_ElemRepos->WriteDot( rexpDotStrm);
     for ( uint32_t i = 1; i < m_Cnstrs.size(); ++i)
     {
         FsaElemCnstr  *si = m_Cnstrs[ i];
