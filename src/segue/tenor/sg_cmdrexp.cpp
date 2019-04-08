@@ -187,7 +187,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
         elemRepos.WriteDot( fsaDotStrm);
     } 
-
+    return 0;
     FsaRepos                dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();

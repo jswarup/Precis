@@ -64,7 +64,9 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 
     ChSetFilter( void)
         : Base()
-    {}
+    {
+        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
+    }
     
     ChSetFilter( Base &&chSet)
         : Base( chSet)
@@ -81,8 +83,13 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
     std::string     ToString( void) const { return Base::ToString(); }
 
     bool            Dump( FilterRepos *filterRepos, std::ostream &ostr) 
-    { 
-        ostr << ToString() << "\n"; return true; 
+    {  
+        Sg_ChSet      chSet; 
+        for ( uint32_t i = 0; i < Sg_ChSet::SzChBits; ++i)
+            if ( Get( filterRepos->m_Base.Image( i)))
+                chSet.Set( i, true); 
+        ostr << chSet.ToString() << "\n"; 
+        return true; 
     }
 };
 
@@ -100,16 +107,19 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
 template < uint32_t N>
     struct BitsetMapper
     {
-        Sg_Partition        *m_Base;
-        const Sg_ChSet      *m_ChSet; 
+        Sg_Partition        *m_Base; 
 
-        BitsetMapper( Sg_Partition *prtn, const Sg_ChSet *chSet)
-            : m_Base( prtn), m_ChSet( chSet)
+        BitsetMapper( Sg_Partition *prtn)
+            : m_Base( prtn) 
         {}
 
-        ChSetFilter< N>     Map() 
+        ChSetFilter< N>     Map( const Sg_ChSet *chSet) 
         { 
-            return ChSetFilter< N>(); 
+            ChSetFilter< N>     mappedFilt;
+            for ( uint32_t i = 0; i < Sg_ChSet::SzChBits; ++i)
+                if ( chSet->Get( i))
+                    mappedFilt.Set( m_Base->Image( i), true);
+            return mappedFilt; 
         }
     };
 
@@ -151,7 +161,7 @@ template < uint32_t N>
     
 
 template < typename Elem>
-    Id          Push(  Elem &&elm) 
+    Id          Store(  Elem &&elm) 
     {
         m_TVar = Var( &elm, FilterCrate::TypeOf< Elem>());
         auto    it = m_IdTbl.find( Id());
@@ -166,17 +176,17 @@ template < typename Elem>
     Id  FetchId( const Sg_ChSet &chSet)
     {
         uint32_t    szImg = m_Base.SzImage();
-        if ( szImg <= 8) 
-            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
-        if ( szImg <= 16) 
-            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
-        if ( szImg <= 32) 
-            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
-        if ( szImg <= 64) 
-            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
-        if ( szImg <= 128) 
-            return FilterRepos::Push( BitsetMapper< 8>( &m_Base, &chSet).Map());  
-        return FilterRepos::Push( ChSetFilter< 256>( chSet)); 
+        if ( szImg <= 8)                                       
+            return Store( BitsetMapper< 8>( &m_Base).Map( &chSet));  
+        if ( szImg <= 16)                                      
+            return Store( BitsetMapper< 16>( &m_Base).Map( &chSet));  
+        if ( szImg <= 32)                                      
+            return Store( BitsetMapper< 32>( &m_Base).Map( &chSet));  
+        if ( szImg <= 64)                                      
+            return Store( BitsetMapper< 64>( &m_Base).Map( &chSet));  
+        if ( szImg <= 128)                                     
+            return Store( BitsetMapper< 128>( &m_Base).Map( &chSet));  
+        return Store( ChSetFilter< 256>( chSet)); 
     }
 
     bool            Dump( std::ostream &ostr) 

@@ -247,10 +247,10 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 {
     typedef Cv_CratePile< typename Crate::CrateBase>    Base;
 
-    typedef typename Base::Entry        Entry;
-    typedef typename Base::Elem         Elem;
+    typedef typename Crate::Entry        Entry;
+    typedef typename Crate::Elem         Elem;
     typedef typename Base::Id           Id;
-    typedef typename Base::Var          Var;
+    typedef typename Crate::Var	        Var; 
 
     std::vector< Elem>                  m_Elems;
 
@@ -277,7 +277,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
         switch ( id.GetType())
         {
             case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
-            default :           return Base::ToVar( id);
+            default :           auto    var = Base::ToVar( id); return Var( var.GetEntry(), var.GetType());
         }
     }
 
@@ -296,7 +296,7 @@ template < typename Lambda, typename... Args>
 //_____________________________________________________________________________________________________________________________
 
 template<typename Crate>
-struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Entry, typename Crate::Entry>::Note>  
+struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem, typename Crate::Entry>::Note>  
 { 
 
     typedef typename Crate::Entry       Entry;
