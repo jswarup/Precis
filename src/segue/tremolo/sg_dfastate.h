@@ -11,6 +11,14 @@ namespace Sg_RExp
 
 //_____________________________________________________________________________________________________________________________ 
 
+struct  FsaDfaRepos  : public FsaRepos
+{    
+     
+    DistribRepos        m_DistribRepos;   
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 struct FsaSupState  : public FsaState
 {   
     Cv_Slot< FsaDfaStateMap>        m_DfaStateMap;
@@ -43,9 +51,9 @@ struct FsaSupState  : public FsaState
         return m_Action->Compare( *x2.m_Action);
     } 
 
-    Cv_CArr< FsaId>             SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); }
+    Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); }
 
-    std::set< uint32_t>         RuleIds( FsaElemRepos *fsaElemRepos) const
+    std::set< uint32_t>     RuleIds( FsaElemRepos *fsaElemRepos) const
     {  
         std::set< uint32_t>    ruleIds; 
         for ( uint32_t i = 0; i < m_SubStates.size(); ++i)
@@ -53,7 +61,7 @@ struct FsaSupState  : public FsaState
         return ruleIds;
     }
 
-    void                        PushAction( const Cv_CArr< uint64_t>  &tokens)
+    void                    PushAction( const Cv_CArr< uint64_t>  &tokens)
     { 
         if ( !tokens.Size())
             return;
@@ -63,7 +71,7 @@ struct FsaSupState  : public FsaState
         return;
     }
 
-    void                        Freeze( void)
+    void                    Freeze( void)
     {
         std::sort( m_SubStates.begin(), m_SubStates.end());
         if ( m_Action)
@@ -71,46 +79,69 @@ struct FsaSupState  : public FsaState
         return;
     }
 
-    Action                      *DetachAction( void) 
+    Action                  *DetachAction( void) 
     { 
         Action  *act = m_Action; 
         m_Action = NULL;
         return act;
     }
 
-    Sg_Partition               RefineCharDistrib( FsaRepos *elemRepos);
-    FsaDfaState                 *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
-    bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    Sg_Partition            RefineCharDistrib( FsaElemRepos *elemRepos);
 
-    struct FilterIt
+    FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+
+    struct ElemIt
     {
-        FsaRepos            *m_ElemRepos;
+        FsaElemRepos        *m_ElemRepos;
         Cv_CArr< FsaId>     m_SubStates;
-        Cv_CArr< FiltId>    m_Filters;
         uint32_t            m_StateCursor;
+
+        ElemIt( FsaElemRepos *elemRepos,  FsaSupState *supState)
+            :  m_ElemRepos( elemRepos), m_SubStates( supState->SubStates()), m_StateCursor( 0)
+        {}
+
+        bool                IsCurValid( void) { return m_StateCursor < m_SubStates.Size(); }
+        FsaElemRepos::Var   Curr( void) { return m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]); }
+        bool                Next( void) 
+        { 
+            if ( ++m_StateCursor < m_SubStates.Size())
+                return true;
+            return false; 
+        } 
+    };
+
+    struct FilterIt : public ElemIt
+    { 
+        Cv_CArr< FiltId>    m_Filters;
         uint32_t            m_FilterCursor;
 
  
-        FilterIt( FsaRepos *elemRepos, FsaSupState *supState)
-            : m_ElemRepos( elemRepos), m_SubStates( supState->SubStates()), m_StateCursor( 0), m_FilterCursor( 0)
+        FilterIt( FsaElemRepos *elemRepos, FsaSupState *supState)
+            : ElemIt( elemRepos, supState), m_FilterCursor( 0)
         {
-            if ( m_SubStates.Size())
+            if ( ElemIt::IsCurValid())
                 FetchFilters();
         }
 
-        bool                IsCurValid( void) { return ( m_StateCursor < m_SubStates.Size()) && ( m_FilterCursor < m_Filters.Size()); }
+        bool                IsCurValid( void) { return ElemIt::IsCurValid() && ( m_FilterCursor < m_Filters.Size()); }
         FilterRepos::Var    Curr( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
         
-        void                Next( void) 
+        bool                Next( void) 
         { 
             if ( ++m_FilterCursor < m_Filters.Size())
-                return;
+                return true;
             m_FilterCursor = 0;
-            if ( ++m_StateCursor < m_SubStates.Size())
-                FetchFilters();                
+            if ( ElemIt::Next())
+            {
+                FetchFilters(); 
+                return true;
+            }              
+            return false; 
         } 
         
         void        FetchFilters( void);
+     
     };
 }; 
 
@@ -133,10 +164,10 @@ public:
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
     static FsaDfaState      *Construct( uint8_t sz, Action *action)
     {
-        uint8_t         szTok = action  ? uint8_t( action->m_Values.size()) : 0;
-        auto            memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
-        FsaDfaState     *dfaState = new (new uint8_t[ memSz]) FsaDfaState( sz, szTok); 
-        uint64_t        *toks = dfaState->Tokens().Ptr();
+        uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;
+        auto                memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
+        FsaDfaState         *dfaState = new (new uint8_t[ memSz]) FsaDfaState( sz, szTok); 
+        uint64_t            *toks = dfaState->Tokens().Ptr();
         for ( uint32_t i = 0; i < szTok; ++i)
             toks[ i] = action->m_Values[ i];
         return dfaState;
@@ -187,7 +218,7 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
 
     ~FsaDfaStateMap( void);
 
-    int32_t     Compare( const FsaDfaStateMap &dsMap) const
+    int32_t                 Compare( const FsaDfaStateMap &dsMap) const
     {
         if ( m_Ruleset.size() != dsMap.m_Ruleset.size())
             return m_Ruleset.size() > dsMap.m_Ruleset.size() ? 1 : -1;
@@ -197,7 +228,7 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
         return 0;
     }   
 
-    void        Insert(  FsaSupState *supState, FsaDfaState *dfaState)
+    void                    Insert(  FsaSupState *supState, FsaDfaState *dfaState)
     {
         m_SupDfaMap.insert( std::make_pair( supState, dfaState));
     }
@@ -239,9 +270,7 @@ struct  FsaDfaStateMapCltn
         }
         delete dfaStatemap;
         return *it;           
-    }
-
-
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -252,11 +281,11 @@ struct  FsaDfaCnstr
     typedef FsaRepos::Id                FsaId; 
 
     FsaElemRepos                        *m_ElemRepos; 
-    FsaRepos                            *m_DfaRepos;               
+    FsaDfaRepos                         *m_DfaRepos;               
     std::vector< FsaSupState *>         m_FsaStk;
     FsaDfaStateMapCltn                  m_SupDfaCltn;
 
-    FsaDfaCnstr( FsaElemRepos *elemRepos, FsaRepos *dfaRepos)
+    FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)
         : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_SupDfaCltn( this)
     {}
 

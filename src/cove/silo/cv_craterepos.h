@@ -247,10 +247,12 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 {
     typedef Cv_CratePile< typename Crate::CrateBase>    Base;
 
-    typedef typename Crate::Entry        Entry;
-    typedef typename Crate::Elem         Elem;
-    typedef typename Base::Id           Id;
-    typedef typename Crate::Var	        Var; 
+    typedef typename Crate::Entry           Entry;
+    typedef typename Crate::Elem            Elem;
+    typedef typename Base::Id               Id;
+    typedef typename Crate::Var	            Var; 
+    typedef typename Entry::TypeStor		TypeStor; 
+    typedef typename Entry::IndexStor		IndexStor;
 
     std::vector< Elem>                  m_Elems;
 
@@ -258,8 +260,8 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     { 
         m_Elems.push_back( elm); 
         Elem    &insrt =  m_Elems.back();
-        insrt.SetId( m_Elems.size() -1);
-        insrt.SetType( Crate::Sz);
+        insrt.SetId( IndexStor( m_Elems.size() -1));
+        insrt.SetType( TypeStor( Crate::Sz));
         return insrt; 
     } 
 

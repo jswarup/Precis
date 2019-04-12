@@ -26,14 +26,14 @@ class Sg_CharPartition
 protected:
     uint8_t        m_MxEqClass;
     uint8_t        m_EqClassIds[  SzChBits];         
-
+    
 public: 
     typedef Sg_Bitset< SzChBits>    Bitset;
 
     Sg_CharPartition( void) { MakeUniversal(); }
 
-    uint16_t        Image( uint16_t t) const {  return m_EqClassIds[ t]; }
-    void            SetImage( uint32_t k, uint16_t grId) {  m_EqClassIds[ k] = grId; }
+    uint8_t         Image( uint16_t t) const {  return m_EqClassIds[ t]; }
+    void            SetImage( uint32_t k, uint8_t grId) {  m_EqClassIds[ k] = grId; }
 
     uint32_t        SzImage( void) const { return uint32_t( m_MxEqClass) +1; }
     void            SetSzImage( uint32_t sz) { m_MxEqClass = uint8_t( sz -1); }
@@ -276,9 +276,35 @@ public:
         }
     };
 
+template < typename FilterIt>
+    uint8_t    Imprint( FilterIt *filtIt)    
+    {
+        CCLImpressor      prtnIntersector( this);
+
+        while ( filtIt->IsCurValid())
+        {
+            filtIt->ProcessCurrent( &prtnIntersector);
+            filtIt->Next();
+        }    
+        auto            invalidCCL =  prtnIntersector.ValidCCL().Negative();
+        uint8_t         failInd = Image( invalidCCL.RepIndex());
+        return failInd;
+    }
+
     // Intersects a new Bitset with all subsets in a partition, making it finer.
     // Returns 1 if anything changed (equivalent to partitionCutByCCL return value).
 
     void                ImpressCCL(  const Bitset & ccl)  {  CCLImpressCntl( &ccl).ImpressWith< 1>( this); }
+
+template < uint32_t N>
+    Sg_Bitset< N>     Map( const Bitset &chSet) 
+    { 
+        CV_ERROR_ASSERT( N >= SzImage())
+        Sg_Bitset< N>     mappedFilt;
+        for ( uint32_t i = 0; i < Sg_ChSet::SzChBits; ++i)
+            if ( chSet.Get( i))
+                mappedFilt.Set( Image( i), true);
+        return mappedFilt; 
+    }
 };
  

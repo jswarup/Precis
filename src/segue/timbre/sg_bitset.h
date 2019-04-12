@@ -204,6 +204,8 @@ struct Sg_Bitset
         m_Bits64.Negate();
         m_Bits8.Negate(); 
     }
+    
+    Sg_Bitset       Negative( void) const { Sg_Bitset   neg( SELF); neg.Negate(); return neg; }
 
     bool        IsIntersect( const Sg_Bitset &chSet) const  { return m_Bits64.IsIntersect( chSet.m_Bits64) || m_Bits8.IsIntersect( chSet.m_Bits8) ; }
     void        UnionWith( const Sg_Bitset &chSet) { m_Bits64.UnionWith( chSet.m_Bits64);  m_Bits8.UnionWith( chSet.m_Bits8); }
@@ -231,6 +233,13 @@ struct Sg_Bitset
             Set( i, filter( i));
     }
 
+    uint32_t         RepIndex( void)
+    {
+        for ( uint32_t i = 0; i < SzBits; ++i)
+            if ( Get( i))
+                return i;
+        return CV_UINT32_MAX;
+    }
 
     std::string     ToString( void) const
     {

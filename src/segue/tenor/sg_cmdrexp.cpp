@@ -186,9 +186,8 @@ int     Sg_RExpCmdProcessor::Test(void)
         std::ofstream       fsaOStrm( m_ElemDotFile);
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
         elemRepos.WriteDot( fsaDotStrm);
-    } 
-    return 0;
-    FsaRepos                dfaRepos;
+    }  
+    FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
     if ( m_DfaDotFile.size())

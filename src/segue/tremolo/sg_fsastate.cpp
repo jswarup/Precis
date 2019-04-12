@@ -48,8 +48,8 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     {
         FsaElem      *regex = ( FsaElem *) fsaRepos->ToVar( dests[ k]);
         strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
-        FilterRepos::Var     chVar = fsaRepos->m_FilterRepos.ToVar( m_ChSets[ k]);
-        strm << Cv_Aid::XmlEncode( chVar( []( auto k) { return k->ToString(); }));
+     //   FilterRepos::Var     chVar = fsaRepos->m_FilterRepos.ToVar( m_ChSets[ k]);
+     //   strm << Cv_Aid::XmlEncode( chVar( []( auto k) { return k->ToString(); }));
         strm << "</FONT>>] ; \n" ;  
     }
     return true;

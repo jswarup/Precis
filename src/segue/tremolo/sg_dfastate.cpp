@@ -15,7 +15,7 @@ void       FsaSupState::FilterIt::FetchFilters( void)
 
 //_____________________________________________________________________________________________________________________________
 
-Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
+Sg_Partition  FsaSupState::RefineCharDistrib( FsaElemRepos *elemRepos)
 { 
     Sg_Partition      distrib;
 
@@ -30,54 +30,18 @@ Sg_Partition  FsaSupState::RefineCharDistrib( FsaRepos *elemRepos)
         ChSetFilter<256>     *chSet = filtIt.Curr();
         prtnIntersector.Process( *chSet);
         filtIt.Next();
-    }
-/*   
-    Cv_CArr< FsaId>                    subStates = SubStates();
-    for ( uint32_t i = 0; i < subStates.Size(); ++i) 
-    {
-        FsaClip             state = elemRepos->ToVar( subStates[ i]);
-        Cv_CArr< FiltId>   filters = state.Filters();
-        for ( uint32_t j = 0; j < filters.Size(); ++j)
-        {
-            ChSetFilter<256>     *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
-            prtnIntersector.Process( *chSet);
-        }
-
-    }
-*/
+    } 
     Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
 
     prtnIntersector.Over();
 
     return distrib;
-}
-
-
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
-{ 
-    strm << 'R' << GetId() << " [ shape=oval";
-    strm << " color=purple label= <<FONT> N" << GetId() << "<BR />" << "<BR />" ; 
-    strm << " </FONT>>];\n "; 
-
-    Cv_CArr< FsaId>    subStates = SubStates(); 
-    for ( uint32_t k = 0; k < subStates.Size(); ++k)
-    {
-        FsaClip         regex = fsaRepos->ToVar( subStates[ k]);
-        if ( !regex)
-            continue;
-        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
-        strm << "</FONT>>] ; \n" ;  
-    }
-    return false; 
-}
-
+} 
 //_____________________________________________________________________________________________________________________________
 
 FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
-    FsaRepos                        *dfaRepos = dfaCnstr->m_DfaRepos;
+    FsaDfaRepos                     *dfaRepos = dfaCnstr->m_DfaRepos;
     FsaElemRepos                    *elemRepos = dfaCnstr->m_ElemRepos;
     Cv_CArr< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
@@ -85,43 +49,43 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    Sg_Partition                    distrib = RefineCharDistrib( elemRepos);
-    auto                            domain = distrib.Domain();
-    uint32_t                        sz = uint32_t( domain.size());
+    FilterIt                        filtIt( elemRepos, this);
+    DistribRepos::Discr             discr = dfaRepos->m_DistribRepos.FetchDiscr( &filtIt);
     Cv_Array< FsaSupState *, 256>   subSupStates;
-    for ( uint32_t k = 0; k < sz; ++k)
+    for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
     {
         FsaSupState     *subSupState = new FsaSupState();
         subSupStates.Append( subSupState);
     } 
-    for ( uint32_t i = 0; i < subStates.Size(); ++i) 
-    {
-        FsaId               stateId = subStates[ i];
-        FsaClip             state = elemRepos->ToVar( stateId); 
 
+    ElemIt    elemIt( elemRepos, this);
+    while ( elemIt.IsCurValid())
+    {
+        FsaClip             state = elemIt.Curr(); 
         Cv_CArr< FsaId>     destStateIds = state.Dests();
         Cv_CArr< FiltId>    filters = state.Filters();
         for ( uint32_t j = 0; j < destStateIds.Size(); ++j)
         {
             FsaId               destStateId =  destStateIds[ j];
-            ChSetFilter<256>    *chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
-            for ( uint32_t k = 0; k < sz; ++k)
-            {
-                auto    ccl = domain[ k]; 
-                if ( chSet->IsIntersect( ccl))
+            FilterCrate::Var    chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
+            for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
+            { 
+    //            if ( chSet->IsIntersect( domain[ k]))
+                if ( false)
                 {
                     subSupStates[ k]->m_SubStates.push_back( destStateId);  
                     subSupStates[ k]->PushAction( FsaClip( elemRepos->ToVar( destStateId)).Tokens());
                 }
             }
         }
-    }  
+        elemIt.Next(); 
+    }
     Action                  *action = DetachAction();
-    FsaDfaState             *dfaState = FsaDfaState::Construct( sz, action);
+    FsaDfaState             *dfaState = FsaDfaState::Construct( discr.m_NxSz, action);
 
     dfaRepos->StoreAt( GetId(), dfaState); 
     m_DfaStateMap->Insert( this, dfaState);
-    for ( uint32_t k = 0; k < sz; ++k)
+    for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
     {
         FsaSupState                 *subSupState = subSupStates[ k];
         subSupState->Freeze();
@@ -144,6 +108,25 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     return dfaState;
 }
 
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+{ 
+    strm << 'R' << GetId() << " [ shape=oval";
+    strm << " color=purple label= <<FONT> N" << GetId() << "<BR />" << "<BR />" ; 
+    strm << " </FONT>>];\n "; 
+
+    Cv_CArr< FsaId>    subStates = SubStates(); 
+    for ( uint32_t k = 0; k < subStates.Size(); ++k)
+    {
+        FsaClip         regex = fsaRepos->ToVar( subStates[ k]);
+        if ( !regex)
+            continue;
+        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << "</FONT>>] ; \n" ;  
+    }
+    return false; 
+}
 //_____________________________________________________________________________________________________________________________
 
 FsaDfaStateMap::~FsaDfaStateMap( void)
