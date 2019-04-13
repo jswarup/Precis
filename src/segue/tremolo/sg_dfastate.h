@@ -84,9 +84,7 @@ struct FsaSupState  : public FsaState
         Action  *act = m_Action; 
         m_Action = NULL;
         return act;
-    }
-
-    Sg_Partition            RefineCharDistrib( FsaElemRepos *elemRepos);
+    } 
 
     FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
@@ -100,6 +98,8 @@ struct FsaSupState  : public FsaState
         ElemIt( FsaElemRepos *elemRepos,  FsaSupState *supState)
             :  m_ElemRepos( elemRepos), m_SubStates( supState->SubStates()), m_StateCursor( 0)
         {}
+        
+        void                Reset( void) { m_StateCursor = 0; }
 
         bool                IsCurValid( void) { return m_StateCursor < m_SubStates.Size(); }
         FsaElemRepos::Var   Curr( void) { return m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]); }
@@ -111,21 +111,40 @@ struct FsaSupState  : public FsaState
         } 
     };
 
-    struct FilterIt : public ElemIt
+    struct DescendIt : public ElemIt
     { 
-        Cv_CArr< FiltId>    m_Filters;
-        uint32_t            m_FilterCursor;
-
+        Cv_CArr< FiltId>                m_Filters;
+        Cv_CArr< FsaId>                 m_DestStateIds;
+        uint32_t                        m_FilterCursor;
+        DistribRepos::Discr             m_Discr;
+        FsaDfaRepos                     *m_DfaRepos;
+        Cv_Array< FsaSupState *, 256>   m_SubSupStates; 
  
-        FilterIt( FsaElemRepos *elemRepos, FsaSupState *supState)
-            : ElemIt( elemRepos, supState), m_FilterCursor( 0)
+        DescendIt( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos, FsaSupState *supState)
+            : ElemIt( elemRepos, supState), m_DfaRepos( dfaRepos), m_FilterCursor( 0)
         {
             if ( ElemIt::IsCurValid())
                 FetchFilters();
         }
+    
+        void                Reset( void) { ElemIt::Reset(); m_FilterCursor = 0; }
+    
+        void                SetupDescr( const DistribRepos::Discr &discr)
+        {
+            m_Discr = discr;
+            Reset();
+            for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
+            {
+                FsaSupState     *subSupState = new FsaSupState();
+                m_SubSupStates.Append( subSupState);
+            }
+        }
+
+        uint32_t            SzDescend( void) const { return m_Discr.m_NxSz; }
 
         bool                IsCurValid( void) { return ElemIt::IsCurValid() && ( m_FilterCursor < m_Filters.Size()); }
-        FilterRepos::Var    Curr( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
+        FilterRepos::Var    CurrFilt( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
+        FsaCrate::Var       CurrDest( void) { return m_ElemRepos->ToVar( m_DestStateIds[ m_FilterCursor]); }
         
         bool                Next( void) 
         { 
@@ -141,6 +160,23 @@ struct FsaSupState  : public FsaState
         } 
         
         void        FetchFilters( void);
+
+    template < uint32_t BitSz> 
+        void        Classify( const CharDistrib< BitSz> &distrib)
+        {   
+            FilterCrate::Var            chSet = CurrFilt();
+            Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
+            Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset);
+            FsaCrate::Var               dest = CurrDest();
+            for ( uint32_t k = 0; k < images.Size(); ++k)
+            { 
+                FsaSupState     *subSupState = static_cast< FsaSupState *>( m_DfaRepos->ToVar( m_SubStates[ images[ k]]).GetEntry());
+                subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
+                subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); }));
+                
+            }
+        }
+        
      
     };
 }; 

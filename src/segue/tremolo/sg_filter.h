@@ -250,6 +250,10 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
         uint32_t    m_Inv;
         uint32_t    m_NxSz;
         
+        Discr( void)
+            : m_Inv( 0), m_NxSz( 0)
+        { }
+
         Discr( Id id, uint32_t inv, uint32_t imgSz)
             :   m_DId( id), m_Inv( inv), m_NxSz( imgSz)
         { }
@@ -258,23 +262,23 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     };
   
 template < uint32_t Bits>
-    struct Helper
+    struct DiscrHelper
     {
         DistribRepos        *m_DRepos;
 
-        Helper( DistribRepos *dRepos)
+        DiscrHelper( DistribRepos *dRepos)
             : m_DRepos( dRepos)
         {}
 
-    template < typename FilterIt>
-        Discr    Map( FilterIt *filtIt)
+    template < typename DescendIt>
+        Discr    Map( DescendIt *filtIt)
         {
             CharDistrib< Bits>                  distrib;
             CharDistrib< Bits>::CCLImpressor    intersector( &distrib);
 
             while ( filtIt->IsCurValid())
             { 
-                Sg_Bitset< Bits>      *bitset = static_cast< ChSetFilter< Bits> *>( filtIt->Curr().GetEntry());
+                Sg_Bitset< Bits>      *bitset = static_cast< ChSetFilter< Bits> *>( filtIt->CurrFilt().GetEntry());
                 intersector.Process( *bitset); 
                 filtIt->Next();
             }    
@@ -285,27 +289,70 @@ template < uint32_t Bits>
         }
     };  
   
-template < typename FilterIt>
-    Discr  FetchDiscr( FilterIt *filtit)
+template < typename DescendIt>
+    Discr  FetchDiscr( DescendIt *filtit)
     { 
         uint32_t    szImg = m_Base.SzImage();
         if ( szImg <= 8)  
-            return Helper< 8>( this).Map( filtit);                                  
+            return DiscrHelper< 8>( this).Map( filtit);                                  
 
         if ( szImg <= 16)  
-            return Helper< 16>( this).Map( filtit);                                  
+            return DiscrHelper< 16>( this).Map( filtit);                                  
         
         if ( szImg <= 32)                                      
-            return Helper< 32>( this).Map( filtit);                                  
+            return DiscrHelper< 32>( this).Map( filtit);                                  
 
         if ( szImg <= 64)  
-            return Helper< 64>( this).Map( filtit);                                  
+            return DiscrHelper< 64>( this).Map( filtit);                                  
 
         if ( szImg <= 128)                                     
-            return Helper< 128>( this).Map( filtit);                                  
+            return DiscrHelper< 128>( this).Map( filtit);                                  
 
-        return Helper< 256>( this).Map( filtit);                                  
+        return DiscrHelper< 256>( this).Map( filtit);                                  
     }
+
+
+template < uint32_t Bits>
+    struct DescendHelper
+    {
+        DistribRepos        *m_DRepos;
+
+        DescendHelper( DistribRepos *dRepos)
+            : m_DRepos( dRepos)
+        {}
+
+    template < typename CnstrIt>
+        void    Map( Discr discr,  CnstrIt *cnstrIt)
+        {
+            CV_ERROR_ASSERT( discr.m_DId.GetType() == DistribCrate::TypeOf< CharDistrib< Bits>>())
+            const CharDistrib< Bits>    *distrib = static_cast< const CharDistrib< Bits> *>( m_DRepos->ToVar( discr.m_DId).GetEntry());
+            cnstrIt->Classify( *distrib);
+            return;
+        }
+    };
+
+template < typename CnstrIt>
+    void    Classify( Discr discr, CnstrIt *cnstrIt) 
+    { 
+        uint32_t    szImg = m_Base.SzImage();
+        if ( szImg <= 8)  
+            return DescendHelper< 8>( this).Map( discr, cnstrIt);                                  
+
+        if ( szImg <= 16)  
+            return DescendHelper< 16>( this).Map( discr, cnstrIt);                                  
+
+        if ( szImg <= 32)                                      
+            return DescendHelper< 32>( this).Map( discr, cnstrIt);                                  
+
+        if ( szImg <= 64)  
+            return DescendHelper< 64>( this).Map( discr, cnstrIt);                                  
+
+        if ( szImg <= 128)                                     
+            return DescendHelper< 128>( this).Map( discr, cnstrIt);                                  
+
+        return DescendHelper< 256>( this).Map( discr, cnstrIt);                                  
+    }
+ 
 }; 
 
 //_____________________________________________________________________________________________________________________________ 

@@ -4,10 +4,10 @@
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename X, uint32_t Sz, typename SzType = uint32_t, uint32_t OSz = 0>
+template < typename X, uint32_t Sz, typename SzType = uint32_t, uint32_t ObjSz = 0>
 struct Cv_Array   
 {
-    static constexpr uint32_t  ObjectSz( void) { return OSz ? OSz : sizeof( X); } 
+    static constexpr uint32_t  ObjectSz( void) { return ObjSz ? ObjSz : sizeof( X); } 
 
     SzType                  m_SzFill;                                                           // number of occupied entries
     uint8_t                 m_MemArr[ ObjectSz() * Sz];

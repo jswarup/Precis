@@ -128,7 +128,7 @@ public:
 template < typename Element>
     static Id   ToId( Element *e) { return Id( e->GetId(), Crate::template TypeOf< Element>()); }
 
-    static Id   ToId( Var v) { return Id( v.Entry()->GetId(), v.GetType()); }
+    static Id   ToId( Var v) { return Id( v.GetEntry()->GetId(), v.GetType()); }
 
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include    "segue/timbre/sg_bitset.h" 
+#include    "cove/silo/cv_array.h"
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -107,8 +108,25 @@ public:
                 eqClassInCCL[ curEC] = true;             
         }
         return false;
+    } 
+    
+    Cv_Array< uint8_t, SzChBits>    CCLImages( const Bitset &ccl) const
+    {
+        std::bitset< SzChBits>          eqClassInCCL;            // whether a equivalence class is in CCL
+        Cv_Array< uint8_t, SzChBits>    ImgIndices;
+
+        for ( uint16_t i = 0; i < SzChBits; ++i) 
+        {
+            uint32_t            curEC = m_EqClassIds[ i];
+            bool                curCCL = ccl.Get( i);
+            if ( eqClassInCCL[ curEC])
+                continue;
+            ImgIndices.Append( curEC);
+            eqClassInCCL[ curEC] = true;
+        }
+        return ImgIndices;
     }
- 
+
     // Extracts the partition subset containing a given EC
     Bitset    EqClassCCL( uint8_t grId) const 
     {
@@ -306,5 +324,6 @@ template < uint32_t N>
                 mappedFilt.Set( Image( i), true);
         return mappedFilt; 
     }
+    
 };
  

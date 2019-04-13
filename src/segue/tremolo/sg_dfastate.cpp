@@ -7,37 +7,13 @@ using namespace Sg_RExp;
  
 //_____________________________________________________________________________________________________________________________
 
-void       FsaSupState::FilterIt::FetchFilters( void)
+void       FsaSupState::DescendIt::FetchFilters( void)
 {
     FsaRepos::Var        state = m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]);
     m_Filters = state( [this]( auto k) { return k->Filters(); });
+    m_DestStateIds = state( [this]( auto k) { return k->Dests(); }); 
 }
-
-//_____________________________________________________________________________________________________________________________
-
-Sg_Partition  FsaSupState::RefineCharDistrib( FsaElemRepos *elemRepos)
-{ 
-    Sg_Partition      distrib;
-
-    distrib.MakeUniversal();
-
-    Sg_Partition::CCLImpressor      prtnIntersector(  &distrib);
- 
-    FilterIt    filtIt( elemRepos, this);
-    
-    while ( filtIt.IsCurValid())
-    {
-        ChSetFilter<256>     *chSet = filtIt.Curr();
-        prtnIntersector.Process( *chSet);
-        filtIt.Next();
-    } 
-    Sg_ChSet          validCCL = prtnIntersector.ValidCCL();
-
-    prtnIntersector.Over();
-
-    return distrib;
-} 
-//_____________________________________________________________________________________________________________________________
+ //_____________________________________________________________________________________________________________________________
 
 FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
@@ -49,45 +25,23 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    FilterIt                        filtIt( elemRepos, this);
-    DistribRepos::Discr             discr = dfaRepos->m_DistribRepos.FetchDiscr( &filtIt);
-    Cv_Array< FsaSupState *, 256>   subSupStates;
-    for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
-    {
-        FsaSupState     *subSupState = new FsaSupState();
-        subSupStates.Append( subSupState);
-    } 
+    DescendIt                        descIt( elemRepos, dfaRepos, this);
+    
+    descIt.SetupDescr( dfaRepos->m_DistribRepos.FetchDiscr( &descIt)); 
 
-    ElemIt    elemIt( elemRepos, this);
-    while ( elemIt.IsCurValid())
+    while ( descIt.IsCurValid())
     {
-        FsaClip             state = elemIt.Curr(); 
-        Cv_CArr< FsaId>     destStateIds = state.Dests();
-        Cv_CArr< FiltId>    filters = state.Filters();
-        for ( uint32_t j = 0; j < destStateIds.Size(); ++j)
-        {
-            FsaId               destStateId =  destStateIds[ j];
-            FilterCrate::Var    chSet = elemRepos->m_FilterRepos.ToVar( filters[ j]);
-            for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
-            { 
-    //            if ( chSet->IsIntersect( domain[ k]))
-                if ( false)
-                {
-                    subSupStates[ k]->m_SubStates.push_back( destStateId);  
-                    subSupStates[ k]->PushAction( FsaClip( elemRepos->ToVar( destStateId)).Tokens());
-                }
-            }
-        }
-        elemIt.Next(); 
+        dfaRepos->m_DistribRepos.Classify( descIt.m_Discr, &descIt);   
+        descIt.Next(); 
     }
     Action                  *action = DetachAction();
-    FsaDfaState             *dfaState = FsaDfaState::Construct( discr.m_NxSz, action);
+    FsaDfaState             *dfaState = FsaDfaState::Construct( descIt.SzDescend(), action);
 
     dfaRepos->StoreAt( GetId(), dfaState); 
     m_DfaStateMap->Insert( this, dfaState);
-    for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
+    for ( uint32_t k = 0; k < descIt.SzDescend(); ++k)
     {
-        FsaSupState                 *subSupState = subSupStates[ k];
+        FsaSupState                 *subSupState = static_cast< FsaSupState *>( dfaRepos->ToVar( descIt.m_SubStates[ k]).GetEntry());
         subSupState->Freeze();
 
         Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
