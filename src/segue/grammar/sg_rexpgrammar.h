@@ -895,6 +895,11 @@ struct RExpDoc  : public Shard< RExpDoc>
         Sg_Partition::CCLImpressor      *m_Impressor;
         std::vector< RExpRepos::Id>     m_RExps;
         
+        ~Whorl( void)
+        {
+            m_Impressor->Over();
+        }
+
         bool    PrimeIn( XAct *xact)
         {
             m_Repos = xact->m_Repos;

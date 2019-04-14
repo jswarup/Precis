@@ -28,7 +28,9 @@ struct  Filter : public Cv_CrateEntry
 
 public:
     Filter( void) 
-    {} 
+    {
+        SetType( FilterCrate::TypeOf< Filter>());
+    } 
 
     std::string		GetName( void) const { return "Filter"; } 
      
@@ -45,7 +47,9 @@ struct     CharFilter : public Filter
 
     CharFilter( void)
         : m_Char( 0)
-    {}
+    {
+        SetType( FilterCrate::TypeOf< CharFilter>());
+    }
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
@@ -70,11 +74,15 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
     
     ChSetFilter( Base &&chSet)
         : Base( chSet)
-    {}
+    {
+        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
+    }
 
     ChSetFilter( const Base &chSet)
         : Base( chSet)
-    {}
+    {
+        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
+    }
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
