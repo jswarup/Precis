@@ -41,7 +41,7 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     m_DfaStateMap->Insert( this, dfaState);
     for ( uint32_t k = 0; k < descIt.SzDescend(); ++k)
     {
-        FsaSupState                 *subSupState = static_cast< FsaSupState *>( dfaRepos->ToVar( descIt.m_SubStates[ k]).GetEntry());
+        FsaSupState                 *subSupState = descIt.m_SubSupStates[ k];
         subSupState->Freeze();
 
         Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
@@ -124,6 +124,27 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
+bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
+{
+    for ( uint32_t i = 1; i < Size(); ++i)
+    {
+        Var     si = Get( i);
+        if (si)
+            si( [this, &strm]( auto k) { k->WriteDot( this, strm); });
+    }
+    return true;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool        FsaDfaRepos::DumpDot( const char *path)
+{
+    std::ofstream           fsaOStrm( path);
+    Cv_DotStream			fsaDotStrm( &fsaOStrm, true); 
+    return WriteDot( fsaDotStrm);;
+}
+//_____________________________________________________________________________________________________________________________
+
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
@@ -135,7 +156,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
         FsaSupState     *supState = m_FsaStk.back();
         m_FsaStk.pop_back(); 
 
-        FsaDfaState             *dfaState = supState->DoConstructTransisition( this);  
+        FsaDfaState     *dfaState = supState->DoConstructTransisition( this);  
     }
     return;
 }

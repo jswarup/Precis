@@ -152,7 +152,8 @@ template < uint32_t N>
     FilterRepos( void) 
         : m_IdTbl( LessOp( this))
     {}
-      
+       
+
     FilterCrate::Var    ToVar( const Id &id)  
     {  
         if ( id.IsValid())
@@ -233,7 +234,9 @@ struct CharDistrib : Sg_CharPartition< Bits>, public CharDistribBase
 
 public:
     CharDistrib( void) 
-    {} 
+    {
+        SetType( DistribCrate::TypeOf< CharDistrib< Bits>>());
+    } 
 
     std::string		GetName( void) const { return "Filter"; } 
 
@@ -248,9 +251,10 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
 {
 
     Sg_Partition                m_Base;
-    
+ 
     DistribRepos( void)
     {}
+ 
 
     struct Discr
     {

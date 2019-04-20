@@ -15,6 +15,8 @@ struct  FsaDfaRepos  : public FsaRepos
 {    
      
     DistribRepos        m_DistribRepos;   
+    bool                WriteDot( Cv_DotStream &strm);
+    bool                DumpDot( const char *path);
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -74,8 +76,13 @@ struct FsaSupState  : public FsaState
     void                    Freeze( void)
     {
         std::sort( m_SubStates.begin(), m_SubStates.end());
-        if ( m_Action)
-            std::sort( m_Action->m_Values.begin(), m_Action->m_Values.end()); 
+        auto    it = std::unique( m_SubStates.begin(), m_SubStates.end());
+        m_SubStates.resize( std::distance( m_SubStates.begin(), it));
+        if ( !m_Action)
+            return;
+        std::sort( m_Action->m_Values.begin(), m_Action->m_Values.end()); 
+        auto    itAct = std::unique( m_Action->m_Values.begin(), m_Action->m_Values.end());
+        m_Action->m_Values.resize( std::distance( m_Action->m_Values.begin(), itAct));
         return;
     }
 
@@ -168,13 +175,14 @@ struct FsaSupState  : public FsaState
             Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
             Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset);
             FsaCrate::Var               dest = CurrDest();
-            for ( uint32_t k = 0; k < images.Size(); ++k)
+            for ( uint32_t k = 0; k < images.SzFill(); ++k)
             { 
-                FsaSupState     *subSupState = static_cast< FsaSupState *>( m_DfaRepos->ToVar( m_SubStates[ images[ k]]).GetEntry());
+                FsaSupState     *subSupState = m_SubSupStates[ images[ k]];
                 subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
                 subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); }));
                 
             }
+            return;
         }
         
      
@@ -323,7 +331,9 @@ struct  FsaDfaCnstr
 
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)
         : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_SupDfaCltn( this)
-    {}
+    {
+        dfaRepos->m_DistribRepos.m_Base = elemRepos->m_FilterRepos.m_Base;
+    }
 
     void    SubsetConstruction( void);
 };

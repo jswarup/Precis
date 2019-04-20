@@ -117,8 +117,10 @@ public:
 
         for ( uint16_t i = 0; i < SzChBits; ++i) 
         {
-            uint32_t            curEC = m_EqClassIds[ i];
             bool                curCCL = ccl.Get( i);
+            if ( !curCCL)
+                continue;
+            uint32_t            curEC = m_EqClassIds[ i];
             if ( eqClassInCCL[ curEC])
                 continue;
             ImgIndices.Append( curEC);
