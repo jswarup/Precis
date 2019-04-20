@@ -35,8 +35,8 @@ public:
     std::string		GetName( void) const { return "Filter"; } 
      
     int32_t         Compare( const Filter *filt) const { return 0; }
-    std::string     ToString( void) const { return std::string(); }
-    bool            Dump( FilterRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    std::string     ToString( const Sg_Partition *base) const { return std::string(); }
+    bool            Dump( const Sg_Partition *base, std::ostream &ostr) { ostr << ToString( base) <<  "\n"; return true; }
 };  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -55,8 +55,8 @@ struct     CharFilter : public Filter
 
     int32_t         Compare( const CharFilter *filt) const { return ( m_Char != filt->m_Char) ? (( m_Char != filt->m_Char) ? -1  : 1) : 0; }
     
-    std::string     ToString( void) const { return std::string( &m_Char, &m_Char +1); }
-    bool            Dump( FilterRepos *, std::ostream &ostr) { ostr << ToString() << "\n"; return true; }
+    std::string     ToString( const Sg_Partition *base) const { return std::string( &m_Char, &m_Char +1); }
+    bool            Dump( const Sg_Partition *base, std::ostream &ostr) { ostr << ToString( base) << "\n"; return true; }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -88,15 +88,18 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 
     int32_t         Compare( const ChSetFilter *filt) const { return Base::Compare( *filt); }
 
-    std::string     ToString( void) const { return Base::ToString(); }
-
-    bool            Dump( FilterRepos *filterRepos, std::ostream &ostr) 
-    {  
+    std::string     ToString( const Sg_Partition *base) const 
+    { 
         Sg_ChSet      chSet; 
         for ( uint32_t i = 0; i < Sg_ChSet::SzChBits; ++i)
-            if ( Get( filterRepos->m_Base.Image( i)))
+            if ( Get( base->Image( i)))
                 chSet.Set( i, true); 
-        ostr << chSet.ToString() << "\n"; 
+        return chSet.ToString(); 
+    }
+
+    bool            Dump( const Sg_Partition *base, std::ostream &ostr) 
+    {  
+        ostr << ToString( base) << "\n"; 
         return true; 
     }
 };
@@ -192,7 +195,13 @@ template < typename Elem>
 
     bool            Dump( std::ostream &ostr) 
     { 
-        return OperateAll( [this, &ostr]( auto k) {  return k->Dump( this, ostr); });
+        return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  &m_Base, ostr); });
+    }
+
+    std::string     ToString( Var chVar) const 
+    {
+        std::string     str = chVar( [this]( auto k) { return k->ToString(  &m_Base); });
+        return str;
     }
 };
 

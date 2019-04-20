@@ -187,6 +187,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
         elemRepos.WriteDot( fsaDotStrm);
     }  
+ /*
     FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
@@ -197,7 +198,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         dfaRepos.WriteDot( fsaDotStrm);
     }
      
-/*
+
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);
