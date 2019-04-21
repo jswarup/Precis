@@ -66,17 +66,19 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 
 bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
-    strm << 'R' << GetId() << " [ shape=oval";
-    strm << " color=purple label= <<FONT> N" << GetId() << "<BR />" << "<BR />" ; 
+    strm << GetTypeChar() << GetId() << " [ shape=oval";
+    strm << " color=purple label= <<FONT>" << GetTypeChar() << GetId() << "<BR />" << "<BR />" ; 
     strm << " </FONT>>];\n "; 
 
-    Cv_CArr< FsaId>    subStates = SubStates(); 
+    FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+    
+    Cv_CArr< FsaId>     subStates = SubStates(); 
     for ( uint32_t k = 0; k < subStates.Size(); ++k)
     {
-        FsaClip         regex = fsaRepos->ToVar( subStates[ k]);
+        FsaClip         regex = dfaRepos->m_ElemRepos->ToVar( subStates[ k]);
         if ( !regex)
             continue;
-        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << GetTypeChar() << GetId() << " -> " << regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
         strm << "</FONT>>] ; \n" ;  
     }
     return false; 
@@ -98,25 +100,25 @@ FsaDfaStateMap::~FsaDfaStateMap( void)
 
 bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
-    strm << 'R' << GetId() << " [ shape=";
+    strm << GetTypeChar() << GetId() << " [ shape=";
 
     uint64_t        *toks = Tokens().Ptr();
     if ( toks)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=Red label= <<FONT> N" << GetId() << "<BR />" <<   "<BR />" ;
+    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId() << "<BR />" <<   "<BR />" ;
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n "; 
-
+    
     Cv_CArr< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaClip         regex = fsaRepos->ToVar( dests[ k]);
         if ( !regex)
             continue;
-        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
         strm << "</FONT>>] ; \n" ;  
     }
     return false; 
@@ -159,6 +161,15 @@ void    FsaDfaCnstr::SubsetConstruction( void)
         FsaDfaState     *dfaState = supState->DoConstructTransisition( this);  
     }
     return;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool        FsaDfaCnstr::DumpDot( const char *path)
+{
+    std::ofstream           fsaOStrm( path);
+    Cv_DotStream			fsaDotStrm( &fsaOStrm, true); 
+    return m_ElemRepos->WriteDot( fsaDotStrm) && m_DfaRepos->WriteDot( fsaDotStrm);
 }
 
 //_____________________________________________________________________________________________________________________________  

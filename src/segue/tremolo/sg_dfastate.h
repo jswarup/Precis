@@ -6,14 +6,17 @@
 //_____________________________________________________________________________________________________________________________  
 
 namespace Sg_RExp
-{
-
-
+{ 
 //_____________________________________________________________________________________________________________________________ 
 
 struct  FsaDfaRepos  : public FsaRepos
 {    
-     
+    FsaElemRepos        *m_ElemRepos;
+
+    FsaDfaRepos( FsaElemRepos *elemRepos)
+        : m_ElemRepos( elemRepos)
+    {}
+
     DistribRepos        m_DistribRepos;   
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
@@ -335,7 +338,8 @@ struct  FsaDfaCnstr
         dfaRepos->m_DistribRepos.m_Base = elemRepos->m_FilterRepos.m_Base;
     }
 
-    void    SubsetConstruction( void);
+    void        SubsetConstruction( void);
+    bool        DumpDot( const char *path);
 };
 
 //_____________________________________________________________________________________________________________________________ 

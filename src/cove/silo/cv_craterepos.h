@@ -44,6 +44,16 @@ public:
 
     TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
     TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+    char            GetTypeChar( void) const
+    {
+        TypeStor    type = GetType();
+        if ( type < 26)
+            return 'A' +type;
+        if ( type < 52)
+            return 'a' +type -26;
+        CV_ERROR_ASSERT( false)
+        return '_';
+    }
 
     Cv_CrateId      &operator=( const Cv_CrateId &id) { m_IPtr = id.m_IPtr; return SELF; } 
 

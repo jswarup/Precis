@@ -32,13 +32,13 @@ bool        FsaRepos::DumpDot( const char *path)
 
 bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)  
 {
-    strm << 'R' << GetId() << " [ shape=";
+    strm << GetTypeChar() << GetId() << " [ shape=";
 
     if ( m_Action)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=cyan label= <<FONT> N" << GetId() << "<BR />" << RefCount() << "<BR />" ;
+    strm << " color=cyan label= <<FONT> " << GetTypeChar() << GetId() << "<BR />" << RefCount() << "<BR />" ;
     for ( uint32_t i = 0; m_Action && ( i < m_Action->m_Values.size()); ++i)
         strm << " T" << m_Action->m_Values[ i];
     strm << " </FONT>>];\n "; 
@@ -48,7 +48,7 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaElem      *regex = ( FsaElem *) fsaRepos->ToVar( dests[ k]);
-        strm << 'R' << GetId() << " -> " << 'R' << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
+        strm << GetTypeChar() << GetId() << " -> " << regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
         FilterRepos::Var     chVar = elemRepos->m_FilterRepos.ToVar( m_ChSets[ k]);
         strm << Cv_Aid::XmlEncode( elemRepos->m_FilterRepos.ToString( chVar));
         strm << "</FONT>>] ; \n" ;  
