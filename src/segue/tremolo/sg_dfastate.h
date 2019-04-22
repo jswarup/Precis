@@ -133,7 +133,7 @@ struct FsaSupState  : public FsaState
             : ElemIt( elemRepos, supState), m_DfaRepos( dfaRepos), m_FilterCursor( 0)
         {
             if ( ElemIt::IsCurValid())
-                FetchFilters();
+                FetchFilterElems();
         }
     
         void                Reset( void) { ElemIt::Reset(); m_FilterCursor = 0; }
@@ -159,27 +159,31 @@ struct FsaSupState  : public FsaState
             m_FilterCursor = 0;
             if ( ElemIt::Next())
             {
-                FetchFilters(); 
+                FetchFilterElems(); 
                 return true;
             }              
             return false; 
         } 
         
-        void        FetchFilters( void);
+        void        FetchFilterElems( void);
 
     template < uint32_t BitSz> 
         void        Classify( const CharDistrib< BitSz> &distrib)
         {   
-            FilterCrate::Var            chSet = CurrFilt();
-            Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
-            Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset);
-            FsaCrate::Var               dest = CurrDest();
-            for ( uint32_t k = 0; k < images.SzFill(); ++k)
+            while ( IsCurValid())
             { 
-                FsaSupState     *subSupState = m_SubSupStates[ images[ k]];
-                subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
-                subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); })); 
-            }
+                FilterCrate::Var            chSet = CurrFilt();
+                Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
+                Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset);
+                FsaCrate::Var               dest = CurrDest();
+                for ( uint32_t k = 0; k < images.SzFill(); ++k)
+                { 
+                    FsaSupState     *subSupState = m_SubSupStates[ images[ k]];
+                    subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
+                    subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); })); 
+                }
+                Next();
+            }    
             return;
         } 
     };

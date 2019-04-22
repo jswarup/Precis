@@ -286,7 +286,14 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
 
         uint32_t    SzDescend( void) const { return m_MxEqClass +1; }
         
- 
+        void        Dump( std::ostream &strm, DistribRepos *dRepos)
+        {
+            std::vector< Sg_ChSet>  domain = dRepos->Domain(  m_DId);
+            for ( uint32_t k = 0; k < SzDescend(); ++k)
+                strm << Cv_Aid::XmlEncode( domain[ k].ToString()) << ' ';  
+            strm << m_Inv;
+            strm << '\n';
+        }
     };
   
 template < uint32_t Bits>
@@ -355,7 +362,7 @@ template < uint32_t Bits>
         {
             CV_ERROR_ASSERT( discr.m_DId.GetType() == DistribCrate::TypeOf< CharDistrib< Bits>>())
             const CharDistrib< Bits>    *distrib = static_cast< const CharDistrib< Bits> *>( m_DRepos->ToVar( discr.m_DId).GetEntry());
-            cnstrIt->Classify( *distrib);
+            cnstrIt->Classify( *distrib); 
             return;
         }
     };

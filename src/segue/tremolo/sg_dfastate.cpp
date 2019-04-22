@@ -7,7 +7,7 @@ using namespace Sg_RExp;
  
 //_____________________________________________________________________________________________________________________________
 
-void       FsaSupState::DescendIt::FetchFilters( void)
+void       FsaSupState::DescendIt::FetchFilterElems( void)
 {
     FsaRepos::Var        state = m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]);
     m_Filters = state( [this]( auto k) { return k->Filters(); });
@@ -27,11 +27,10 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     } 
     DescendIt               descIt( elemRepos, dfaRepos, this);
 
-    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt);  
-    std::vector< Sg_ChSet>  domain = dfaRepos->m_DistribRepos.Domain( discr.m_DId);
-  
+    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt); 
+    discr.Dump( std::cout, &dfaRepos->m_DistribRepos);
     descIt.DoSetup( discr.SzDescend()); 
-
+    
     while ( descIt.IsCurValid())
     {
         dfaRepos->m_DistribRepos.Classify( discr, &descIt);   
