@@ -226,11 +226,12 @@ public:
     CharDistribBase( void) 
     {} 
 
-    std::string		GetName( void) const { return "Filter"; } 
+    std::string		        GetName( void) const { return "Filter"; } 
 
-    int32_t         Compare( const CharDistribBase *filt) const { return 0; }
-    std::string     ToString( void) const { return std::string(); }
-    bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    int32_t                 Compare( const CharDistribBase *filt) const { return 0; }
+    std::string             ToString( void) const { return std::string(); }
+    bool                    Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    std::vector< Sg_Bitset< 0> >   Domain( void) const { return std::vector< Sg_Bitset< 0> >(); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -240,6 +241,9 @@ struct CharDistrib : Sg_CharPartition< Bits>, public CharDistribBase
 {  
     typedef uint8_t     TypeStor;
     typedef uint16_t    IndexStor;
+    enum  { 
+        BitSz = Bits
+    };    
 
 public:
     CharDistrib( void) 
@@ -252,6 +256,7 @@ public:
     int32_t         Compare( const CharDistrib *filt) const { return 0; }
     std::string     ToString( void) const { return std::string(); }
     bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    auto            Domain( void) const { return Sg_CharPartition< Bits>::Domain(); }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -268,18 +273,20 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     struct Discr
     {
         Id          m_DId;
-        uint32_t    m_Inv;
-        uint32_t    m_NxSz;
-        
+        uint8_t     m_Inv;
+        uint8_t     m_MxEqClass; 
+
         Discr( void)
-            : m_Inv( 0), m_NxSz( 0)
+            : m_Inv( 0), m_MxEqClass( uint8_t( -1))
         { }
 
-        Discr( Id id, uint32_t inv, uint32_t imgSz)
-            :   m_DId( id), m_Inv( inv), m_NxSz( imgSz)
+        Discr( Id id, uint8_t inv, uint8_t mxEqClass)
+            :   m_DId( id), m_Inv( inv), m_MxEqClass( mxEqClass)
         { }
 
+        uint32_t    SzDescend( void) const { return m_MxEqClass +1; }
         
+ 
     };
   
 template < uint32_t Bits>
@@ -306,7 +313,7 @@ template < uint32_t Bits>
             auto            invalidCCL =  intersector.ValidCCL().Negative();
             uint32_t        invRep = invalidCCL.RepIndex();
             uint8_t         invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT32_MAX; 
-            return Discr( m_DRepos->Store( distrib), invInd, distrib.SzImage());
+            return Discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1));
         }
     };  
   
@@ -374,6 +381,20 @@ template < typename CnstrIt>
         return DescendHelper< 256>( this).Map( discr, cnstrIt);                                  
     }
  
+    std::vector< Sg_ChSet>  Domain( Id dId)
+    {
+        DistribCrate::Var       dVar = ToVar( dId);
+        std::vector< Sg_ChSet>  domain = dVar( [this]( auto dist) {
+            typedef decltype(dist)  Distrib;
+            auto                    distDomain = dist->Domain();
+            std::vector< Sg_ChSet>  dom( distDomain.size());
+            for ( uint32_t  i = 0; i < distDomain.size(); ++i)
+            {
+                dom[ i] = m_Base.XForm( distDomain[ i]);
+            }
+            return dom; } );
+        return domain;
+    }
 }; 
 
 //_____________________________________________________________________________________________________________________________ 

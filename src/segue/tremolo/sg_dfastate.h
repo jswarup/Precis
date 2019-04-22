@@ -12,12 +12,12 @@ namespace Sg_RExp
 struct  FsaDfaRepos  : public FsaRepos
 {    
     FsaElemRepos        *m_ElemRepos;
+    DistribRepos        m_DistribRepos;  
 
     FsaDfaRepos( FsaElemRepos *elemRepos)
         : m_ElemRepos( elemRepos)
     {}
-
-    DistribRepos        m_DistribRepos;   
+ 
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
 };
@@ -125,8 +125,7 @@ struct FsaSupState  : public FsaState
     { 
         Cv_CArr< FiltId>                m_Filters;
         Cv_CArr< FsaId>                 m_DestStateIds;
-        uint32_t                        m_FilterCursor;
-        DistribRepos::Discr             m_Discr;
+        uint32_t                        m_FilterCursor; 
         FsaDfaRepos                     *m_DfaRepos;
         Cv_Array< FsaSupState *, 256>   m_SubSupStates; 
  
@@ -139,18 +138,15 @@ struct FsaSupState  : public FsaState
     
         void                Reset( void) { ElemIt::Reset(); m_FilterCursor = 0; }
     
-        void                SetupDescr( const DistribRepos::Discr &discr)
-        {
-            m_Discr = discr;
+        void                DoSetup( uint32_t szDescend)
+        { 
             Reset();
-            for ( uint32_t k = 0; k < discr.m_NxSz; ++k)
+            for ( uint32_t k = 0; k < szDescend; ++k)
             {
                 FsaSupState     *subSupState = new FsaSupState();
                 m_SubSupStates.Append( subSupState);
             }
-        }
-
-        uint32_t            SzDescend( void) const { return m_Discr.m_NxSz; }
+        } 
 
         bool                IsCurValid( void) { return ElemIt::IsCurValid() && ( m_FilterCursor < m_Filters.Size()); }
         FilterRepos::Var    CurrFilt( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
@@ -182,13 +178,10 @@ struct FsaSupState  : public FsaState
             { 
                 FsaSupState     *subSupState = m_SubSupStates[ images[ k]];
                 subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
-                subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); }));
-                
+                subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); })); 
             }
             return;
-        }
-        
-     
+        } 
     };
 }; 
 
@@ -197,11 +190,11 @@ struct FsaSupState  : public FsaState
 struct FsaDfaState  : public FsaState
 {  
 private:
-    uint16_t                 m_DestSz;
-    uint16_t                 m_TokSz; 
-
-    FsaDfaState( uint8_t dSz, uint8_t tokSz) 
-        : m_DestSz( dSz), m_TokSz( tokSz)
+    DistribRepos::Discr     m_Discr;
+    uint16_t                m_TokSz;         
+    
+    FsaDfaState( const DistribRepos::Discr &discr, uint8_t tokSz) 
+        : m_Discr( discr), m_TokSz( tokSz)
     {}
 
 public:
@@ -209,21 +202,22 @@ public:
     {} 
 
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
-    static FsaDfaState      *Construct( uint8_t sz, Action *action)
+    static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action)
     {
+        uint32_t            sz = discr.SzDescend();
         uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;
         auto                memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
-        FsaDfaState         *dfaState = new (new uint8_t[ memSz]) FsaDfaState( sz, szTok); 
+        FsaDfaState         *dfaState = new ( new uint8_t[ memSz]) FsaDfaState( discr, szTok); 
         uint64_t            *toks = dfaState->Tokens().Ptr();
         for ( uint32_t i = 0; i < szTok; ++i)
             toks[ i] = action->m_Values[ i];
         return dfaState;
     }
-
-    Cv_CArr< FsaId>         Dests( void) { return m_DestSz ? Cv_CArr< FsaId>( ( FsaId *) PastPtr(), uint32_t( m_DestSz)) : Cv_CArr< FsaId>(); } 
+    uint32_t                DestSz( void) const { return m_Discr.SzDescend(); }
+    Cv_CArr< FsaId>         Dests( void) { return DestSz() ? Cv_CArr< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_CArr< FsaId>(); } 
     void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }
 
-    Cv_CArr< uint64_t>      Tokens( void) { return m_TokSz ? Cv_CArr< uint64_t>( ( uint64_t *) ( PastPtr() + m_DestSz * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_CArr< uint64_t>(); } 
+    Cv_CArr< uint64_t>      Tokens( void) { return m_TokSz ? Cv_CArr< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_CArr< uint64_t>(); } 
 
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
 

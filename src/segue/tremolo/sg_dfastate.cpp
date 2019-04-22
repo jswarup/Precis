@@ -25,21 +25,21 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         dfaRepos->Destroy( GetId());
         return NULL;
     } 
-    DescendIt                        descIt( elemRepos, dfaRepos, this);
-    
-    descIt.SetupDescr( dfaRepos->m_DistribRepos.FetchDiscr( &descIt)); 
+    DescendIt               descIt( elemRepos, dfaRepos, this);
+    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt);    
+    descIt.DoSetup( discr.SzDescend()); 
 
     while ( descIt.IsCurValid())
     {
-        dfaRepos->m_DistribRepos.Classify( descIt.m_Discr, &descIt);   
+        dfaRepos->m_DistribRepos.Classify( discr, &descIt);   
         descIt.Next(); 
     }
     Action                  *action = DetachAction();
-    FsaDfaState             *dfaState = FsaDfaState::Construct( descIt.SzDescend(), action);
+    FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action);
 
     dfaRepos->StoreAt( GetId(), dfaState); 
     m_DfaStateMap->Insert( this, dfaState);
-    for ( uint32_t k = 0; k < descIt.SzDescend(); ++k)
+    for ( uint32_t k = 0; k < discr.SzDescend(); ++k)
     {
         FsaSupState                 *subSupState = descIt.m_SubSupStates[ k];
         subSupState->Freeze();
@@ -111,14 +111,17 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n "; 
-    
+
+    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos);
+    std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
     Cv_CArr< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaClip         regex = fsaRepos->ToVar( dests[ k]);
         if ( !regex)
             continue;
-        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
         strm << "</FONT>>] ; \n" ;  
     }
     return false; 

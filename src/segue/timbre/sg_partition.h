@@ -211,7 +211,16 @@ public:
 
         return ccls;
     }
-    
+
+template < uint32_t  TSz>
+    Sg_Bitset< SzChBits>    XForm( const Sg_Bitset< TSz> &biitset) const 
+    { 
+        Sg_Bitset< SzChBits>      chSet; 
+        for ( uint32_t i = 0; i < SzChBits; ++i)
+            if ( biitset.Get( Image( i)))
+                chSet.Set( i, true); 
+        return chSet; 
+    }
 
     
     class CCLImpressCntl
