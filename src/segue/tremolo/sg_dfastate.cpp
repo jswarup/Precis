@@ -26,7 +26,10 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         return NULL;
     } 
     DescendIt               descIt( elemRepos, dfaRepos, this);
-    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt);    
+
+    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt);  
+    std::vector< Sg_ChSet>  domain = dfaRepos->m_DistribRepos.Domain( discr.m_DId);
+  
     descIt.DoSetup( discr.SzDescend()); 
 
     while ( descIt.IsCurValid())

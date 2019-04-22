@@ -310,6 +310,7 @@ template < uint32_t Bits>
                 intersector.Process( *bitset); 
                 filtIt->Next();
             }    
+            intersector.Over();
             auto            invalidCCL =  intersector.ValidCCL().Negative();
             uint32_t        invRep = invalidCCL.RepIndex();
             uint8_t         invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT32_MAX; 
