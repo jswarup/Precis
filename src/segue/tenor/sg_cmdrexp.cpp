@@ -175,12 +175,12 @@ int     Sg_RExpCmdProcessor::Test(void)
         return k->WriteDot( synDotStrm); 
         });
     } 
-    std::cout << rexpRepos.m_Base.ToString() << '\n';
+    //std::cout << rexpRepos.m_Base.ToString() << '\n';
 
     FsaElemRepos            elemRepos;
     FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
     automReposCnstr.Process(); 
-    elemRepos.Dump( std::cout);
+    //elemRepos.Dump( std::cout);
     if ( m_ElemDotFile.size())
     {
         std::ofstream       fsaOStrm( m_ElemDotFile);

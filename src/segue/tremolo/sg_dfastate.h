@@ -127,7 +127,7 @@ struct FsaSupState  : public FsaState
         Cv_CArr< FsaId>                 m_DestStateIds;
         uint32_t                        m_FilterCursor; 
         FsaDfaRepos                     *m_DfaRepos;
-        Cv_Array< FsaSupState *, 256>   m_SubSupStates; 
+        std::vector< FsaSupState *>     m_SubSupStates; 
  
         DescendIt( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos, FsaSupState *supState)
             : ElemIt( elemRepos, supState), m_DfaRepos( dfaRepos), m_FilterCursor( 0)
@@ -136,7 +136,13 @@ struct FsaSupState  : public FsaState
                 FetchFilterElems();
         }
     
-        void                Reset( void) { ElemIt::Reset(); m_FilterCursor = 0; }
+        void                Reset( void) 
+        { 
+            ElemIt::Reset(); 
+            m_FilterCursor = 0; 
+            if ( ElemIt::IsCurValid()) 
+                FetchFilterElems(); 
+        }
     
         void                DoSetup( uint32_t szDescend)
         { 
@@ -144,7 +150,7 @@ struct FsaSupState  : public FsaState
             for ( uint32_t k = 0; k < szDescend; ++k)
             {
                 FsaSupState     *subSupState = new FsaSupState();
-                m_SubSupStates.Append( subSupState);
+                m_SubSupStates.push_back( subSupState);
             }
         } 
 
@@ -174,7 +180,7 @@ struct FsaSupState  : public FsaState
             { 
                 FilterCrate::Var            chSet = CurrFilt();
                 Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
-                Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset);
+                Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset); 
                 FsaCrate::Var               dest = CurrDest();
                 for ( uint32_t k = 0; k < images.SzFill(); ++k)
                 { 
@@ -186,6 +192,8 @@ struct FsaSupState  : public FsaState
             }    
             return;
         } 
+
+        void        Dump( std::ostream &strm);
     };
 }; 
 

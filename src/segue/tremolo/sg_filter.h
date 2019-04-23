@@ -99,7 +99,7 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 
     bool            Dump( const Sg_Partition *base, std::ostream &ostr) 
     {  
-        ostr << ToString( base) << "\n"; 
+        ostr << ToString( base) << " "; 
         return true; 
     }
 };
@@ -193,6 +193,12 @@ template < typename Elem>
         return Store( ChSetFilter< 256>( chSet)); 
     }
 
+    bool            Dump( std::ostream &ostr, Id fId) 
+    { 
+        Var     fVar = ToVar( fId);
+        return fVar( [this, &ostr]( auto k) {  return k->Dump(  &m_Base, ostr); });
+    }
+
     bool            Dump( std::ostream &ostr) 
     { 
         return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  &m_Base, ostr); });
@@ -230,7 +236,7 @@ public:
 
     int32_t                 Compare( const CharDistribBase *filt) const { return 0; }
     std::string             ToString( void) const { return std::string(); }
-    bool                    Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    bool                    Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  " "; return true; }
     std::vector< Sg_Bitset< 0> >   Domain( void) const { return std::vector< Sg_Bitset< 0> >(); }
 };
 
@@ -255,7 +261,7 @@ public:
 
     int32_t         Compare( const CharDistrib *filt) const { return 0; }
     std::string     ToString( void) const { return std::string(); }
-    bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  "\n"; return true; }
+    bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  " "; return true; }
     auto            Domain( void) const { return Sg_CharPartition< Bits>::Domain(); }
 };
 
@@ -291,8 +297,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
             std::vector< Sg_ChSet>  domain = dRepos->Domain(  m_DId);
             for ( uint32_t k = 0; k < SzDescend(); ++k)
                 strm << Cv_Aid::XmlEncode( domain[ k].ToString()) << ' ';  
-            strm << m_Inv;
-            strm << '\n';
+            strm << m_Inv; 
         }
     };
   

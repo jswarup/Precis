@@ -11,7 +11,28 @@ void       FsaSupState::DescendIt::FetchFilterElems( void)
 {
     FsaRepos::Var        state = m_ElemRepos->ToVar( m_SubStates[ m_StateCursor]);
     m_Filters = state( [this]( auto k) { return k->Filters(); });
-    m_DestStateIds = state( [this]( auto k) { return k->Dests(); }); 
+    m_DestStateIds = state( [this]( auto k) { return k->Dests(); });   
+}
+
+//_____________________________________________________________________________________________________________________________
+
+void       FsaSupState::DescendIt::Dump( std::ostream &strm)
+{
+    for ( uint32_t i = 0; i < m_SubStates.Size(); ++i)
+    {
+        strm << m_SubStates[i].GetId() << " ";
+        if ( m_StateCursor != i)
+            continue;
+        strm << "[ ";
+        for ( uint32_t j = 0; j  < m_Filters.Size(); ++j)
+        {
+            m_DfaRepos->m_ElemRepos->m_FilterRepos.Dump( strm, m_Filters[ j]);
+            strm << m_DestStateIds[ j].GetId() << ", "; 
+        }
+        strm << "] ";
+    }
+    strm << "\n";
+    return;
 }
  //_____________________________________________________________________________________________________________________________
 
@@ -28,14 +49,11 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     DescendIt               descIt( elemRepos, dfaRepos, this);
 
     DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt); 
-    discr.Dump( std::cout, &dfaRepos->m_DistribRepos);
+    //discr.Dump( std::cout, &dfaRepos->m_DistribRepos);
     descIt.DoSetup( discr.SzDescend()); 
     
-    while ( descIt.IsCurValid())
-    {
-        dfaRepos->m_DistribRepos.Classify( discr, &descIt);   
-        descIt.Next(); 
-    }
+    dfaRepos->m_DistribRepos.Classify( discr, &descIt);   
+    
     Action                  *action = DetachAction();
     FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action);
 
