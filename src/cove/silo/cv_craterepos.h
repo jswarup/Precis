@@ -294,7 +294,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     }
 
 template < typename Lambda, typename... Args>
-    auto    OperateAll(  Lambda &lambda,  Args&&... args)  
+    auto    OperateAll( const Lambda &lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
         Accum                                               accum;

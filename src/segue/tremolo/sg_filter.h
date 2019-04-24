@@ -64,7 +64,7 @@ struct     CharFilter : public Filter
 template < uint32_t N>
 struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 {   
-    typedef Sg_Bitset< N>       Base;
+    typedef Sg_Bitset< N>       Base; 
 
     ChSetFilter( void)
         : Base()
@@ -92,7 +92,7 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
     { 
         Sg_ChSet      chSet; 
         for ( uint32_t i = 0; i < Sg_ChSet::SzChBits; ++i)
-            if ( Get( base->Image( i)))
+            if ( this->Get( base->Image( i)))
                 chSet.Set( i, true); 
         return chSet.ToString(); 
     }
@@ -313,8 +313,10 @@ template < uint32_t Bits>
     template < typename DescendIt>
         Discr    Map( DescendIt *filtIt)
         {
+            typedef typename CharDistrib< Bits>::CCLImpressor   CCLImpressor;
+            
             CharDistrib< Bits>                  distrib;
-            CharDistrib< Bits>::CCLImpressor    intersector( &distrib);
+            CCLImpressor        intersector( &distrib);
 
             while ( filtIt->IsCurValid())
             { 

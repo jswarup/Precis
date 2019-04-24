@@ -9,7 +9,8 @@
 
 class Sg_ChSet : public Sg_Bitset< 256>
 {
-public:
+public: 
+    
     enum 
     { 
         Sz = 4,
