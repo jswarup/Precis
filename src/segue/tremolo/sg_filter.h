@@ -64,7 +64,7 @@ struct     CharFilter : public Filter
 template < uint32_t N>
 struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 {   
-    typedef Sg_Bitset< N>       Base; 
+    typedef Sg_Bitset< N>       Base;
 
     ChSetFilter( void)
         : Base()

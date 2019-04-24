@@ -2,7 +2,7 @@
 #pragma once
 
 #include    "segue/timbre/sg_bitset.h" 
-#include    "cove/silo/cv_array.h" 
+#include    "cove/silo/cv_array.h"
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -330,7 +330,7 @@ template < uint32_t N>
     { 
         CV_ERROR_ASSERT( N >= SzImage())
         Sg_Bitset< N>     mappedFilt;
-        for ( uint32_t i = 0; i < Sg_Bitset< N>::SzChBits; ++i)
+        for ( uint32_t i = 0; i < Bitset::SzChBits; ++i)
             if ( chSet.Get( i))
                 mappedFilt.Set( Image( i), true);
         return mappedFilt; 
