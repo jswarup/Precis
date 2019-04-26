@@ -187,10 +187,12 @@ int     Sg_RExpCmdProcessor::Test(void)
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
         elemRepos.WriteDot( fsaDotStrm);
     }  
- 
+    elemRepos.DumpStats( std::cout);
     FsaDfaRepos             dfaRepos( &elemRepos);
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
+    dfaRepos.DumpStats( std::cout);
+
     if ( m_DfaDotFile.size())
     {
         std::ofstream           fsaOStrm( m_DfaDotFile);
@@ -211,7 +213,7 @@ int     Sg_RExpCmdProcessor::Test(void)
 	synCrate.Clear();
 	bool                    t = true; 
 */
-    return 0;
+    return apiErrCode;
 }
 
 //_____________________________________________________________________________________________________________________________ 

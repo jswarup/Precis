@@ -20,6 +20,13 @@ struct  FsaDfaRepos  : public FsaRepos
  
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
+    
+    bool                DumpStats( std::ostream &ostr)
+    {
+        FsaRepos::DumpStats( ostr);
+        m_DistribRepos.DumpStats( ostr);
+        return true;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -130,7 +137,7 @@ struct FsaSupState  : public FsaState
         std::vector< FsaSupState *>     m_SubSupStates; 
  
         DescendIt( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos, FsaSupState *supState)
-            : ElemIt( elemRepos, supState), m_DfaRepos( dfaRepos), m_FilterCursor( 0)
+            : ElemIt( elemRepos, supState), m_FilterCursor( 0), m_DfaRepos( dfaRepos)
         {
             if ( ElemIt::IsCurValid())
                 FetchFilterElems();
@@ -210,9 +217,17 @@ private:
     {}
 
 public:
+    typedef FsaDfaRepos     Repos;
+
     ~FsaDfaState( void)
     {} 
-
+    
+    void            Delete( FsaDfaRepos *repos)
+    {
+        this->FsaDfaState::~FsaDfaState(); 
+        delete [] ( uint8_t *) this;
+    }
+     
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
     static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action)
     {

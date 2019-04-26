@@ -109,8 +109,6 @@ struct FilterRepos  : public Cv_CratePile< FilterCrate>
     typedef Filter::TypeStor                TypeStor;
     typedef Filter::IndexStor               IndexStor;
     typedef Filter::Id                      Id;
-     
-
 
 template < uint32_t N>
     struct BitsetMapper
@@ -263,12 +261,37 @@ public:
  
 struct DistribRepos  : public Cv_CratePile< DistribCrate>           
 {
+    typedef Cv_CratePile< DistribCrate>     Base;
 
+    struct LessOp
+    {
+        DistribRepos     *m_DistribRepos;
+
+        LessOp( DistribRepos *distribRepos)
+            : m_DistribRepos( distribRepos)
+        {}
+
+        bool    operator()( const Id &id1, const Id &id2)  const
+        { 
+            DistribCrate::Var    var1 = m_DistribRepos->ToVar( id1);
+            DistribCrate::Var    var2 = m_DistribRepos->ToVar( id2);
+            if ( var1.GetType() != var2.GetType())
+                return var1.GetType() < var2.GetType();
+            return var1( [this]( auto e1, auto e2) {
+                typedef decltype( e1)           EntType;
+                return e1->Compare( static_cast< EntType>( e2)) < 0; 
+                }, var2.GetEntry()); 
+        } 
+    };
+
+
+    std::set< Id, LessOp>       m_IdTbl; 
+    DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base;
- 
-    DistribRepos( void)
+
+    DistribRepos( void) 
+        : m_IdTbl( LessOp( this))
     {}
- 
 
     struct Discr
     {
@@ -389,7 +412,28 @@ template < typename CnstrIt>
 
         return DescendHelper< 256>( this).Map( discr, cnstrIt);                                  
     }
- 
+    
+
+template < typename Elem>
+    Id          Store(  Elem &&elm) 
+    {
+        m_TVar = Var( &elm, DistribCrate::TypeOf< Elem>());
+        auto    it = m_IdTbl.find( Id());
+        m_TVar = Var();
+        if ( it != m_IdTbl.end())
+            return *it;
+        Id       id = Base::Store( elm);
+        m_IdTbl.insert( id);
+        return id;
+    }
+
+    DistribCrate::Var    ToVar( const Id &id)  
+    {  
+        if ( id.IsValid())
+            return Base::ToVar( id); 
+        return m_TVar;
+    }
+
     std::vector< Sg_ChSet>  Domain( Id dId)
     {
         DistribCrate::Var       dVar = ToVar( dId);

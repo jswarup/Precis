@@ -86,12 +86,18 @@ public:
         {} 
     };
 public:
+    typedef void    Repos;
+
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
         :  Cv_CrateId( id, 0)
     {} 
 
     const char		*GetName( void) const { return "Entry"; }
 
+    void            Delete( void *)
+    {
+        delete this; 
+    }
 
     friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
     { 
@@ -126,9 +132,16 @@ public:
     
     ~Cv_CrateRepos( void)  { Clear(); }
 
+    auto    Deleter( void)
+    {
+        return [ this]( auto x) { 
+            typedef  std::remove_pointer<decltype( x)>::type::Repos     Repos;
+            x->Delete( static_cast< Repos *>( this)); 
+            return true; };
+    }
     void Clear( void)
     {
-        OperateAll( []( auto x) { delete x; return true; }); 
+        OperateAll( Deleter()); 
         m_Elems.clear();
         m_Types.clear();
     }
@@ -148,7 +161,7 @@ template < typename Element>
     { 
         Entry       *&elem = m_Elems[ k];
         TypeStor	&type = m_Types[ k];
-        Crate::Operate( elem, type, []( auto x) { delete x; });
+        Crate::Operate( elem, type, Deleter());
         type = 0; 
         elem = NULL; 
         return;
@@ -213,6 +226,11 @@ template < typename Lambda, typename... Args>
         return accum;
     }
 
+    bool                DumpStats( std::ostream &ostr)
+    {
+        ostr << typeid(Entry).name() <<  "Count: " << m_Elems.size() << "\n"; 
+        return true;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -269,10 +287,10 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     Id    Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
-        Elem    &insrt =  m_Elems.back();
-        insrt.SetId( IndexStor( m_Elems.size() -1));
-        insrt.SetType( TypeStor( Crate::Sz));
-        return insrt; 
+        Elem    *insrt =  &m_Elems.back();
+        insrt->SetId( IndexStor( m_Elems.size() -1));
+        insrt->SetType( TypeStor( Crate::Sz));
+        return *insrt; 
     } 
 
     Id          Store( const Entry &entry) 
@@ -302,6 +320,13 @@ template < typename Lambda, typename... Args>
             if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))  
                 return accum; 
         return accum.Accumulate( Base::OperateAll( lambda, args...));
+    }
+
+    bool                DumpStats( std::ostream &ostr)
+    {
+        ostr << typeid(Elem).name() <<  "Count: " << m_Elems.size() << "\n";
+        Base::DumpStats( ostr);
+        return true;
     }
 };
 
@@ -346,6 +371,12 @@ template < typename Lambda, typename... Args>
             if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))        
                 return accum; 
         return accum;
+    }
+
+    bool                DumpStats( std::ostream &ostr)
+    {
+        ostr << typeid(Elem).name() <<  "Count: " << m_Elems.size() << "\n"; 
+        return true;
     }
 };
 

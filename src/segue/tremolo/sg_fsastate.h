@@ -112,6 +112,13 @@ struct  FsaElemRepos  : public FsaRepos
         m_FilterRepos.Dump( ostr);
         return true;
     }
+
+    bool                DumpStats( std::ostream &ostr)
+    {
+        FsaRepos::DumpStats( ostr);
+        m_FilterRepos.DumpStats( ostr);
+        return true;
+    }
 };
 
 
