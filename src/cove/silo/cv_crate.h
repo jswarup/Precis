@@ -99,13 +99,13 @@ struct Cv_Crate : public Cv_Crate< Rest...>
         
     }     
 
-template <typename X, typename std::enable_if< std ::is_base_of< T, X>::value, void>::type * = nullptr>
+template <typename X, typename std::enable_if< std ::is_base_of< Elem, X>::value, void>::type * = nullptr>
 	TypeStor TypeOf( X *obj)
     {
         return Sz;
     } 
 
-template < typename X, typename std::enable_if< !std ::is_base_of< T, X>::value, void>::type * = nullptr>
+template < typename X, typename std::enable_if< !std ::is_base_of< Elem, X>::value, void>::type * = nullptr>
 	TypeStor TypeOf( X *obj)
     {
 		return CrateBase::TypeOf( obj);
@@ -121,13 +121,13 @@ template <  typename Lambda, typename... Args>
 		}
     } 
 	 
-template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>::value, void>::type * = nullptr>
+template <  typename Entity, typename std::enable_if< std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
 		return Sz;
 	}
 
-template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
+template <  typename Entity, typename std::enable_if< !std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
 		return CrateBase::template TypeOf<Entity> ();
@@ -163,13 +163,13 @@ template <  typename Lambda, typename... Args>
 		 return lambda( static_cast< Elem *>( entry), args...); 
     }
 
-template <  typename Entity, typename std::enable_if< std ::is_same< T, Entity>::value, void>::type * = nullptr>
+template <  typename Entity, typename std::enable_if< std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
 		return Sz;
 	}	 
 
-template <  typename Entity, typename std::enable_if< !std ::is_same< T, Entity>::value, void>::type * = nullptr>
+template <  typename Entity, typename std::enable_if< !std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
 		return 0;

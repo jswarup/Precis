@@ -162,7 +162,7 @@ template < uint32_t N>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, FilterCrate::TypeOf< Elem>());
+        m_TVar = Var( &elm, elm.GetType());
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
@@ -223,7 +223,9 @@ struct CharDistribBase : public Cv_CrateEntry
 
 public:
     CharDistribBase( void) 
-    {} 
+    {
+        SetType( DistribCrate::TypeOf< CharDistribBase>());
+    } 
 
     std::string		        GetName( void) const { return "Filter"; } 
 
@@ -246,12 +248,12 @@ struct CharDistrib : Sg_CharPartition< Bits>, public CharDistribBase
 public:
     CharDistrib( void) 
     {
-        SetType( DistribCrate::TypeOf< CharDistrib< Bits>>());
+        SetType( DistribCrate::TypeOf< CharDistrib>());
     } 
 
     std::string		GetName( void) const { return "Filter"; } 
 
-    int32_t         Compare( const CharDistrib *filt) const { return 0; }
+    int32_t         Compare( const CharDistrib *filt) const { return Sg_CharPartition< Bits>::Compare( *filt); }
     std::string     ToString( void) const { return std::string(); }
     bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  " "; return true; }
     auto            Domain( void) const { return Sg_CharPartition< Bits>::Domain(); }
@@ -345,7 +347,8 @@ template < uint32_t Bits>
             auto            invalidCCL =  intersector.ValidCCL().Negative();
             uint32_t        invRep = invalidCCL.RepIndex();
             uint8_t         invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT32_MAX; 
-            return Discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1));
+            Discr           discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1)); 
+            return discr;
         }
     };  
   
@@ -417,7 +420,7 @@ template < typename CnstrIt>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, DistribCrate::TypeOf< Elem>());
+        m_TVar = Var( &elm, elm.GetType());
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
