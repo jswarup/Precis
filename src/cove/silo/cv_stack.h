@@ -244,14 +244,13 @@ public:
 		list->b = NULL;
 		return;
 	}
- 
 
-    X *PromoteAfter( X *s, X *beg, X *end = NULL)
+    X *PromoteAfter(X *s, X *beg, X *end = NULL)
     {
-        X       *sp = stk.PromoteAfter( s, beg, end);
-        if ( sp && end == b)
+        X *sp = stk.PromoteAfter(s, beg, end);
+        if (sp && (end == b))
             b = sp;
-	    return sp;
+        return sp;
     }
 };
 

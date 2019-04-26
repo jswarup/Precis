@@ -24,7 +24,7 @@ template < int>
 template < uint32_t>
     static constexpr uint32_t   InitVal( void) { return 0; }
 
-    static constexpr uint64_t	LowMask( uint64_t x) { return (( uint64_t (0x1) << x) -1); }
+    static constexpr uint64_t	LowMask( uint64_t x) { return (( ( uint64_t(0x1) << ( x -1)) -1) << 1) | 1; }
 
 template < class X>    
     static constexpr const X    &Min( const X &x1, const X &x2) { return x1 < x2 ? x1 : x2; }

@@ -48,9 +48,9 @@ public:
     {
         TypeStor    type = GetType();
         if ( type < 26)
-            return 'A' +type;
+            return char( 'A' +type);
         if ( type < 52)
-            return 'a' +type -26;
+            return char( 'a' +type -26);
         CV_ERROR_ASSERT( false)
         return '_';
     }

@@ -22,10 +22,7 @@ typedef Cv_Crate< ChSetFilter< 256>, ChSetFilter< 128>, ChSetFilter< 64>, ChSetF
 //_____________________________________________________________________________________________________________________________ 
  
 struct  Filter : public Cv_CrateEntry
-{  
-    typedef uint8_t     TypeStor;
-    typedef uint16_t    IndexStor;
-
+{   
 public:
     Filter( void) 
     {
@@ -224,9 +221,7 @@ typedef Cv_Crate< CharDistrib< 256>, CharDistrib< 128>, CharDistrib< 64>, CharDi
 //_____________________________________________________________________________________________________________________________ 
 
 struct CharDistribBase : public Cv_CrateEntry
-{  
-    typedef uint8_t     TypeStor;
-    typedef uint16_t    IndexStor;
+{   
 
 public:
     CharDistribBase( void) 
@@ -245,8 +240,7 @@ public:
 template < uint32_t Bits>
 struct CharDistrib : Sg_CharPartition< Bits>, public CharDistribBase
 {  
-    typedef uint8_t     TypeStor;
-    typedef uint16_t    IndexStor;
+     
     enum  { 
         BitSz = Bits
     };    
