@@ -255,7 +255,12 @@ public:
 
     int32_t         Compare( const CharDistrib *filt) const { return Sg_CharPartition< Bits>::Compare( *filt); }
     std::string     ToString( void) const { return std::string(); }
-    bool            Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  " "; return true; }
+    bool            Dump( DistribRepos *, std::ostream &ostr) 
+    { 
+        Sg_CharPartition::Dump( ostr);; 
+        return true; 
+    }
+
     auto            Domain( void) const { return Sg_CharPartition< Bits>::Domain(); }
 };
 
@@ -450,6 +455,11 @@ template < typename Elem>
             }
             return dom; } );
         return domain;
+    }
+    
+    bool            Dump( std::ostream &ostr) 
+    { 
+        return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  this, ostr); });
     }
 }; 
 

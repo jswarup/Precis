@@ -336,5 +336,17 @@ template < uint32_t N>
         return mappedFilt; 
     }
     
+    bool                Dump( std::ostream &ostr, uint32_t lev = 0)
+    {
+        ostr << "[ ";   
+        for ( uint8_t i = 0; i < SzChBits; i++)  
+        {
+            ostr << uint32_t( m_EqClassIds[ i]);
+            if ( i != SzChBits)
+                ostr << ", ";  
+        }
+        ostr << "]\n";   
+        return true; 
+    }
 };
  

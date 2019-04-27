@@ -192,6 +192,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
     dfaRepos.DumpStats( std::cout);
+    dfaRepos.m_DistribRepos.Dump( std::cout);
 
     if ( m_DfaDotFile.size())
     {
