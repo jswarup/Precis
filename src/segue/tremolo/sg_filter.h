@@ -264,6 +264,58 @@ public:
     auto            Domain( void) const { return Sg_CharPartition< Bits>::Domain(); }
 };
 
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct DistribVar : public DistribCrate::Var
+{
+    DistribVar( uint32_t szImg)
+    {
+        if ( szImg <= 8)
+            m_Entry = new CharDistrib< 8>();
+        else if ( szImg <= 16)  
+            m_Entry = new CharDistrib< 16>();
+        else if ( szImg <= 32)                                      
+            m_Entry = new CharDistrib< 32>();
+        else if ( szImg <= 64)  
+            m_Entry = new CharDistrib< 64>();
+        else if ( szImg <= 128)                                     
+            m_Entry = new CharDistrib< 128>();
+        else 
+            m_Entry = new CharDistrib< 256>();
+        m_Type = m_Entry->GetType();
+    }
+
+    ~DistribVar( void)
+    {
+        SELF( []( auto k) { delete k; });
+    }
+
+    int32_t     Compare( const DistribVar &var)  
+    { 
+        if ( GetType() != var.GetType())
+            return GetType() < var.GetType() ? -1 : 1;
+        return SELF( [this]( auto e1, auto e2) {
+                typedef decltype( e1)           EntType;
+                return e1->Compare( static_cast< EntType>( e2)); 
+            }, var.GetEntry()); 
+    }
+
+    std::vector< Sg_ChSet>  Domain( Sg_Partition *base)
+    { 
+        std::vector< Sg_ChSet>  domain = SELF( [base]( auto dist) {
+            typedef decltype(dist)  Distrib;
+            auto                    distDomain = dist->Domain();
+            std::vector< Sg_ChSet>  dom( distDomain.size());
+            for ( uint32_t  i = 0; i < distDomain.size(); ++i)
+            {
+                dom[ i] = base->XForm( distDomain[ i]);
+            }
+            return dom; } );
+        return domain;
+    }
+};  
+
 //_____________________________________________________________________________________________________________________________ 
  
 struct DistribRepos  : public Cv_CratePile< DistribCrate>           
