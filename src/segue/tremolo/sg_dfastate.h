@@ -11,6 +11,7 @@ namespace Sg_RExp
 
 struct  FsaDfaRepos  : public FsaRepos
 {    
+    FsaId               m_RootId;
     FsaElemRepos        *m_ElemRepos;
     DistribRepos        m_DistribRepos;  
 
@@ -241,6 +242,9 @@ public:
         return dfaState;
     }
     uint32_t                DestSz( void) const { return m_Discr.SzDescend(); }
+    
+    DistribRepos::Id        DistribId( void) const { return m_Discr.m_DId; }
+
     Cv_CArr< FsaId>         Dests( void) { return DestSz() ? Cv_CArr< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_CArr< FsaId>(); } 
     void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }
 

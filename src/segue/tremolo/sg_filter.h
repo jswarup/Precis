@@ -229,6 +229,9 @@ public:
 
     std::string		        GetName( void) const { return "Filter"; } 
 
+    uint8_t                 Image( uint16_t t) const {  return 0; }
+
+
     int32_t                 Compare( const CharDistribBase *filt) const { return 0; }
     std::string             ToString( void) const { return std::string(); }
     bool                    Dump( DistribRepos *, std::ostream &ostr) { ostr << ToString() <<  " "; return true; }
@@ -238,7 +241,7 @@ public:
 //_____________________________________________________________________________________________________________________________ 
 
 template < uint32_t Bits>
-struct CharDistrib : Sg_CharPartition< Bits>, public CharDistribBase
+struct CharDistrib : public Sg_CharPartition< Bits>, public CharDistribBase
 {  
      
     enum  { 
@@ -251,7 +254,9 @@ public:
         SetType( DistribCrate::TypeOf< CharDistrib>());
     } 
 
-    std::string		GetName( void) const { return "Filter"; } 
+    std::string		GetName( void) const { return "Distrib"; } 
+
+    uint8_t         Image( uint16_t chr) const {  return Sg_CharPartition< Bits>::Image( chr); }
 
     int32_t         Compare( const CharDistrib *filt) const { return Sg_CharPartition< Bits>::Compare( *filt); }
     std::string     ToString( void) const { return std::string(); }
@@ -509,6 +514,7 @@ template < typename Elem>
         return domain;
     }
     
+     
     bool            Dump( std::ostream &ostr) 
     { 
         return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  this, ostr); });

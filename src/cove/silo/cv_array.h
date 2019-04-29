@@ -94,7 +94,8 @@ public:
     X           *End( void) const { return Ptr() +m_Len; }
 
     const X     &operator[]( uint32_t i) const { return m_CStr[ i]; } 
-    X           &operator[]( uint32_t i) { return m_CStr[ i]; } 
+    X           &operator[]( uint32_t i) { return m_CStr[ i]; }
+    const X     &At( uint32_t i) const { return m_CStr[ i]; }  
 
     Cv_CArr     &Advance( uint32_t k)
     {

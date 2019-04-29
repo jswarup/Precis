@@ -173,6 +173,7 @@ bool        FsaDfaRepos::DumpDot( const char *path)
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
+    m_DfaRepos->m_RootId = *supRootState;
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
     m_FsaStk.push_back( supRootState);

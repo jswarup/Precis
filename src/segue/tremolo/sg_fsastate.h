@@ -86,7 +86,6 @@ public:
 struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 {   
     typedef  Id                 FsaId;
-    FsaId                       m_RootId;
 
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
@@ -99,6 +98,7 @@ struct  FsaElemRepos  : public FsaRepos
 {    
     std::vector< uint32_t>      m_RuleIdSzList;
     FilterRepos                 m_FilterRepos; 
+    FsaId                       m_RootId;
 
     uint32_t            RuleIdFromState( uint32_t k) const 
     {

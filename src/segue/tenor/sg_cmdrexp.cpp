@@ -3,12 +3,13 @@
 
 #include    "segue/tenor/sg_include.h" 
 #include    "cove/snip/cv_cmdexec.h" 
+#include    "cove/silo/cv_stash.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
 #include    "segue/tremolo/sg_fsaelemcnstr.h"
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
-#include    "cove/silo/cv_stash.h"
+#include    "segue/atelier/sg_atelier.h"
 
 #include	<utility>
 #include	<tuple>
@@ -17,13 +18,13 @@
 
 static Cv_CmdOption     s_RExpIfcOptions[] = 
 {         
-    { "-i",     "<input>",  "input rule-file"},
-    { "-d",     0 ,         "debug"},
-    { "-oshard",  "<dot>",    0},
-    { "-oelem",  "<dot>",    0},
-    { "-odfa",  "<dot>",    0},
-    { "-o",     "<output>", 0},
-    { 0,        0,          0},
+    { "-i",         "<input>",  "input rule-file"},
+    { "-d",         0 ,         "debug"},
+    { "-oshard",    "<dot>",    0},
+    { "-oelem",     "<dot>",    0},
+    { "-odfa",      "<dot>",    0},
+    { "-idata",     "<input>",  0},
+    { 0,            0,          0},
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -31,6 +32,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 class Sg_RExpCmdProcessor : public Cv_CmdExecutor
 { 
     std::string         m_InputFile;
+    std::string         m_DataFile;
     std::string         m_ElemDotFile;
     std::string         m_ShardDotFile;
     std::string         m_DfaDotFile;
@@ -82,6 +84,11 @@ public:
         if ("-o" == key)
         {
             m_OutputFile = arg;
+            return true;
+        }
+        if ("-idata" == key)
+        {
+            m_DataFile = arg;
             return true;
         }  
         return false;
@@ -201,6 +208,19 @@ int     Sg_RExpCmdProcessor::Test(void)
         dfaRepos.WriteDot( fsaDotStrm);
     }
      
+    Sg_Atlier               atlier( &dfaRepos);
+    StrInStream			    dataMemVector;
+    bool	                res1 = Cv_Aid::ReadVec( &dataMemVector, m_DataFile.c_str()); 
+    if ( !res1)
+    {
+        std::cerr << "Not Found : " << m_DataFile << '\n';
+        return -1;
+    }
+    
+    for ( uint32_t i = 0; i < dataMemVector.size(); ++i)
+    {
+        bool    res = atlier.Play( dataMemVector[ i]);
+    }
 /*
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);

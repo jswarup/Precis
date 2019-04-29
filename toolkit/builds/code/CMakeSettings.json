@@ -13,7 +13,7 @@
       "variables": [
         {
           "name": "PR_DBG",
-          "value": "False",
+          "value": "True",
           "type": "BOOL"
         } 
       ]
