@@ -61,107 +61,95 @@ public:
 CV_CMD_DEFINE( Sg_TrellisCmdProcessor, "trellis", "trellis", s_TrellisIfcOptions)
 
 static const int cv_numEventsToGenerate = 10000;
- 
+  
+
 //_____________________________________________________________________________________________________________________________
 
-struct Tr_Consume
+struct Tr_ProduceNums
 {
-    typedef Tr_DataCarousal<uint64_t>     DataCarousal;
+    typedef Tr_DataCreek<uint64_t>           Dock;
     
-    uint64_t                    m_Prev;
-    Tr_DataDock< uint64_t>      m_Dock;
+    Dock        m_Dock; 
+
+    Tr_ProduceNums( void) 
+    {}
+
     
-    Tr_Consume( void)
+    void    DoRun( void)
+    { 
+         
+        for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
+        { 
+            Dock::Wharf     wharf( &m_Dock);
+            uint32_t        i = 0; 
+            for ( ; ( i < wharf.Size()) && ( num_event < cv_numEventsToGenerate); ++i)
+                wharf.Set( i, num_event++);
+            wharf.SetSize( i);
+        } 
+        return;
+    }
+}; 
+
+
+//_____________________________________________________________________________________________________________________________
+
+struct Tr_ConsumeNums
+{
+    typedef Tr_DataDock<uint64_t>           Dock;
+    typedef typename Dock::DataCarousal     DataCarousal;
+
+    Dock        m_Dock;
+    uint64_t    m_Prev;
+
+    Tr_ConsumeNums( void)
         : m_Prev( CV_UINT64_MAX)
     {}
 
-    void    InitSetup( DataCarousal *pRingBuf)
+    void    Hookup( Tr_ProduceNums *produce)
     {        
-        m_Dock.Setup( pRingBuf);
+        m_Dock.Connect( produce->m_Dock.Carousal());
     }
 
     void    DoRun( void)
     {  
         while( true)
         {
-            uint32_t    sz = m_Dock.Summon(); 
-            if ( !sz) 
-                continue; 
-            uint32_t i = 0;
-            for ( ; i < sz;)
+            Dock::Wharf     wharf( &m_Dock);
+            for ( uint32_t i = 0; i < wharf.Size();  i++)
             {
-                uint64_t    val = m_Dock.Get( i++);
+                uint64_t    val = wharf.Get( i);
                 printf( "%u\n", uint32_t( val));
                 CV_ERROR_ASSERT( ( m_Prev == CV_UINT64_MAX)  || ( m_Prev < val))
-                m_Prev = val;
+                    m_Prev = val;
                 if ( val == (cv_numEventsToGenerate -1))
                 {
-                    m_Dock.Commit( i);
+                    wharf.SetSize( i +1);
                     return;
                 } 
             }
-            m_Dock.Commit( i);
         } 
         return;
     }
 };
-
-//_____________________________________________________________________________________________________________________________
-
-struct Tr_Produce 
-{
-    typedef Tr_DataCarousal< uint64_t>   DataCarousal;
-    Tr_DataDock< uint64_t>              m_Dock;
-    
-
-    Tr_Produce( void) 
-    {}
-
-    void    InitSetup( DataCarousal *pRingBuf)
-    {        
-        m_Dock.Setup( pRingBuf);
-    }
-
-    void    DoRun( void)
-    { 
-         
-        for ( uint64_t num_event = 0; num_event < cv_numEventsToGenerate; )
-        { 
-            uint32_t    sz = m_Dock.Summon();
-            if ( !sz)
-                continue;
-            uint32_t i = 0;
-            for ( ; ( i < sz) && ( num_event < cv_numEventsToGenerate); ++i)
-                m_Dock.Set( i, num_event++);
-            m_Dock.Commit( i);
-        } 
-        return;
-    }
-}; 
-
 //_____________________________________________________________________________________________________________________________
 
 static int TestProduce( void)
-{
-    
-    typedef Tr_DataCarousal< uint64_t>     DataCarousal;
-
-    DataCarousal            ringBuf; 
-    Tr_Produce              producer;
-    producer.InitSetup( &ringBuf);
-
-    Tr_Consume              consumer; 
-    consumer.InitSetup( &ringBuf);   
-
-    Tr_Consume              consumer1; 
-    consumer1.InitSetup( &ringBuf); 
-  
-    Tr_Consume              consumer2; 
-    consumer2.InitSetup( &ringBuf);    
+{ 
  
-    std::thread             t2{ &Tr_Consume::DoRun, &consumer2};
-    std::thread             t{ &Tr_Consume::DoRun, &consumer};
-    std::thread             t1{ &Tr_Consume::DoRun, &consumer1};
+    Tr_ProduceNums              producer;  
+
+    Tr_ConsumeNums              consumer; 
+    consumer.Hookup( &producer);   
+
+    Tr_ConsumeNums              consumer1; 
+    consumer1.Hookup( &producer); 
+  
+    Tr_ConsumeNums              consumer2; 
+    consumer2.Hookup( &producer);    
+ 
+    std::thread             t2{ &Tr_ConsumeNums::DoRun, &consumer2};
+    std::thread             t{ &Tr_ConsumeNums::DoRun, &consumer};
+    std::thread             t1{ &Tr_ConsumeNums::DoRun, &consumer1};
 
     producer.DoRun();
     t1.join();

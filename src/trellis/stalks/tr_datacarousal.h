@@ -23,8 +23,8 @@ public:
     typedef Ty                      Type; 
     typedef Tr_DataDock< Type>      Dock;
 private:  
-    Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);    
-    Cv_DLinkList< Dock, true>   m_Docks;
+    Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
+    Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
   
 public: 
     Tr_DataCarousal( void)   
@@ -36,9 +36,9 @@ public:
     const Type      &Get( uint32_t k) const { return m_Buffer[ k % Sz]; }
     void            Set( uint32_t k, const Type &x) { m_Buffer[ k % Sz] = x; }
        
-    void    Append( Dock *dock) { m_Docks.Append( dock); }
+    void    AppendDock( Dock *dock) { m_Docks.Append( dock); }
 
-    Cv_Couple< uint32_t>    Summon( Dock *dock) const 
+    Cv_Couple< uint32_t>    SummonDock( Dock *dock) const 
     { 
         uint32_t        e = dock->Index(); 
         uint32_t        b = m_Docks.Prev( dock)->Index();
@@ -47,7 +47,7 @@ public:
         return std::make_tuple( b, e -b);
     }
     
-    void       Commit( Dock *dock, uint32_t sz)  {  m_Docks.Prev( dock)->SetIndex( dock->Begin() +sz); }
+    void       Commit( Dock *dock, uint32_t index)  {  m_Docks.Prev( dock)->SetIndex( index); }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -55,41 +55,74 @@ public:
 template < typename Ty> 
 class   Tr_DataDock : public Cv_DLink< Tr_DataDock< Ty> >
 {
-    typedef Ty              Type; 
+public:
+    typedef Ty                      Type; 
+    typedef Tr_DataCarousal< Type>  DataCarousal;
 
+protected:
     Tr_Type< uint32_t>      m_Index; 
-    Tr_DataCarousal< Ty>    *m_DataCarousal; 
-    uint32_t                m_Begin;
+    DataCarousal            *m_DataCarousal; 
 
 public:
+    struct  Wharf
+    {
+        Tr_DataDock     *m_Dock;
+        uint32_t        m_Begin;
+        uint32_t        m_Sz;
+
+        Wharf( Tr_DataDock *dock)
+            : m_Dock( dock), m_Begin( 0), m_Sz( 0)
+        { 
+            std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock);
+        }
+
+        ~Wharf( void)
+        {
+            if ( m_Sz)
+                m_Dock->m_DataCarousal->Commit( m_Dock, m_Begin +m_Sz);
+        }
+
+        uint32_t        Begin( void) const { return m_Begin; }
+        uint32_t        Size( void) const { return m_Sz; }
+        void            SetSize( uint32_t sz) { m_Sz = sz; } 
+
+        const Type      &Get( uint32_t k) const { return m_Dock->m_DataCarousal->Get(  m_Begin +k); }
+        void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
+    };
+
     Tr_DataDock( void)
-        :   m_DataCarousal( NULL), m_Begin( 0)
+        :   m_DataCarousal( NULL)
     {}
      
-    uint32_t    Begin( void) const { return m_Begin; }
     uint32_t    Index( void) const { return m_Index.Get(); }
     void        SetIndex( uint32_t k) {  m_Index.Set( k); }
 
-    void    Setup( Tr_DataCarousal< Ty> *dataCarousal)
+    void    Connect( Tr_DataCarousal< Ty> *dataCarousal)
     {
         m_DataCarousal = dataCarousal;
-        m_DataCarousal->Append( this); 
-    } 
-    
-    uint32_t    Summon( void) 
-    { 
-        uint32_t    sz = 0;
-        std::tie( m_Begin, sz) = m_DataCarousal->Summon( this);
-        return sz;
-    }
-    
-    const Type      &Get( uint32_t k) const { return m_DataCarousal->Get(  m_Begin +k); }
-    void            Set( uint32_t k, const Type &x) { m_DataCarousal->Set(  m_Begin +k, x); }
+        m_DataCarousal->AppendDock( this); 
+    }   
+};
 
-    void       Commit( uint32_t sz) 
+//_____________________________________________________________________________________________________________________________
+
+template < typename Ty> 
+class   Tr_DataCreek : public Tr_DataDock< Ty>
+{
+public:
+    typedef Tr_DataDock< Ty>        Base;  
+    
+protected:
+    DataCarousal                    m_DataCarousal;
+
+public:
+    Tr_DataCreek( void)
     {
-        m_DataCarousal->Commit( this, sz);
-    }
+        Base::Connect( &m_DataCarousal);
+    } 
+
+    DataCarousal        *Carousal( void) { return &m_DataCarousal; }
+
 };
 
 //_____________________________________________________________________________________________________________________________
