@@ -93,11 +93,7 @@ public:
     {} 
 
     const char		*GetName( void) const { return "Entry"; }
-
-    void            Delete( void *)
-    {
-        delete this; 
-    }
+ 
 
     friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
     { 
@@ -117,8 +113,7 @@ public:
     typedef typename Entry::IndexStor		IndexStor;
     typedef typename Crate::Var				Var; 
     typedef typename Entry::Id		        Id;
-
-
+ 
 protected:
     std::vector< Entry *>					m_Elems;
     std::vector< TypeStor>					m_Types;
@@ -132,11 +127,18 @@ public:
     
     ~Cv_CrateRepos( void)  { Clear(); }
 
+template < typename X>
+    auto Delete( X *obj, int k) ->   decltype( X().Delete( nullptr) )
+        { obj->Delete( static_cast< typename X::Repos *>( this));   }
+
+template<typename X> 
+    void Delete( X *obj, ...)  
+        { delete obj; }
+
     auto    Deleter( void)
     {
         return [ this]( auto x) { 
-            typedef typename std::remove_pointer<decltype( x)>::type::Repos     Repos;
-            x->Delete( static_cast< Repos *>( this)); 
+            Delete( x, 0); 
             return true; };
     }
     void Clear( void)
