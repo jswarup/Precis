@@ -262,7 +262,7 @@ public:
     std::string     ToString( void) const { return std::string(); }
     bool            Dump( DistribRepos *, std::ostream &ostr) 
     { 
-        Sg_CharPartition::Dump( ostr);; 
+        Sg_CharPartition< Bits>::Dump( ostr);; 
         return true; 
     }
 

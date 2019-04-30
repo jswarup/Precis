@@ -2,7 +2,7 @@
 #pragma once
 
 #include    "trellis/tenor/tr_include.h"
-#include    "trellis/stalks/tr_atomic.h"
+#include    "cove/stalks/cv_atomic.h"
 
 //_____________________________________________________________________________________________________________________________
 

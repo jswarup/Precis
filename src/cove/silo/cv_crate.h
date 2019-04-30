@@ -1,7 +1,6 @@
 // cv_crate.h _________________________________________________________________________________________________________________
 #pragma once
- 
-#include    "cove/silo/cv_repos.h"
+  
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_dotstream.h" 
 

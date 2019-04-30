@@ -1,14 +1,6 @@
 //_________________________________________ cv_include.h ____________________________________________________________________
-#pragma once
- 
 
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS 1
-#define strcasecmp      stricmp
-#define strncasecmp     strnicmp 
-#endif
-
+#pragma once 
 //_____________________________________________________________________________________________________________________________
 
 
@@ -35,6 +27,11 @@
 #include    <cstring>
 #include    <stdarg.h> 
 
+#ifdef _MSC_VER
+#include    <io.h>
+#else
+#include    <unistd.h> 
+#endif
  
 #define     CV_UINT8_MAX        uint8_t( -1)
 #define     CV_UINT16_MAX       uint16_t( -1)
@@ -74,24 +71,28 @@ struct  Cv_Couple : public std::tuple< X, X>
 
 //_____________________________________________________________________________________________________________________________
 
-#define Hv_MAKESTR(s)       #s
+#define Cv_MAKESTR(s)       #s
 
-#define Hv_CONCAT(s,t)      Hv_MAKESTR(s##t)
+#define Cv_CONCAT(s,t)      Cv_MAKESTR(s##t)
 
 #ifdef _MSC_VER
 
 #pragma warning( disable :4355)
 #pragma warning( disable :4996)
 
-#define Hv_FUNCNAME()       Cv_CStr( __FUNCTION__)
-#define Hv_FSEEK            _fseeki64
-#define Hv_FTELL            _ftelli64
+#define CV_FUNCNAME()       Cv_CStr( __FUNCTION__)
+#define CV_LSEEK            _lseeki64
+#define CV_FTELL            _ftelli64 
+#define CV_STRCASECMP       stricmp
+#define CV_STRNCASECMP      strnicmp 
 
 #else
 
-#define Hv_FUNCNAME()       Cv_Aid::TrimFuncName( __PRETTY_FUNCTION__)
-#define Hv_FSEEK            fseek
-#define Hv_FTELL            ftell
+#define CV_FUNCNAME()       Cv_Aid::TrimFuncName( __PRETTY_FUNCTION__)
+#define CV_LSEEK            lseek64
+#define CV_FTELL            ftell      
+#define CV_STRCASECMP       strcasecmp 
+#define CV_STRNCASECMP      strncasecmp
 
 #endif
 
@@ -103,8 +104,8 @@ T       *cv_pcast( const void *data) { return static_cast< T *>( const_cast< voi
 
 #define   SELF  (*this) 
 
-#define Hv_CACHELINE_SIZE 64
-#define Hv_PREFETCH_CACHE( Addr)               {  _builtin_prefetch( Addr);  
+#define Cv_CACHELINE_SIZE 64
+#define Cv_PREFETCH_CACHE( Addr)               {  _builtin_prefetch( Addr);  
     
 //_____________________________________________________________________________________________________________________________
 

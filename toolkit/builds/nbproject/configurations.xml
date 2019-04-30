@@ -17,6 +17,7 @@
       </df>
       <df name="segue">
         <df name="tenor">
+          <in>sg_cmdatelier.cpp</in>
           <in>sg_cmdfilt.cpp</in>
           <in>sg_cmdrexp.cpp</in>
           <in>sg_cmdtimbre.cpp</in>
@@ -68,7 +69,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-std=c++1z"/>
+        <element flagsID="0" commonFlags="-O2 -std=c++1z"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -85,7 +86,7 @@
               <pElem>../../delivery</pElem>
             </incDir>
             <preprocessorList>
-              <Elem>EBUG</Elem>
+              <Elem>NDEBUG</Elem>
             </preprocessorList>
           </ccTool>
         </makeTool>
@@ -118,6 +119,13 @@
         </ccTool>
       </item>
       <item path="../../src/cove/snip/cv_typerep.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tenor/sg_cmdatelier.cpp"
             ex="false"
             tool="1"
             flavor2="11">

@@ -3,9 +3,8 @@
 
 #include    "trellis/tenor/tr_include.h" 
 #include    "cove/snip/cv_cmdexec.h" 
-#include    "trellis/swarm/tr_worker.h" 
-#include    "trellis/stalks/tr_ringbuf.h"
-#include    "trellis/stalks/tr_datacarousal.h"
+#include    "trellis/swarm/tr_worker.h"  
+#include    "cove/stalks/cv_datacarousal.h"
 
 #include    <utility>
 #include    <tuple>
@@ -67,7 +66,7 @@ static const int cv_numEventsToGenerate = 10000;
 
 struct Tr_ProduceNums
 {
-    typedef Tr_DataCreek<uint64_t>           Dock;
+    typedef Cv_DataCreek<uint64_t>           Dock;
     
     Dock        m_Dock; 
 
@@ -95,7 +94,7 @@ struct Tr_ProduceNums
 
 struct Tr_ConsumeNums
 {
-    typedef Tr_DataDock<uint64_t>           Dock;
+    typedef Cv_DataDock<uint64_t>           Dock;
     typedef typename Dock::DataCarousal     DataCarousal;
 
     Dock        m_Dock;

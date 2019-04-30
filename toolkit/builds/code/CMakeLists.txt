@@ -87,6 +87,7 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/cove/snip/cv_cmdexec.cpp
     ${SOURCE_PATH}/cove/snip/cv_typerep.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdrexp.cpp
+    ${SOURCE_PATH}/segue/tenor/sg_cmdatelier.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdtimbre.cpp
     ${SOURCE_PATH}/segue/tenor/sg_include.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdxml.cpp

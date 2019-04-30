@@ -135,7 +135,7 @@ public:
     auto    Deleter( void)
     {
         return [ this]( auto x) { 
-            typedef  std::remove_pointer<decltype( x)>::type::Repos     Repos;
+            typedef typename std::remove_pointer<decltype( x)>::type::Repos     Repos;
             x->Delete( static_cast< Repos *>( this)); 
             return true; };
     }

@@ -3,40 +3,40 @@
  
 #include    <cinttypes>
 #include    <cstdio> 
-#include    "trellis/stalks/tr_atomic.h"
+#include    "cove/stalks/cv_atomic.h"
 #include    "cove/silo/cv_dlist.h"
 
 //_____________________________________________________________________________________________________________________________
 
 template < typename Ty> 
-class   Tr_DataDock;
+class   Cv_DataDock;
 
 //_____________________________________________________________________________________________________________________________ 
  
 template < typename Ty> 
-class   Tr_DataCarousal
+class   Cv_DataCarousal
 {
 public:
     enum {
         Sz = 2048,
     };
     typedef Ty                      Type; 
-    typedef Tr_DataDock< Type>      Dock;
+    typedef Cv_DataDock< Type>      Dock;
 private:  
     Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
   
 public: 
-    Tr_DataCarousal( void)   
+    Cv_DataCarousal( void)   
     {}
         
-    ~Tr_DataCarousal()
+    ~Cv_DataCarousal()
     {}
 
     const Type      &Get( uint32_t k) const { return m_Buffer[ k % Sz]; }
     void            Set( uint32_t k, const Type &x) { m_Buffer[ k % Sz] = x; }
        
-    void    AppendDock( Dock *dock) { m_Docks.Append( dock); }
+    void        AppendDock( Dock *dock) { m_Docks.Append( dock); }
 
     Cv_Couple< uint32_t>    SummonDock( Dock *dock) const 
     { 
@@ -53,24 +53,24 @@ public:
 //_____________________________________________________________________________________________________________________________
  
 template < typename Ty> 
-class   Tr_DataDock : public Cv_DLink< Tr_DataDock< Ty> >
+class   Cv_DataDock : public Cv_DLink< Cv_DataDock< Ty> >
 {
 public:
     typedef Ty                      Type; 
-    typedef Tr_DataCarousal< Type>  DataCarousal;
+    typedef Cv_DataCarousal< Type>  DataCarousal;
 
 protected:
-    Tr_Type< uint32_t>      m_Index; 
+    Cv_Type< uint32_t>      m_Index; 
     DataCarousal            *m_DataCarousal; 
 
 public:
     struct  Wharf
     {
-        Tr_DataDock     *m_Dock;
+        Cv_DataDock     *m_Dock;
         uint32_t        m_Begin;
         uint32_t        m_Sz;
 
-        Wharf( Tr_DataDock *dock)
+        Wharf( Cv_DataDock *dock)
             : m_Dock( dock), m_Begin( 0), m_Sz( 0)
         { 
             std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock);
@@ -90,14 +90,14 @@ public:
         void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
     };
 
-    Tr_DataDock( void)
+    Cv_DataDock( void)
         :   m_DataCarousal( NULL)
     {}
      
     uint32_t    Index( void) const { return m_Index.Get(); }
     void        SetIndex( uint32_t k) {  m_Index.Set( k); }
 
-    void    Connect( Tr_DataCarousal< Ty> *dataCarousal)
+    void    Connect( Cv_DataCarousal< Ty> *dataCarousal)
     {
         m_DataCarousal = dataCarousal;
         m_DataCarousal->AppendDock( this); 
@@ -107,16 +107,17 @@ public:
 //_____________________________________________________________________________________________________________________________
 
 template < typename Ty> 
-class   Tr_DataCreek : public Tr_DataDock< Ty>
+class   Cv_DataCreek : public Cv_DataDock< Ty>
 {
 public:
-    typedef Tr_DataDock< Ty>        Base;  
+    typedef Cv_DataDock< Ty>                Base;  
+    typedef typename Base::DataCarousal     DataCarousal;
     
 protected:
     DataCarousal                    m_DataCarousal;
 
 public:
-    Tr_DataCreek( void)
+    Cv_DataCreek( void)
     {
         Base::Connect( &m_DataCarousal);
     } 

@@ -12,6 +12,7 @@ CV_CMD_DECLARE( Sg_TimbreCmdProcessor)
 CV_CMD_DECLARE( Sg_TrellisCmdProcessor)
 CV_CMD_DECLARE( Sg_XmlCmdProcessor)
 CV_CMD_DECLARE( Sg_RExpCmdProcessor)
+CV_CMD_DECLARE( Sg_AtelierCmdProcessor)
 
 //_____________________________________________________________________________________________________________________________
  
