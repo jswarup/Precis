@@ -48,35 +48,6 @@ template < typename Lambda, typename... Args>
 
 //_____________________________________________________________________________________________________________________________
 
-
-template < typename ValType>
-struct Cv_CrateLambdaAccum
-{
-}; 
-
-
-//_____________________________________________________________________________________________________________________________
-
-template <>
-struct Cv_CrateLambdaAccum< bool>
-{
-    bool    m_Value;
-
-    Cv_CrateLambdaAccum( bool v = true)
-        :  m_Value( v)
-    {}
-
-    operator bool( void) { return  m_Value; }
-
-    Cv_CrateLambdaAccum &Accumulate( const Cv_CrateLambdaAccum &inp)
-    {
-        m_Value = m_Value && inp.m_Value;
-        return *this;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
-
 template < typename T, typename... Rest>
 struct Cv_Crate : public Cv_Crate< Rest...>
 {   
@@ -86,16 +57,13 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef typename CrateBase::Entry   Entry; 
 	typedef  Cv_Var< Crate>		        Var; 
 	typedef typename CrateBase::TypeStor        TypeStor;  
-    
-    
-    enum {
-        
+     
+    enum { 
         Sz = CrateBase::Sz +1
     };
      
     Cv_Crate( void) 
-    {
-        
+    { 
     }     
 
 template <typename X, typename std::enable_if< std ::is_base_of< Elem, X>::value, void>::type * = nullptr>

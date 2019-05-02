@@ -104,6 +104,35 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
+
+template < typename ValType>
+struct Cv_CrateLambdaAccum
+{
+    
+};  
+
+//_____________________________________________________________________________________________________________________________
+
+template <>
+struct Cv_CrateLambdaAccum< bool>
+{
+    bool    m_Value;
+
+    Cv_CrateLambdaAccum( bool v = true)
+        :  m_Value( v)
+    {}
+
+    operator bool( void) { return  m_Value; }
+
+    Cv_CrateLambdaAccum &Accumulate( const Cv_CrateLambdaAccum &inp)
+    {
+        m_Value = m_Value && inp.m_Value;
+        return *this;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
 template < typename Crate>
 class Cv_CrateRepos  : public Crate
 { 

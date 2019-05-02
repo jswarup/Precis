@@ -13,15 +13,15 @@ class   Cv_DataDock;
 
 //_____________________________________________________________________________________________________________________________ 
  
-template < typename Ty> 
+template < typename Dock> 
 class   Cv_DataCarousal
 {
 public:
     enum {
         Sz = 2048,
     };
-    typedef Ty                      Type; 
-    typedef Cv_DataDock< Type>      Dock;
+    typedef typename Dock::Type     Type; 
+
 private:  
     Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
@@ -47,7 +47,12 @@ public:
         return std::make_tuple( b, e -b);
     }
     
-    void       Commit( Dock *dock, uint32_t index)  {  m_Docks.Prev( dock)->SetIndex( index); }
+    void        Commit( Dock *dock, uint32_t index)  {  m_Docks.Prev( dock)->SetIndex( index); }
+    
+    bool    IsTail( Dock *dock) 
+    {
+        return m_Docks.Tail() == dock;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -57,7 +62,9 @@ class   Cv_DataDock : public Cv_DLink< Cv_DataDock< Ty> >
 {
 public:
     typedef Ty                      Type; 
-    typedef Cv_DataCarousal< Type>  DataCarousal;
+    typedef Cv_DataDock< Type>      This; 
+
+    typedef Cv_DataCarousal< This>  DataCarousal;
 
 protected:
     Cv_Type< uint32_t>      m_Index; 
@@ -69,9 +76,10 @@ public:
         Cv_DataDock     *m_Dock;
         uint32_t        m_Begin;
         uint32_t        m_Sz;
+        bool            m_Tail;
 
         Wharf( Cv_DataDock *dock)
-            : m_Dock( dock), m_Begin( 0), m_Sz( 0)
+            : m_Dock( dock), m_Begin( 0), m_Sz( 0),  m_Tail( m_Dock->IsTail())
         { 
             std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock);
         }
@@ -97,11 +105,16 @@ public:
     uint32_t    Index( void) const { return m_Index.Get(); }
     void        SetIndex( uint32_t k) {  m_Index.Set( k); }
 
-    void    Connect( Cv_DataCarousal< Ty> *dataCarousal)
+    void    Connect( DataCarousal *dataCarousal)
     {
         m_DataCarousal = dataCarousal;
         m_DataCarousal->AppendDock( this); 
     }   
+
+    bool    IsTail( void) 
+    {
+        return m_DataCarousal->IsTail( this);
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -112,7 +125,7 @@ class   Cv_DataCreek : public Cv_DataDock< Ty>
 public:
     typedef Cv_DataDock< Ty>                Base;  
     typedef typename Base::DataCarousal     DataCarousal;
-    
+
 protected:
     DataCarousal                    m_DataCarousal;
 

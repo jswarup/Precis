@@ -4,6 +4,45 @@
 #include 	"cove/silo/cv_cstr.h"
 #include    <fcntl.h> 
 
+//_____________________________________________________________________________________________________________________________
+
+class Xd_InFile
+{
+    int                     m_FileNo;
+     
+public:
+    Xd_InFile( void)
+        : m_FileNo( -1)
+    {}
+
+    ~Xd_InFile( void)
+    { 
+        Shut();
+    } 
+
+    bool    IsActive( void) const { return m_FileNo != -1; }  
+
+    bool    Open( const char *name)
+    { 
+        m_FileNo = open( name, O_RDONLY); 
+        if ( m_FileNo == -1)
+            return false;
+        return true;
+    }
+
+    bool    Shut( void)
+    {
+        if (  m_FileNo != -1)
+            close( m_FileNo); 
+        m_FileNo = -1;
+        return true;
+    }
+    
+    uint32_t Read( void *buffer, uint32_t sz)
+    {
+        return read( m_FileNo, buffer, sz);
+    }
+};
 
 //_____________________________________________________________________________________________________________________________
 

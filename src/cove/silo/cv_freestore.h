@@ -2,7 +2,8 @@
 #pragma once
 
 #include    "cove/silo/cv_stack.h" 
-#include    "trellis/stalks/tr_atomic.h"
+#include    "cove/silo/cv_array.h" 
+#include    "cove/stalks/cv_atomic.h"
 
 //_____________________________________________________________________________________________________________________________
 // Memory dispensor of Type X, IndexType DStor, of Max ppol-size Mx
@@ -63,7 +64,7 @@ template < typename CacheStore>
 //_____________________________________________________________________________________________________________________________
 // Memory dispensor of Type X, IndexType DStor, of Max ppol-size Mx
 
-template < class X, typename DStor, uint32_t Mx, uint32_t ObjSz>
+template < class X, typename DStor, uint32_t Mx, uint32_t ObjSz = sizeof( X)>
 struct Cv_FreeStore : public Cv_BaseStore< Cv_FreeStore< X, DStor, Mx,  ObjSz>, X, DStor, Mx>
 {   
     typedef Cv_BaseStore< Cv_FreeStore< X, DStor, Mx,  ObjSz>, X, DStor, Mx>    Base;
@@ -76,15 +77,15 @@ struct Cv_FreeStore : public Cv_BaseStore< Cv_FreeStore< X, DStor, Mx,  ObjSz>, 
     
     X           *GetAt( uint32_t id) const                              // get pointer for index
     { 
-        XD_SANITY_ASSERT( id < Mx)
+        CV_SANITY_ASSERT( id < Mx)
         return reinterpret_cast< X *>( const_cast< uint8_t *>( &m_Page[ id * ObjSz])); 
     }
     
     DStor        MapId( const X *x) const                                // get index for pointer
     {   
-        DStor        id( ( reinterpret_cast< const uint8_t *>( x) - m_Page) /ObjSz);
-        XD_SANITY_ASSERT( id < Mx)
-        return id; 
+        uint64_t        id( ( reinterpret_cast< const uint8_t *>( x) - m_Page) /ObjSz);
+        CV_SANITY_ASSERT( id < Mx)
+        return DStor( id); 
     } 
 };
  
@@ -92,7 +93,7 @@ struct Cv_FreeStore : public Cv_BaseStore< Cv_FreeStore< X, DStor, Mx,  ObjSz>, 
 //_____________________________________________________________________________________________________________________________
 // Memory dispensor of Type X, IndexType DStor, of Max ppol-size Mx
 
-template < class X, typename DStor, uint32_t Mx, uint32_t AlignSz = XD_CACHELINE_SIZE>
+template < class X, typename DStor, uint32_t Mx, uint32_t AlignSz = CV_CACHELINE_SIZE>
 struct Cv_MemStore  : public Cv_BaseStore< Cv_MemStore< X, DStor, Mx,  AlignSz>, X, DStor, Mx >
 {   
     typedef Cv_BaseStore< Cv_MemStore< X, DStor, Mx,  AlignSz>, X, DStor, Mx>    Base;
@@ -105,21 +106,21 @@ struct Cv_MemStore  : public Cv_BaseStore< Cv_MemStore< X, DStor, Mx,  AlignSz>,
     uint32_t                        m_ObjSz;                            //  Align to AlignSz-Byte boundry.. 
      
     
-    Cv_MemStore( uint32_t storeId, uint8_t *page, uint32_t objSz = XD_UINT32_MAX)
-        : Base( storeId), m_Page( page), m_ObjSz( objSz == XD_UINT32_MAX ? uint32_t( ObjSz) : objSz)
+    Cv_MemStore( uint32_t storeId, uint8_t *page, uint32_t objSz = CV_UINT32_MAX)
+        : Base( storeId), m_Page( page), m_ObjSz( objSz == CV_UINT32_MAX ? uint32_t( ObjSz) : objSz)
     { }
      
     
     X           *GetAt( uint32_t id) const                              // get pointer for index
     { 
-        XD_SANITY_ASSERT( id < Mx)
+        CV_SANITY_ASSERT( id < Mx)
         return reinterpret_cast< X *>( const_cast< uint8_t *>( &m_Page[ id * m_ObjSz])); 
     }
     
     DStor        MapId( const X *x) const                                // get index for pointer
     {   
         DStor        id( ( reinterpret_cast< const uint8_t *>( x) - m_Page) /m_ObjSz);
-        XD_SANITY_ASSERT( id < Mx)
+        CV_SANITY_ASSERT( id < Mx)
         return id; 
     } 
 };
@@ -145,6 +146,8 @@ struct Cv_FreeCache
     {} 
     
     Store           *GetStore( void) const { return m_FreeStore; }
+    void            SetStore( Store *store) { m_FreeStore = store; }
+
     uint8_t         StoreId( void) const { return  m_FreeStore->m_StoreId; }
     uint32_t        SzFree( void)  const { return  m_CacheStore.m_SzFill; }
         
@@ -165,7 +168,7 @@ struct Cv_FreeCache
         for ( uint32_t i = 0; i < szAlloc; ++i)
         {
             xArr[ i] = m_FreeStore->GetAt( m_CacheStore[ m_CacheStore.SzFill() -szAlloc +i ]);
-            //XD_PREFETCH_CACHE( xArr[ i])
+            //CV_PREFETCH_CACHE( xArr[ i])
             *(( uint64_t *) xArr[ i]) = 0;
         }
         m_CacheStore.m_SzFill -= szAlloc;
@@ -176,15 +179,15 @@ struct Cv_FreeCache
     Type       *AllocFree( void)                                        // return pointer to free location
     { 
         Stor    id = m_CacheStore[ --m_CacheStore.m_SzFill];
-//        XD_ERROR_ASSERT( !m_Bits[ id] && (( m_Bits[ id] = true)))
+//        CV_ERROR_ASSERT( !m_Bits[ id] && (( m_Bits[ id] = true)))
         Type    *x = m_FreeStore->GetAt( id); 
-        XD_SANITY_ASSERT( x->SetStoreId( m_FreeStore->m_StoreId))
+        CV_SANITY_ASSERT( x->SetStoreId( m_FreeStore->m_StoreId))
         return ::new (x) Type(); 
     } 
     
     void    Discard( Stor id)                                           // discard object at Id
     { 
-//        XD_ERROR_ASSERT( m_Bits[ id] && (!( m_Bits[ id] = false)))
+//        CV_ERROR_ASSERT( m_Bits[ id] && (!( m_Bits[ id] = false)))
         if ( m_CacheStore.m_SzFill == m_CacheStore.Size())
         {
             Guard      guard( &m_FreeStore->m_Lock);                    // setup an SpinLock guard and return to buffer to  Store if overflow
@@ -196,7 +199,7 @@ struct Cv_FreeCache
     
     void    Discard( Type *x) 
     {
-        XD_SANITY_ASSERT( x->StoreId() == m_FreeStore->m_StoreId)
+        CV_SANITY_ASSERT( x->StoreId() == m_FreeStore->m_StoreId)
         x->Type::~Type();
         //memset( x, 0xCC, Store::ObjSz);
         Discard( m_FreeStore->MapId( x)); 
