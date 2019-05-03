@@ -25,24 +25,28 @@ public:
 private:  
     Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
+    bool                        m_CloseFlg;
   
 public: 
-    Cv_DataCarousal( void)   
+    Cv_DataCarousal( void) 
+        : m_CloseFlg( false)  
     {}
         
     ~Cv_DataCarousal()
     {}
 
-    const Type      &Get( uint32_t k) const { return m_Buffer[ k % Sz]; }
-    void            Set( uint32_t k, const Type &x) { m_Buffer[ k % Sz] = x; }
+    const Type      &Get( uint32_t k) const  {  return m_Buffer[ k % Sz];  }
+    void            Set( uint32_t k, const Type &x)  {  m_Buffer[ k % Sz] = x;  }
        
-    void        AppendDock( Dock *dock) { m_Docks.Append( dock); }
+    void            AppendDock( Dock *dock) { m_Docks.Append( dock); }
 
     Cv_Couple< uint32_t>    SummonDock( Dock *dock) const 
     { 
         uint32_t        e = dock->Index(); 
         uint32_t        b = m_Docks.Prev( dock)->Index();
-        if (( e < b) || (( e == b) && dock == m_Docks.Head()))
+        //if ( b == CV_UINT32_MAX)
+        //    return std::make_tuple( b, b);
+        if (( e < b) || (( e == b) && ( dock == m_Docks.Head())))
             e += Sz;
         return std::make_tuple( b, e -b);
     }
@@ -52,6 +56,16 @@ public:
     bool    IsTail( Dock *dock) 
     {
         return m_Docks.Tail() == dock;
+    }
+    
+    bool    SetClose( void)
+    {
+        return m_CloseFlg = true;
+    }
+
+    bool    IsClose( void)
+    {
+        return m_CloseFlg;
     }
 };
 
@@ -67,8 +81,8 @@ public:
     typedef Cv_DataCarousal< This>  DataCarousal;
 
 protected:
-    Cv_Type< uint32_t>      m_Index; 
-    DataCarousal            *m_DataCarousal; 
+    Cv_Type< uint32_t>              m_Index; 
+    DataCarousal                    *m_DataCarousal; 
 
 public:
     struct  Wharf
@@ -82,6 +96,8 @@ public:
             : m_Dock( dock), m_Begin( 0), m_Sz( 0),  m_Tail( m_Dock->IsTail())
         { 
             std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock);
+           //if ( m_Sz > 32)
+           //     m_Sz = 32;
         }
 
         ~Wharf( void)
@@ -93,7 +109,8 @@ public:
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
         void            SetSize( uint32_t sz) { m_Sz = sz; } 
-
+        bool            SetClose( void) { return  m_Dock->m_DataCarousal->SetClose(); } 
+        bool            IsClose( void) { return m_Dock->m_DataCarousal->IsClose();  } 
         const Type      &Get( uint32_t k) const { return m_Dock->m_DataCarousal->Get(  m_Begin +k); }
         void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
     };

@@ -4,27 +4,31 @@
 #include 	"cove/silo/cv_cstr.h"
 #include    <fcntl.h> 
 
+#include    <Windows.h>
+
+#include    <fileapi.h>
+
 //_____________________________________________________________________________________________________________________________
 
-class Xd_InFile
+class Cv_File
 {
     int                     m_FileNo;
      
 public:
-    Xd_InFile( void)
+    Cv_File( void)
         : m_FileNo( -1)
     {}
 
-    ~Xd_InFile( void)
+    ~Cv_File( void)
     { 
         Shut();
     } 
 
     bool    IsActive( void) const { return m_FileNo != -1; }  
 
-    bool    Open( const char *name)
+    bool    Open( const char *name, bool readFlg)
     { 
-        m_FileNo = open( name, O_RDONLY); 
+        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_CREAT | O_APPEND)); 
         if ( m_FileNo == -1)
             return false;
         return true;
@@ -42,6 +46,12 @@ public:
     {
         return read( m_FileNo, buffer, sz);
     }
+
+    uint32_t Write( const void *buffer, uint32_t sz)
+    {
+        return write( m_FileNo, buffer, sz);
+    }
+    
 };
 
 //_____________________________________________________________________________________________________________________________
