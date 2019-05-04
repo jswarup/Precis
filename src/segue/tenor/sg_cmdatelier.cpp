@@ -62,7 +62,11 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita
-{
+{    
+    typedef Cv_Array< uint8_t, 4096>                Datagram; 
+    typedef Sg_DataSink< Datagram, 128, 4096>       OutPort; 
+    typedef Sg_DataSource< OutPort>                 InPort;
+    
     std::string             m_InputFile;
     std::string             m_OutputFile;
     Cv_Type< uint32_t>      m_CntActive;
@@ -87,13 +91,13 @@ typedef Cv_Crate< Sg_FileWriteEasel, Sg_FileReadEasel, Sg_AtelierEasel, Sg_BaseE
 
 struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel, Sg_EaselVita>
 {
-    typedef Cv_Array< uint8_t, 4096>                Datagram; 
-    typedef Sg_DataSink< Datagram, 128, 4096>       OutPort;
-
-    Cv_File                                 m_InFile;
-    OutPort                                 m_DataPort;
-    bool                                    m_FileClosingFlg;
-    uint32_t                                m_CharIndex;
+    typedef Sg_EaselVita::Datagram          Datagram;
+    typedef Sg_EaselVita::OutPort           OutPort;
+    
+    Cv_File         m_InFile;
+    OutPort         m_DataPort;
+    bool            m_FileClosingFlg;
+    uint32_t        m_CharIndex;
 
     Sg_FileReadEasel( void) 
         : m_FileClosingFlg( false), m_CharIndex( 0)
@@ -149,8 +153,9 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel, Sg_EaselVita>
 
 struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
 {
-    typedef Cv_Array< uint8_t, 4096>                        Datagram; 
-    typedef Sg_DataSource< Sg_FileReadEasel::OutPort>     InPort;
+    typedef Sg_EaselVita::Datagram          Datagram;
+    typedef Sg_EaselVita::InPort            InPort;
+
 
     Cv_File         m_OutFile;
     InPort          m_DataPort;
@@ -190,30 +195,20 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
         return;
     }
 }; 
+
+
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_AtelierEasel : public  Cv_CrateRepos< Sg_AtelierCrate>, public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
+struct Sg_AtelierEasel : public  Sg_MonitorEasel< Sg_AtelierEasel, Sg_EaselVita, Sg_AtelierCrate>
 {
-    std::vector< std::thread>   m_Threads; 
+    typedef Sg_MonitorEasel< Sg_AtelierEasel, Sg_EaselVita, Sg_AtelierCrate>     Base;
 
     Sg_AtelierEasel( void) 
     {} 
 
-    bool    DoInit( Sg_EaselVita *vita)
-    {
-        if ( !Sg_BaseEasel::DoInit( vita))
-            return false;
-
-        bool    res = OperateAll( [vita]( auto k) { return k->DoInit( vita); });
-        if ( !res)
-            return false;
-        m_Vita->m_CntEasel = Size();
-        return true;
-    }
-    
     bool    IsRunable( void)
     {
-        return ( m_Vita->m_CntActive.Get() > 1);
+        return Base::IsRunable();
     }
     
     void    DoRunStep( void)
@@ -221,16 +216,6 @@ struct Sg_AtelierEasel : public  Cv_CrateRepos< Sg_AtelierCrate>, public Sg_Work
         std::this_thread::yield();;        
     }
 
-    bool    DoLaunch( void)
-    {  
-        bool    res = OperateAll( []( auto k) { return k->DoLaunch(); });
-        if ( !res)
-            return false;  
-        DoExecute();
- 
-        res = OperateAll( []( auto k) { return k->DoJoin(); });
-        return res;
-    }
  
 };
 

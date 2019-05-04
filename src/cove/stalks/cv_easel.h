@@ -83,3 +83,51 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>
         return true;
     }
 };
+
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename Monitor, typename Vita, typename Crate>
+struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Monitor, Vita>
+{
+    std::vector< std::thread>   m_Threads; 
+
+    Sg_MonitorEasel( void) 
+    {} 
+
+    bool    DoInit( Vita *vita)
+    {
+        if ( !Sg_WorkEasel< Monitor, Vita>::DoInit( vita))
+            return false;
+
+        bool    res = OperateAll( [vita]( auto k) { return k->DoInit( vita); });
+        if ( !res)
+            return false;
+        m_Vita->m_CntEasel = Size();
+        return true;
+    }
+
+    bool    IsRunable( void)
+    {
+        return ( m_Vita->m_CntActive.Get() > 1);
+    }
+
+    void    DoRunStep( void)
+    {
+        std::this_thread::yield();;        
+    }
+
+    bool    DoLaunch( void)
+    {  
+        bool    res = OperateAll( []( auto k) { return k->DoLaunch(); });
+        if ( !res)
+            return false;  
+        DoExecute();
+
+        res = OperateAll( []( auto k) { return k->DoJoin(); });
+        return res;
+    }
+
+};
+
+//_____________________________________________________________________________________________________________________________
