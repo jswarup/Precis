@@ -2,9 +2,8 @@
 
 
 #include    "trellis/tenor/tr_include.h" 
-#include    "cove/snip/cv_cmdexec.h" 
-#include    "cove/stalks/cv_datacarousal.h"  
-#include    "cove/silo/cv_craterepos.h" 
+#include    "cove/snip/cv_cmdexec.h"  
+#include    "cove/stalks/cv_easel.h"  
 #include    "cove/silo/cv_fileflux.h" 
 
 #include    <utility>
@@ -78,93 +77,15 @@ struct Sg_EaselVita
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_FileWriteEasel;
-struct Sg_FileReadEasel;
-struct Sg_BaseEasel;
+struct Sg_FileReadEasel; 
 struct Sg_AtelierEasel;
 
-typedef Cv_Crate< Sg_FileWriteEasel, Sg_FileReadEasel, Sg_AtelierEasel, Sg_BaseEasel>         Sg_AtelierCrate;
+typedef Cv_Crate< Sg_FileWriteEasel, Sg_FileReadEasel, Sg_AtelierEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
+
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_BaseEasel :  public Cv_CrateEntry
-{
-    Sg_EaselVita    *m_Vita;
-    bool            m_DoneFlg;
-    
-    Sg_BaseEasel( void)
-        : m_Vita( NULL), m_DoneFlg( false)
-    {}
-
-    bool    DoInit( Sg_EaselVita *vita)
-    {
-        m_Vita = vita; 
-        return true;
-    } 
-
-    bool    DoLaunch( void)
-    {
-        return false;
-    }
-    
-    bool    IsRunnable( void)
-    {
-        return true;
-    }
-
-    bool    DoJoin( void)
-    {
-        return true;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
-
-template < typename Easel>
-struct Sg_WorkEasel : public Sg_BaseEasel
-{ 
-    std::thread     m_Thread;
-
-    Easel           *GetEasel( void) { return static_cast< Easel *>( this); } 
-    
-    void            DoStart( void)
-    {
-        m_Vita->m_CntActive.Incr();
-        while ( m_Vita->m_CntActive.Get() != m_Vita->m_CntEasel)
-            std::this_thread::yield();
-    }
-    void            DoStop( void)
-    {
-        m_Vita->m_CntActive.Decr();
-        m_DoneFlg = true;
-    }
-    
-    bool            DoLaunch( void)
-    {
-        m_Thread  = std::thread( &Easel::DoExecute, GetEasel());
-        return true;
-    }
-
-    void    DoExecute( void)
-    {  
-        Easel   *easel = GetEasel();
-
-        easel->DoStart();
-        while ( easel->IsRunable())
-            easel->DoRunStep();
-        easel->DoStop();
-        return;
-    }
-
-    bool    DoJoin( void)
-    {
-        m_Thread.join();
-        return true;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
-
-struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel>
+struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel, Sg_EaselVita>
 {
     typedef Cv_Array< uint8_t, 4096>                Datagram; 
     typedef Sg_DataSink< Datagram, 128, 4096>       OutPort;
@@ -226,7 +147,7 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel>
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel>
+struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
 {
     typedef Cv_Array< uint8_t, 4096>                        Datagram; 
     typedef Sg_DataSource< Sg_FileReadEasel::OutPort>     InPort;
@@ -271,7 +192,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel>
 }; 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_AtelierEasel : public  Cv_CrateRepos< Sg_AtelierCrate>, public Sg_WorkEasel< Sg_AtelierEasel>     
+struct Sg_AtelierEasel : public  Cv_CrateRepos< Sg_AtelierCrate>, public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
 {
     std::vector< std::thread>   m_Threads; 
 
