@@ -28,7 +28,7 @@ public:
 
     bool    Open( const char *name, bool readFlg)
     { 
-        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_CREAT | O_APPEND)); 
+        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_WRONLY|O_CREAT|O_TRUNC), _S_IREAD | _S_IWRITE); 
         if ( m_FileNo == -1)
             return false;
         return true;

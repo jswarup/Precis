@@ -257,8 +257,10 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel>
             datagram->MarkFill( szFill);
             if ( !szFill || wharf.m_Tail) 
                 m_DataPort.m_DataCache.Discard( datagram);
-            else
+            else {
                 wharf.Set( dInd, datagram);
+ //               write( 1, datagram->At( 0), datagram->SzFill());
+            }
             if ( !szFill)
             {
                 m_FileClosingFlg = true;
@@ -307,14 +309,15 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel>
     void    DoRunStep( void)
     {   
         Dock::Wharf     wharf( &m_DataPort.m_Dock);
-        if (( wharf.IsClose()) && m_OutFile.Shut())
-            return;
-            
         uint32_t        szBurst = wharf.Size(); 
+
+        if ( !szBurst && wharf.IsClose() && m_OutFile.Shut())
+            return;
+
         for ( uint32_t i = 0; i < szBurst;  i++)
         {   
             Datagram    *datagram = wharf.Get( i);
-            write( 1, datagram->At( 0), datagram->SzFill());
+//            write( 1, datagram->At( 0), datagram->SzFill());
             uint32_t    szWrite = m_OutFile.Write( datagram->At( 0), datagram->SzFill());  
             m_DataPort.m_DataCache.Discard( datagram); 
         }

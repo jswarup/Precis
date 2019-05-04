@@ -25,11 +25,11 @@ public:
 private:  
     Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
-    bool                        m_CloseFlg;
+    Cv_Type< uint32_t>          m_CloseFlg;
   
 public: 
     Cv_DataCarousal( void) 
-        : m_CloseFlg( false)  
+        : m_CloseFlg( 0)  
     {}
         
     ~Cv_DataCarousal()
@@ -60,12 +60,13 @@ public:
     
     bool    SetClose( void)
     {
-        return m_CloseFlg = true;
+        m_CloseFlg.Set( 1);
+        return true;
     }
 
     bool    IsClose( void)
     {
-        return m_CloseFlg;
+        return !!m_CloseFlg.Get();
     }
 };
 
@@ -109,7 +110,7 @@ public:
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
         void            SetSize( uint32_t sz) { m_Sz = sz; } 
-        bool            SetClose( void) { return  m_Dock->m_DataCarousal->SetClose(); } 
+        bool            SetClose( void) { m_Sz = 0; return  m_Dock->m_DataCarousal->SetClose(); } 
         bool            IsClose( void) { return m_Dock->m_DataCarousal->IsClose();  } 
         const Type      &Get( uint32_t k) const { return m_Dock->m_DataCarousal->Get(  m_Begin +k); }
         void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
