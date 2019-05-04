@@ -74,6 +74,7 @@ void   Cv_CmdRunner::PrintDoc( std::ostream &ostr, int lev)
 int     Cv_CmdRunner::ParseRun( std::istream &cmdStrm) 
 {    
     Cv_CmdExecutor      *exe = CreateExecutor();
+    int                 retVal = -1;
     while (1)
     {
         int         kd = cmdStrm.peek();
@@ -83,7 +84,7 @@ int     Cv_CmdRunner::ParseRun( std::istream &cmdStrm)
             if ( !(cmdStrm >> tok) || !ParseOption( exe, tok, cmdStrm))
             {
                 PrintDoc( std::cout, 0);
-                return -1;
+                break;
             }
             cmdStrm >> std::ws;        // Skip white space, if any.
         }
@@ -91,14 +92,14 @@ int     Cv_CmdRunner::ParseRun( std::istream &cmdStrm)
         {
             bool    rslt = exe->ProcessProgArgs( cmdStrm);
             if ( !rslt)
-            {
                 PrintDoc( std::cout, 0);
-                return -1;
-            } 
-            return exe->Execute();
+            else
+                retVal = exe->Execute();
+            break;
         }
     }
-    return -1;
+    delete exe;
+    return retVal;
 }
 
 //_____________________________________________________________________________________________________________________________

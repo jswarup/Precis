@@ -59,8 +59,7 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
  
-CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions)
- 
+CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions) 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -85,7 +84,6 @@ struct Sg_BaseEasel;
 struct Sg_AtelierEasel;
 
 typedef Cv_Crate< Sg_FileWriteEasel, Sg_FileReadEasel, Sg_AtelierEasel, Sg_BaseEasel>         Sg_AtelierCrate;
-
 
 //_____________________________________________________________________________________________________________________________
 

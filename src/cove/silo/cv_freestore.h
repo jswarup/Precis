@@ -99,7 +99,7 @@ struct Cv_MemStore  : public Cv_BaseStore< Cv_MemStore< X, DStor, Mx,  AlignSz>,
     typedef Cv_BaseStore< Cv_MemStore< X, DStor, Mx,  AlignSz>, X, DStor, Mx>    Base;
     
     enum { 
-        ObjSz = Cv_Utils::Align< AlignSz>( sizeof( X)),         //  Align to AlignSz-Byte boundry.. 
+        ObjSz = Cv_CExpr::AlignTo< AlignSz>( sizeof( X)),               //  Align to AlignSz-Byte boundry.. 
     }; 
     
     uint8_t                         *m_Page;

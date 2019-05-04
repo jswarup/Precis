@@ -2,18 +2,22 @@
 #pragma once
 
 #include 	"cove/silo/cv_cstr.h"
-#include    <fcntl.h> 
-
-#include    <Windows.h>
-
-#include    <fileapi.h>
+#include    <fcntl.h>  
 
 //_____________________________________________________________________________________________________________________________
 
 class Cv_File
 {
     int                     m_FileNo;
-     
+
+    enum {
+#ifdef CV_WINDOWS   
+        Mode =  _S_IREAD | _S_IWRITE
+#else
+        Mode =  S_IRUSR | S_IWUSR
+#endif                
+    };
+
 public:
     Cv_File( void)
         : m_FileNo( -1)
@@ -28,7 +32,7 @@ public:
 
     bool    Open( const char *name, bool readFlg)
     { 
-        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_WRONLY|O_CREAT|O_TRUNC), _S_IREAD | _S_IWRITE); 
+        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_WRONLY|O_CREAT|O_TRUNC), Mode); 
         if ( m_FileNo == -1)
             return false;
         return true;

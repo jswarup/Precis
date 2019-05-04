@@ -42,7 +42,7 @@ public:
 template < typename Stor>
 class Cv_Type< Stor, std::false_type>
 {
-    bool      m_Value;
+    Stor      m_Value;
  
 public:
     Cv_Type( const Stor &value = Stor()) 

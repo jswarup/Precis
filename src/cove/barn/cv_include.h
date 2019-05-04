@@ -3,6 +3,9 @@
 #pragma once 
 //_____________________________________________________________________________________________________________________________
 
+#ifdef _MSC_VER
+#define     CV_WINDOWS
+#endif
 
 #include    <list>
 #include    <stack>
@@ -27,7 +30,7 @@
 #include    <cstring>
 #include    <stdarg.h> 
 
-#ifdef _MSC_VER
+#ifdef CV_WINDOWS
 #include    <io.h>
 #else
 #include    <unistd.h> 
@@ -75,7 +78,7 @@ struct  Cv_Couple : public std::tuple< X, X>
 
 #define Cv_CONCAT(s,t)      Cv_MAKESTR(s##t)
 
-#ifdef _MSC_VER
+#ifdef CV_WINDOWS
 
 #pragma warning( disable :4355)
 #pragma warning( disable :4996)
