@@ -5,6 +5,7 @@
 #include    <cstdio> 
 #include    "cove/stalks/cv_atomic.h"
 #include    "cove/silo/cv_dlist.h"
+#include    "cove/silo/cv_freestore.h" 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -53,7 +54,7 @@ public:
     
     void        Commit( Dock *dock, uint32_t index)  {  m_Docks.Prev( dock)->SetIndex( index); }
     
-    bool    IsTail( Dock *dock) 
+    bool    IsTail( const Dock *dock) 
     {
         return m_Docks.Tail() == dock;
     }
@@ -90,15 +91,12 @@ public:
     {
         Cv_DataDock     *m_Dock;
         uint32_t        m_Begin;
-        uint32_t        m_Sz;
-        bool            m_Tail;
+        uint32_t        m_Sz; 
 
         Wharf( Cv_DataDock *dock)
-            : m_Dock( dock), m_Begin( 0), m_Sz( 0),  m_Tail( m_Dock->IsTail())
+            : m_Dock( dock), m_Begin( 0), m_Sz( 0) 
         { 
-            std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock);
-           //if ( m_Sz > 32)
-           //     m_Sz = 32;
+            std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock); 
         }
 
         ~Wharf( void)
@@ -106,7 +104,8 @@ public:
             if ( m_Sz)
                 m_Dock->m_DataCarousal->Commit( m_Dock, m_Begin +m_Sz);
         }
-
+        
+        bool            IsTail( void) const { return m_Dock->IsTail(); }
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
         void            SetSize( uint32_t sz) { m_Sz = sz; } 
@@ -129,7 +128,7 @@ public:
         m_DataCarousal->AppendDock( this); 
     }   
 
-    bool    IsTail( void) 
+    bool    IsTail( void)  const
     {
         return m_DataCarousal->IsTail( this);
     }
@@ -155,6 +154,77 @@ public:
 
     DataCarousal        *Carousal( void) { return &m_DataCarousal; }
 
+};
+
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename DGram, uint32_t CacheSz = 128, uint32_t StoreSz = 4096>
+struct Sg_DataSink
+{
+    typedef typename DGram                              Datagram;
+    typedef Cv_FreeStore< Datagram, uint16_t, StoreSz>  DataStore;
+    typedef Cv_FreeCache< CacheSz, DataStore>           DataCache;
+
+    typedef Cv_DataCreek< Datagram *>               Dock;
+
+    Dock                    m_Dock; 
+    DataStore               m_DataStore;
+    DataCache               m_DataCache; 
+
+    struct  Wharf : public Dock::Wharf
+    {
+        Sg_DataSink     *m_Port;
+
+        Wharf( Sg_DataSink *port)
+            : m_Port( port), Dock::Wharf( &port->m_Dock)
+        {}
+
+        uint32_t        ProbeSzFree( uint32_t szExpect) { return m_Port->m_DataCache.ProbeSzFree( szExpect); }
+        Datagram        *AllocFree( void) { return m_Port->m_DataCache.AllocFree(); }    
+        void            Discard( Datagram *datagram ) { m_Port->m_DataCache.Discard( datagram); }
+    };
+
+    Sg_DataSink( void) 
+        : m_DataStore( 0x7), m_DataCache( &m_DataStore)
+    {}
+};
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename Sink>
+struct Sg_DataSource 
+{ 
+    typedef typename Sink::DataCache            DataCache;
+    typedef typename Sink::Datagram             Datagram;
+
+    typedef Cv_DataDock<Datagram *>                 Dock;
+
+    Dock                    m_Dock;  
+    DataCache               m_DataCache; 
+
+    struct  Wharf : public Dock::Wharf
+    {
+        Sg_DataSource     *m_Port;
+
+        Wharf( Sg_DataSource *port)
+            : m_Port( port), Dock::Wharf( &port->m_Dock)
+        {}
+
+        uint32_t        ProbeSzFree( uint32_t szExpect) { return m_Port->m_DataCache.ProbeSzFree( szExpect); }
+        Datagram        *AllocFree( void) { return m_Port->m_DataCache.AllocFree(); }    
+        void            Discard( Datagram *datagram ) { m_Port->m_DataCache.Discard( datagram); }
+    };
+
+    Sg_DataSource( void)  
+        : m_DataCache( NULL)
+    {}
+
+    void    Connect( Sink *provider)
+    {
+        m_DataCache.SetStore( &provider->m_DataStore);
+        m_Dock.Connect( provider->m_Dock.Carousal());
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
