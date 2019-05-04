@@ -63,8 +63,8 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 
 struct Sg_EaselVita
 {    
-    typedef Cv_Array< uint8_t, 4096>                Datagram; 
-    typedef Sg_DataSink< Datagram, 128, 4096>       OutPort; 
+    typedef Cv_Array< uint8_t, 256>                Datagram; 
+    typedef Sg_DataSink< Datagram, 64, 4096>       OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
     std::string             m_InputFile;
@@ -81,11 +81,11 @@ struct Sg_EaselVita
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_FileWriteEasel;
-struct Sg_FileReadEasel; 
 struct Sg_AtelierEasel;
+struct Sg_FileReadEasel; 
+struct Sg_ReposEasel;
 
-typedef Cv_Crate< Sg_FileWriteEasel, Sg_FileReadEasel, Sg_AtelierEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
-
+typedef Cv_Crate<Sg_AtelierEasel, Sg_FileWriteEasel, Sg_FileReadEasel, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -151,11 +151,48 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel, Sg_EaselVita>
 
 //_____________________________________________________________________________________________________________________________
 
+struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
+{
+    typedef Sg_EaselVita::Datagram          Datagram;
+    typedef Sg_EaselVita::InPort            InPort;
+ 
+    InPort          m_DataPort;
+    bool            m_CloseFlg;
+
+    Sg_AtelierEasel( void) 
+        : m_CloseFlg( false)
+    {}
+
+    bool    DoInit( Sg_EaselVita *vita)
+    {
+        if ( !Sg_BaseEasel::DoInit( vita))
+            return false; 
+        return true;
+    }
+
+    bool    IsRunable( void)
+    {
+        return !m_CloseFlg;
+    }
+
+    void    DoRunStep( void)
+    {   
+        InPort::Wharf   wharf( &m_DataPort);
+        uint32_t        szBurst = wharf.Size(); 
+
+        if ( !szBurst && wharf.IsClose() && ( m_CloseFlg = true))
+            return;
+ 
+        return;
+    }
+}; 
+
+//_____________________________________________________________________________________________________________________________
+
 struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
 {
     typedef Sg_EaselVita::Datagram          Datagram;
     typedef Sg_EaselVita::InPort            InPort;
-
 
     Cv_File         m_OutFile;
     InPort          m_DataPort;
@@ -199,11 +236,11 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_AtelierEasel : public  Sg_MonitorEasel< Sg_AtelierEasel, Sg_EaselVita, Sg_AtelierCrate>
+struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_AtelierCrate>
 {
-    typedef Sg_MonitorEasel< Sg_AtelierEasel, Sg_EaselVita, Sg_AtelierCrate>     Base;
+    typedef Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_AtelierCrate>     Base;
 
-    Sg_AtelierEasel( void) 
+    Sg_ReposEasel( void) 
     {} 
 
     bool    IsRunable( void)
@@ -227,13 +264,16 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     vita.m_InputFile = m_InputFile;
     vita.m_OutputFile = m_OutputFile;
 
-    Sg_AtelierEasel         atelier; 
-    Sg_FileReadEasel        *fileRead = atelier.Construct< Sg_FileReadEasel>();
-    Sg_FileWriteEasel       *fileWrite = atelier.Construct< Sg_FileWriteEasel>();
+    Sg_ReposEasel           reposEasel; 
+    Sg_FileReadEasel        *fileRead = reposEasel.Construct< Sg_FileReadEasel>();
+    Sg_AtelierEasel         *atelier = reposEasel.Construct< Sg_AtelierEasel>(); 
+    atelier->m_DataPort.Connect( &fileRead->m_DataPort);
+
+    Sg_FileWriteEasel       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel>();
     fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
     
-    atelier.DoInit( &vita);
-    atelier.DoLaunch();   
+    reposEasel.DoInit( &vita);
+    reposEasel.DoLaunch();   
 
     //AC_API_BEGIN() 
 
