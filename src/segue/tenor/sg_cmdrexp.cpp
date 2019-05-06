@@ -195,7 +195,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         elemRepos.WriteDot( fsaDotStrm);
     }  
     elemRepos.DumpStats( std::cout);
-    FsaDfaRepos             dfaRepos( &elemRepos);
+    FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
     dfaCnstr.SubsetConstruction();
     dfaRepos.DumpStats( std::cout);
@@ -208,7 +208,6 @@ int     Sg_RExpCmdProcessor::Test(void)
         dfaRepos.WriteDot( fsaDotStrm);
     }
      
-    Sg_Atlier               atlier( &dfaRepos);
     StrInStream			    dataMemVector;
     bool	                res1 = Cv_Aid::ReadVec( &dataMemVector, m_DataFile.c_str()); 
     if ( !res1)
@@ -217,9 +216,11 @@ int     Sg_RExpCmdProcessor::Test(void)
         return -1;
     }
     
+    Sg_Atelier               atelier;
+    atelier.SetDfaRepos( &dfaRepos);
     for ( uint32_t i = 0; i < dataMemVector.size(); ++i)
     {
-        bool    res = atlier.Play( dataMemVector[ i]);
+        bool    res = atelier.Play( dataMemVector[ i]);
     }
 /*
     RExpRepos				                synCrate;

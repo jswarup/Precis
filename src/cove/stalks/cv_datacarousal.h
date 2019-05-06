@@ -26,11 +26,9 @@ public:
 private:  
     Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
-    Cv_Type< uint32_t>          m_CloseFlg;
   
 public: 
     Cv_DataCarousal( void) 
-        : m_CloseFlg( 0)  
     {}
         
     ~Cv_DataCarousal()
@@ -43,32 +41,21 @@ public:
 
     Cv_Couple< uint32_t>    SummonDock( Dock *dock) const 
     { 
-        uint32_t        e = dock->Index(); 
-        uint32_t        b = m_Docks.Prev( dock)->Index();
+        uint32_t        b = dock->Index(); 
+        uint32_t        e = m_Docks.Prev( dock)->Index();
         //if ( b == CV_UINT32_MAX)
         //    return std::make_tuple( b, b);
         if (( e < b) || (( e == b) && ( dock == m_Docks.Head())))
             e += Sz;
         return std::make_tuple( b, e -b);
-    }
+    } 
     
-    void        Commit( Dock *dock, uint32_t index)  {  m_Docks.Prev( dock)->SetIndex( index); }
+    bool            IsTail( const Dock *dock)  { return m_Docks.Tail() == dock; }
     
-    bool    IsTail( const Dock *dock) 
-    {
-        return m_Docks.Tail() == dock;
-    }
-    
-    bool    SetClose( void)
-    {
-        m_CloseFlg.Set( 1);
-        return true;
-    }
+    bool            IsHead( const Dock *dock)  { return m_Docks.Head() == dock; }
 
-    bool    IsClose( void)
-    {
-        return !!m_CloseFlg.Get();
-    }
+    Dock            *Prev( const Dock *dock)  { return m_Docks.Prev( dock); }
+    
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -84,6 +71,7 @@ public:
 
 protected:
     Cv_Type< uint32_t>              m_Index; 
+    Cv_Type< uint32_t>              m_CloseFlg;
     DataCarousal                    *m_DataCarousal; 
 
 public:
@@ -102,21 +90,30 @@ public:
         ~Wharf( void)
         {
             if ( m_Sz)
-                m_Dock->m_DataCarousal->Commit( m_Dock, m_Begin +m_Sz);
+                m_Dock->SetIndex( m_Begin +m_Sz);
         }
         
         bool            IsTail( void) const { return m_Dock->IsTail(); }
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
         void            SetSize( uint32_t sz) { m_Sz = sz; } 
-        bool            SetClose( void) { m_Sz = 0; return  m_Dock->m_DataCarousal->SetClose(); } 
-        bool            IsClose( void) { return m_Dock->m_DataCarousal->IsClose();  } 
+        bool            SetClose( void) 
+        { 
+            m_Sz = 0; 
+            return  m_Dock->SetClose(); 
+        } 
+        bool            IsClose( void) 
+        { 
+            if ( !m_Dock->m_DataCarousal->IsHead( m_Dock) && m_Dock->m_DataCarousal->Prev( m_Dock)->IsClose())
+                return true;  
+            return false;
+        } 
         const Type      &Get( uint32_t k) const { return m_Dock->m_DataCarousal->Get(  m_Begin +k); }
         void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
     };
 
     Cv_DataDock( void)
-        :   m_DataCarousal( NULL)
+        :   m_CloseFlg( 0), m_DataCarousal( NULL)
     {}
      
     uint32_t    Index( void) const { return m_Index.Get(); }
@@ -131,6 +128,17 @@ public:
     bool    IsTail( void)  const
     {
         return m_DataCarousal->IsTail( this);
+    }
+
+    bool    SetClose( void)
+    {
+        m_CloseFlg.Set( 1);
+        return true;
+    }
+
+    bool    IsClose( void)
+    {
+        return !!m_CloseFlg.Get();
     }
 };
 

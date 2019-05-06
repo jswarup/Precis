@@ -4,7 +4,13 @@
 #include    "trellis/tenor/tr_include.h" 
 #include    "cove/snip/cv_cmdexec.h"  
 #include    "cove/stalks/cv_easel.h"  
-#include    "cove/silo/cv_fileflux.h" 
+#include    "segue/atelier/sg_atelier.h" 
+
+
+#include    "segue/grammar/sg_rexpgrammar.h"
+#include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/tremolo/sg_fsaelemcnstr.h"
+#include    "segue/tremolo/sg_dfastate.h"
 
 #include    <utility>
 #include    <tuple>
@@ -15,6 +21,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
 {
     { "-i", "<input>", 0},
     { "-o", "<output>", 0}, 
+    { "-r", "<ruleset>", 0}, 
     { 0, 0,  0}
 };
 
@@ -24,6 +31,7 @@ class Sg_AtelierCmdProcessor : public Cv_CmdExecutor
 { 
     std::string     m_InputFile;
     std::string     m_OutputFile;
+    std::string     m_RuleFile;
 
 public:
     Sg_AtelierCmdProcessor( void)  
@@ -50,6 +58,11 @@ public:
             m_OutputFile = arg;
             return true;
         }
+        if ( "-r" == key)
+        {
+            m_RuleFile = arg;
+            return true;
+        }
         return false;
     }
 };
@@ -61,7 +74,7 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_EaselVita
+struct Sg_EaselVita : public Sg_BaseVita
 {    
     typedef Cv_Array< uint8_t, 256>                Datagram; 
     typedef Sg_DataSink< Datagram, 64, 4096>       OutPort; 
@@ -69,85 +82,18 @@ struct Sg_EaselVita
     
     std::string             m_InputFile;
     std::string             m_OutputFile;
-    Cv_Type< uint32_t>      m_CntActive;
-    uint32_t                m_CntEasel;
-    bool                    m_StopFlg;
+    std::string             m_RuleFile;
     
     Sg_EaselVita( void)
-        : m_CntActive( 0), m_CntEasel( 0), m_StopFlg( false)
     {}
 };
 
 //_____________________________________________________________________________________________________________________________
-
-struct Sg_FileWriteEasel;
-struct Sg_AtelierEasel;
-struct Sg_FileReadEasel; 
+ 
+struct Sg_AtelierEasel; 
 struct Sg_ReposEasel;
 
-typedef Cv_Crate<Sg_AtelierEasel, Sg_FileWriteEasel, Sg_FileReadEasel, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
-
-//_____________________________________________________________________________________________________________________________
-
-struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel, Sg_EaselVita>
-{
-    typedef Sg_EaselVita::Datagram          Datagram;
-    typedef Sg_EaselVita::OutPort           OutPort;
-    
-    Cv_File         m_InFile;
-    OutPort         m_DataPort;
-    bool            m_FileClosingFlg;
-    uint32_t        m_CharIndex;
-
-    Sg_FileReadEasel( void) 
-        : m_FileClosingFlg( false), m_CharIndex( 0)
-    {}
- 
-
-    bool    DoInit( Sg_EaselVita *vita)
-    {
-        if ( !Sg_BaseEasel::DoInit( vita))
-            return false;
-
-        if ( !m_InFile.Open( vita->m_InputFile.c_str(), true))
-            return false;
-        return true;
-    }
-    
-    bool    IsRunable( void)
-    {
-        return m_InFile.IsActive();
-    }
-
-    void    DoRunStep( void)
-    {  
-        OutPort::Wharf     wharf( &m_DataPort);
-        if ( m_FileClosingFlg && m_InFile.Shut() && wharf.SetClose())
-            return;
-        uint32_t        szBurst = wharf.Size(); 
-        szBurst = wharf.ProbeSzFree( szBurst);
-        uint32_t        dInd = 0;
-        for ( ; dInd < szBurst;  dInd++)
-        {   
-            Datagram    *datagram = wharf.AllocFree();
-            uint32_t    szFill = m_InFile.Read( datagram->At( 0), datagram->SzVoid());
-            datagram->MarkFill( szFill);
-            if ( !szFill || wharf.IsTail()) 
-                wharf.Discard( datagram);
-            else {
-                wharf.Set( dInd, datagram); 
-            }
-            if ( !szFill)
-            {
-                m_FileClosingFlg = true;
-                break;
-            }
-        }
-        wharf.SetSize( dInd);
-        return;
-    }
-}; 
- 
+typedef Cv_Crate<Sg_AtelierEasel, Sg_FileWriteEasel<Sg_EaselVita>, Sg_FileReadEasel< Sg_EaselVita>, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -157,6 +103,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     typedef Sg_EaselVita::InPort            InPort;
  
     InPort          m_DataPort;
+    FsaDfaRepos     m_DfaRepos;
+    Sg_Atelier      m_Atelier;
     bool            m_CloseFlg;
 
     Sg_AtelierEasel( void) 
@@ -167,6 +115,25 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     {
         if ( !Sg_BaseEasel::DoInit( vita))
             return false; 
+        StrInStream			    memVector;
+        bool	                res = Cv_Aid::ReadVec( &memVector, vita->m_RuleFile.c_str()); 
+        if ( !res)
+        {
+            std::cerr << "Not Found : " << vita->m_RuleFile << '\n';
+            return false;
+        }
+        Parser< StrInStream>	parser( &memVector);   
+        RExpRepos				rexpRepos;
+        RExpDoc					rexpDoc; 
+        RExpDoc::XAct           xact( &rexpRepos); 
+        bool					apiErrCode = parser.Match( &rexpDoc, &xact); 
+
+        FsaElemRepos            elemRepos;
+        FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
+        automReposCnstr.Process();   
+        FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos);
+        m_Atelier.SetDfaRepos( &m_DfaRepos);
+        dfaCnstr.SubsetConstruction();
         return true;
     }
 
@@ -180,55 +147,20 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         InPort::Wharf   wharf( &m_DataPort);
         uint32_t        szBurst = wharf.Size(); 
 
-        if ( !szBurst && wharf.IsClose() && ( m_CloseFlg = true))
-            return;
- 
-        return;
-    }
-}; 
-
-//_____________________________________________________________________________________________________________________________
-
-struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel, Sg_EaselVita>
-{
-    typedef Sg_EaselVita::Datagram          Datagram;
-    typedef Sg_EaselVita::InPort            InPort;
-
-    Cv_File         m_OutFile;
-    InPort          m_DataPort;
-
-    Sg_FileWriteEasel( void) 
-    {}
- 
-    bool    DoInit( Sg_EaselVita *vita)
-    {
-        if ( !Sg_BaseEasel::DoInit( vita))
-            return false;
-
-        if ( !m_OutFile.Open( vita->m_OutputFile.c_str(), false))
-            return false;
-        return true;
-    }
-
-    bool    IsRunable( void)
-    {
-        return m_OutFile.IsActive();
-    }
-
-    void    DoRunStep( void)
-    {   
-        InPort::Wharf   wharf( &m_DataPort);
-        uint32_t        szBurst = wharf.Size(); 
-
-        if ( !szBurst && wharf.IsClose() && m_OutFile.Shut())
+        if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
             return;
 
-        for ( uint32_t i = 0; i < szBurst;  i++)
-        {   
-            Datagram    *datagram = wharf.Get( i); 
-            uint32_t    szWrite = m_OutFile.Write( datagram->At( 0), datagram->SzFill());  
-            wharf.Discard( datagram); 
+        uint32_t        dInd = 0;
+        for ( ; dInd < szBurst;  dInd++)
+        {
+            Datagram    *datagram = wharf.Get( dInd); 
+            for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
+            {
+                uint8_t     chr = datagram->At( k);
+                m_Atelier.Play( chr);
+            }
         }
+        wharf.SetSize( dInd);
         return;
     }
 }; 
@@ -263,13 +195,14 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     Sg_EaselVita            vita;
     vita.m_InputFile = m_InputFile;
     vita.m_OutputFile = m_OutputFile;
-
+    vita.m_RuleFile = m_RuleFile;
+    
     Sg_ReposEasel           reposEasel; 
-    Sg_FileReadEasel        *fileRead = reposEasel.Construct< Sg_FileReadEasel>();
+    Sg_FileReadEasel< Sg_EaselVita>        *fileRead = reposEasel.Construct< Sg_FileReadEasel< Sg_EaselVita>>();
     Sg_AtelierEasel         *atelier = reposEasel.Construct< Sg_AtelierEasel>(); 
     atelier->m_DataPort.Connect( &fileRead->m_DataPort);
 
-    Sg_FileWriteEasel       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel>();
+    Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
     fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
     
     reposEasel.DoInit( &vita);

@@ -225,8 +225,8 @@ class Cv_DLinkList : public Cv_DList< DLink *, Cv_DLinkList< DLink, Circ>, Circ 
 public:  
     static constexpr DLink   *NIL( void) { return  ( DLink *) NULL; }
     
-    DLink       *Prev( DLink *dlink) const { return dlink->m_Prev; }
-    DLink       *Next( DLink *dlink) const { return dlink->m_Next; }
+    DLink       *Prev( const DLink *dlink) const { return dlink->m_Prev; }
+    DLink       *Next( const DLink *dlink) const { return dlink->m_Next; }
 
     void        SetPrev( DLink *dlink, DLink *d) { dlink->m_Prev = d; }
     void        SetNext( DLink *dlink, DLink *d) { dlink->m_Next = d; }

@@ -16,20 +16,23 @@ struct Cv_Array
         : m_SzFill( 0)
     {
         for ( uint32_t i = 0; i < Sz; ++i)
-            ::new (At( i)) X();
+            ::new (PtrAt( i)) X();
     }
     ~Cv_Array( void) 
     {
         for ( uint32_t i = 0; i < Sz; ++i)
-            At( i)->X::~X();
+            PtrAt( i)->X::~X();
     }
 
     uint32_t    Size( void) const { return Sz; }
     uint32_t    SzFill( void) const { return m_SzFill; }             
     uint32_t    SzVoid( void) const { return Sz - m_SzFill; }                                   // number of empty entries
-    X           *PtrVoid( void)  { return At( m_SzFill); }                                      // iterator at the empty slot
-    X           *At( uint32_t k) { return reinterpret_cast< X *>( &m_MemArr[ k *ObjectSz() ]); }
-    const X     *At( uint32_t k) const { return reinterpret_cast< const X *>( &m_MemArr[ k *ObjectSz() ]); }
+    X           *PtrVoid( void)  { return PtrAt( m_SzFill); }                                      // iterator at the empty slot
+    X           *PtrAt( uint32_t k) { return reinterpret_cast< X *>( &m_MemArr[ k *ObjectSz() ]); }
+    const X     *PtrAt( uint32_t k) const { return reinterpret_cast< const X *>( &m_MemArr[ k *ObjectSz() ]); }
+
+    X           &At( uint32_t k) { return *reinterpret_cast< X *>( &m_MemArr[ k *ObjectSz() ]); }
+    const X     &At( uint32_t k) const { return *reinterpret_cast< const X *>( &m_MemArr[ k *ObjectSz() ]); }
 
     void        MarkFill( uint32_t sz) { m_SzFill += sz; }                                      // increment additional filled slots
 
@@ -38,7 +41,7 @@ struct Cv_Array
     {
         uint32_t    szCacheVoid = arr->SzVoid();                                                // space in incoming Array
         uint32_t    szAlloc =  szCacheVoid < m_SzFill ? szCacheVoid : m_SzFill;                 // Qty to be moved.
-        std::copy( At( m_SzFill -szAlloc), At( m_SzFill), arr->At( arr->SzFill()));             // copy the element from the end
+        std::copy( PtrAt( m_SzFill -szAlloc), PtrAt( m_SzFill), arr->PtrAt( arr->SzFill()));             // copy the element from the end
         m_SzFill -= szAlloc;                                                                    // reduce the SzFill by number transferred
         arr->MarkFill( szAlloc);                                                                // increment the filled amount in input-array
         return;
@@ -46,14 +49,14 @@ struct Cv_Array
 
     void EraseAt( uint32_t k)                                                                   // erase an occupied element at index
     {
-        std::copy( At( k +1), At( m_SzFill), At( k));
+        std::copy( PtrAt( k +1), PtrAt( m_SzFill), PtrAt( k));
         --m_SzFill;
     }
 
-    void        Append( const X &x) { *At( m_SzFill++) = x; }                                   // apppend one at end
+    void        Append( const X &x) { *PtrAt( m_SzFill++) = x; }                                   // apppend one at end
 
-    X           &operator[]( uint32_t i) { return *At( i); }
-    const X     &operator[]( uint32_t i) const { return *At( i); }
+    X           &operator[]( uint32_t i) { return *PtrAt( i); }
+    const X     &operator[]( uint32_t i) const { return *PtrAt( i); }
 
     void        LShift( uint32_t from)
     {

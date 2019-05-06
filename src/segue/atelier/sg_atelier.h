@@ -42,15 +42,17 @@ struct Sg_Parapet
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_Atlier
+struct Sg_Atelier
 { 
     FsaDfaRepos     *m_DfaRepos;
     Sg_Parapet      m_Parapet;        
     
-    Sg_Atlier( FsaDfaRepos *dfaRepos)
-        : m_DfaRepos( dfaRepos)
+    Sg_Atelier( void)
+        : m_DfaRepos( NULL)
     {}
-
+    
+    void        SetDfaRepos( FsaDfaRepos *dfaRepos) { m_DfaRepos = dfaRepos; }
+    
     bool        Play( uint8_t chr)
     {
         if ( !m_Parapet.IsLoaded())
@@ -67,9 +69,7 @@ struct Sg_Atlier
             std::cout << tokens[ i] << "\n";
         return true;
     
-    }   
-
-    
+    }    
 };
 
 //_____________________________________________________________________________________________________________________________

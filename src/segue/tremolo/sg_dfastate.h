@@ -15,8 +15,8 @@ struct  FsaDfaRepos  : public FsaRepos
     FsaElemRepos        *m_ElemRepos;
     DistribRepos        m_DistribRepos;  
 
-    FsaDfaRepos( FsaElemRepos *elemRepos)
-        : m_ElemRepos( elemRepos)
+    FsaDfaRepos( void)
+        : m_ElemRepos( NULL)
     {}
  
     bool                WriteDot( Cv_DotStream &strm);
@@ -349,7 +349,6 @@ struct  FsaDfaStateMapCltn
 
 struct  FsaDfaCnstr 
 { 
-
     typedef FsaRepos::Id                FsaId; 
 
     FsaElemRepos                        *m_ElemRepos; 
@@ -360,6 +359,7 @@ struct  FsaDfaCnstr
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)
         : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_SupDfaCltn( this)
     {
+        dfaRepos->m_ElemRepos = elemRepos;
         dfaRepos->m_DistribRepos.m_Base = elemRepos->m_FilterRepos.m_Base;
     }
 
