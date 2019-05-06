@@ -183,9 +183,7 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_
     void    DoRunStep( void)
     {
         std::this_thread::yield();;        
-    }
-
- 
+    } 
 };
 
 //_____________________________________________________________________________________________________________________________ 
