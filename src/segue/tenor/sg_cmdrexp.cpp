@@ -216,11 +216,11 @@ int     Sg_RExpCmdProcessor::Test(void)
         return -1;
     }
     
-    Sg_Atelier               atelier;
-    atelier.SetDfaRepos( &dfaRepos);
+    Sg_Rampart               rampart;
+    rampart.SetDfaRepos( &dfaRepos);
     for ( uint32_t i = 0; i < dataMemVector.size(); ++i)
     {
-        bool    res = atelier.Play( dataMemVector[ i]);
+        bool    res = rampart.Play( dataMemVector[ i]);
     }
 /*
     RExpRepos				                synCrate;

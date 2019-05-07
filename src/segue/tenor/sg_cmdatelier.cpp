@@ -104,7 +104,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
  
     InPort          m_DataPort;
     FsaDfaRepos     m_DfaRepos;
-    Sg_Atelier      m_Atelier;
+    Sg_Rampart      m_Bastion;
     bool            m_CloseFlg;
 
     Sg_AtelierEasel( void) 
@@ -132,7 +132,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
         automReposCnstr.Process();   
         FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos);
-        m_Atelier.SetDfaRepos( &m_DfaRepos);
+        m_Bastion.SetDfaRepos( &m_DfaRepos);
         dfaCnstr.SubsetConstruction();
         return true;
     }
@@ -157,7 +157,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                m_Atelier.Play( chr);
+                 m_Bastion.Play( chr);
             }
         }
         wharf.SetSize( dInd);

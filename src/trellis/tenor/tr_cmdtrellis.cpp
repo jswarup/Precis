@@ -66,7 +66,7 @@ static const int cv_numEventsToGenerate = 10000;
 
 struct Tr_ProduceNums
 {
-    typedef Cv_DataCreek<uint64_t>           Dock;
+    typedef Cv_DataCreek< uint64_t, 32>           Dock;
     
     Dock        m_Dock; 
 
@@ -94,7 +94,7 @@ struct Tr_ProduceNums
 
 struct Tr_ConsumeNums
 {
-    typedef Cv_DataDock<uint64_t>           Dock;
+    typedef Cv_DataDock<uint64_t, 32>           Dock;
     typedef typename Dock::DataCarousal     DataCarousal;
 
     Dock        m_Dock;

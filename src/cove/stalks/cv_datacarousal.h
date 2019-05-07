@@ -9,22 +9,22 @@
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Ty> 
+template < typename Ty, uint32_t CarousalSz> 
 class   Cv_DataDock;
 
 //_____________________________________________________________________________________________________________________________ 
  
-template < typename Dock> 
+template < typename Dock, uint32_t CarouSz> 
 class   Cv_DataCarousal
 {
 public:
     enum {
-        Sz = 2048,
+        CarousalSz = CarouSz,
     };
     typedef typename Dock::Type     Type; 
 
 private:  
-    Type                        m_Buffer[ Sz] alignas( CV_CACHELINE_SIZE);      // circular buffer
+    Type                        m_Buffer[ CarousalSz] alignas( CV_CACHELINE_SIZE);      // circular buffer
     Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
   
 public: 
@@ -34,8 +34,8 @@ public:
     ~Cv_DataCarousal()
     {}
 
-    const Type      &Get( uint32_t k) const  {  return m_Buffer[ k % Sz];  }
-    void            Set( uint32_t k, const Type &x)  {  m_Buffer[ k % Sz] = x;  }
+    const Type      &Get( uint32_t k) const  {  return m_Buffer[ k % CarousalSz];  }
+    void            Set( uint32_t k, const Type &x)  {  m_Buffer[ k % CarousalSz] = x;  }
        
     void            AppendDock( Dock *dock) { m_Docks.Append( dock); }
 
@@ -46,7 +46,7 @@ public:
         //if ( b == CV_UINT32_MAX)
         //    return std::make_tuple( b, b);
         if (( e < b) || (( e == b) && ( dock == m_Docks.Head())))
-            e += Sz;
+            e += CarousalSz;
         return std::make_tuple( b, e -b);
     } 
     
@@ -54,20 +54,19 @@ public:
     
     bool            IsHead( const Dock *dock)  { return m_Docks.Head() == dock; }
 
-    Dock            *Prev( const Dock *dock)  { return m_Docks.Prev( dock); }
-    
+    Dock            *Prev( const Dock *dock)  { return m_Docks.Prev( dock); } 
 };
 
 //_____________________________________________________________________________________________________________________________
  
-template < typename Ty> 
-class   Cv_DataDock : public Cv_DLink< Cv_DataDock< Ty> >
+template < typename Ty, uint32_t CarousalSz> 
+class   Cv_DataDock : public Cv_DLink< Cv_DataDock< Ty, CarousalSz> >
 {
 public:
-    typedef Ty                      Type; 
-    typedef Cv_DataDock< Type>      This; 
+    typedef Ty                                      Type; 
+    typedef Cv_DataDock< Type, CarousalSz>          This; 
 
-    typedef Cv_DataCarousal< This>  DataCarousal;
+    typedef Cv_DataCarousal< This, CarousalSz>      DataCarousal;
 
 protected:
     Cv_Type< uint32_t>              m_Index; 
@@ -77,11 +76,13 @@ protected:
 public:
     struct  Wharf
     {
-        Cv_DataDock     *m_Dock;
+        typedef This    Dock; 
+
+        Dock            *m_Dock;
         uint32_t        m_Begin;
         uint32_t        m_Sz; 
 
-        Wharf( Cv_DataDock *dock)
+        Wharf( Dock *dock)
             : m_Dock( dock), m_Begin( 0), m_Sz( 0) 
         { 
             std::tie( m_Begin, m_Sz) = m_Dock->m_DataCarousal->SummonDock( m_Dock); 
@@ -117,7 +118,7 @@ public:
     {}
      
     uint32_t    Index( void) const { return m_Index.Get(); }
-    void        SetIndex( uint32_t k) {  m_Index.Set( k); }
+    void        SetIndex( uint32_t k) {  m_Index.Set( k % DataCarousal::CarousalSz); }
 
     void    Connect( DataCarousal *dataCarousal)
     {
@@ -144,11 +145,11 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Ty> 
-class   Cv_DataCreek : public Cv_DataDock< Ty>
+template < typename Ty, uint32_t CarousalSz> 
+class   Cv_DataCreek : public Cv_DataDock< Ty, CarousalSz>
 {
 public:
-    typedef Cv_DataDock< Ty>                Base;  
+    typedef Cv_DataDock< Ty, CarousalSz>    Base;  
     typedef typename Base::DataCarousal     DataCarousal;
 
 protected:
@@ -167,14 +168,17 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename DGram, uint32_t CacheSz = 128, uint32_t StoreSz = 4096>
+template < typename DGram, uint32_t CacheSz = 128, uint32_t StoreSz = 4096, uint32_t CarousSz = 2048>
 struct Sg_DataSink
 {
+    enum {
+        CarousalSz = CarousSz
+    };
     typedef typename DGram                              Datagram;
     typedef Cv_FreeStore< Datagram, uint16_t, StoreSz>  DataStore;
     typedef Cv_FreeCache< CacheSz, DataStore>           DataCache;
 
-    typedef Cv_DataCreek< Datagram *>               Dock;
+    typedef Cv_DataCreek< Datagram *, CarousalSz>       Dock;
 
     Dock                    m_Dock; 
     DataStore               m_DataStore;
@@ -206,7 +210,7 @@ struct Sg_DataSource
     typedef typename Sink::DataCache            DataCache;
     typedef typename Sink::Datagram             Datagram;
 
-    typedef Cv_DataDock<Datagram *>                 Dock;
+    typedef Cv_DataDock<Datagram *, Sink::CarousalSz> Dock;
 
     Dock                    m_Dock;  
     DataCache               m_DataCache; 
