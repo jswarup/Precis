@@ -98,17 +98,8 @@ public:
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
         void            SetSize( uint32_t sz) { m_Sz = sz; } 
-        bool            SetClose( void) 
-        { 
-            m_Sz = 0; 
-            return  m_Dock->SetClose(); 
-        } 
-        bool            IsClose( void) 
-        { 
-            if ( !m_Dock->m_DataCarousal->IsHead( m_Dock) && m_Dock->m_DataCarousal->Prev( m_Dock)->IsClose())
-                return true;  
-            return false;
-        } 
+        bool            SetClose( void)  {  m_Sz = 0;  return  m_Dock->SetClose(); } 
+        bool            IsClose( void)  { return !m_Dock->m_DataCarousal->IsHead( m_Dock) && m_Dock->m_DataCarousal->Prev( m_Dock)->IsClose(); }  
         const Type      &Get( uint32_t k) const { return m_Dock->m_DataCarousal->Get(  m_Begin +k); }
         void            Set( uint32_t k, const Type &x) { m_Dock->m_DataCarousal->Set(  m_Begin +k, x); }
     };

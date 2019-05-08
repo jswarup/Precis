@@ -76,8 +76,8 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 
 struct Sg_EaselVita : public Sg_BaseVita
 {    
-    typedef Cv_Array< uint8_t, 256>                Datagram; 
-    typedef Sg_DataSink< Datagram, 64, 4096>       OutPort; 
+    typedef Cv_Array< uint8_t, 256>                 Datagram; 
+    typedef Sg_DataSink< Datagram, 64, 4096>        OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
     std::string             m_InputFile;
@@ -101,11 +101,12 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
 {
     typedef Sg_EaselVita::Datagram          Datagram;
     typedef Sg_EaselVita::InPort            InPort;
+    typedef typename InPort::Wharf          Wharf;
  
-    InPort          m_DataPort;
-    FsaDfaRepos     m_DfaRepos;
-    Sg_Rampart      m_Bastion;
-    bool            m_CloseFlg;
+    InPort                  m_DataPort;
+    FsaDfaRepos             m_DfaRepos;
+    Sg_Bastion< Wharf>      m_Bastion;
+    bool                    m_CloseFlg;
 
     Sg_AtelierEasel( void) 
         : m_CloseFlg( false)
@@ -150,16 +151,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
             return;
 
-        uint32_t        dInd = 0;
-        for ( ; dInd < szBurst;  dInd++)
-        {
-            Datagram    *datagram = wharf.Get( dInd); 
-            for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
-            {
-                uint8_t     chr = datagram->At( k);
-                 m_Bastion.Play( chr);
-            }
-        }
+        uint32_t    dInd = m_Bastion.Play( &wharf);
         wharf.SetSize( dInd);
         return;
     }
