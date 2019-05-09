@@ -103,10 +103,10 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     typedef Sg_EaselVita::InPort            InPort;
     typedef typename InPort::Wharf          Wharf;
  
-    InPort                  m_DataPort;
-    FsaDfaRepos             m_DfaRepos;
-    Sg_Bastion< Wharf>      m_Bastion;
-    bool                    m_CloseFlg;
+    InPort          m_DataPort;
+    FsaDfaRepos     m_DfaRepos;
+    Sg_Rampart      m_Bastion;
+    bool            m_CloseFlg;
 
     Sg_AtelierEasel( void) 
         : m_CloseFlg( false)
@@ -135,6 +135,12 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos);
         m_Bastion.SetDfaRepos( &m_DfaRepos);
         dfaCnstr.SubsetConstruction();
+        m_DfaRepos.m_DistribRepos.Dump( std::cout);
+        {
+            std::ofstream           fsaOStrm( "a.dot");
+            Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+            m_DfaRepos.WriteDot( fsaDotStrm);
+        }
         return true;
     }
 
@@ -151,7 +157,16 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
             return;
 
-        uint32_t    dInd = m_Bastion.Play( &wharf);
+        uint32_t        dInd = 0;
+        for ( ; dInd < szBurst;  dInd++)
+        {
+            Datagram    *datagram = wharf.Get( dInd); 
+            for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
+            {
+                uint8_t     chr = datagram->At( k);
+                 m_Bastion.Play( chr);
+            }
+        }
         wharf.SetSize( dInd);
         return;
     }

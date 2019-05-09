@@ -43,14 +43,14 @@ struct Sg_Bit64
             m_ChSet[ i] |= src2.m_ChSet[ i];
     }
 
-    int32_t     Compare( const Sg_Bit64 &chSet) const  
+    int32_t         Compare( const Sg_Bit64 &chSet) const  
     {
         for ( uint32_t i = 0; i < Sz; ++i)
             if ( m_ChSet[ i] != chSet.m_ChSet[ i])
                 return ( m_ChSet[ i] < chSet.m_ChSet[ i]) ? 1 : -1;
         return 0;
     }
-    
+
     int             ListChars( int *list) const
     {
         int     n = 0;
@@ -64,6 +64,39 @@ struct Sg_Bit64
             }
         }
         return n;
+    }
+    
+    bool            IsOnes( void) const 
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            if ( m_ChSet[ i] != CV_UINT64_MAX)
+                return false;
+        return true;
+    }
+
+template < typename Lambda, typename... Args>
+    void    ForAllTrue( Lambda &lambda,  const Args&... args)  
+    {
+        for ( uint32_t i = 0; i < Sz; i++) 
+        {
+            uint64_t   b = m_ChSet[ i];
+            for ( uint32_t j = 0; b; j++, b >>= 1)  
+                if ( b & 1)
+                    lambda( (i << 6) | j, args...); 
+        }
+        return;
+    }
+
+    uint32_t         Index( bool t) const
+    {
+        for ( uint32_t i = 0; i < Sz; i++) 
+        {
+            uint64_t   b = t ? m_ChSet[ i] : ~m_ChSet[ i];
+            for ( uint32_t j = 0; b; j++, b >>= 1)  
+                if ( b & 1)
+                    return (i << 6) | j; 
+        }
+        return CV_UINT32_MAX;
     }
 };
 
@@ -81,6 +114,12 @@ struct Sg_Bit64< 0>
     void            UnionWith( const Sg_Bit64 &src2) {}
     int32_t         Compare( const Sg_Bit64 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
+    bool            IsOnes( void) const { return true; }
+
+template < typename Lambda, typename... Args>
+    void            ForAllTrue( Lambda &lambda,  const Args&... args)   {}
+
+    uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
 };
 
 template < uint32_t Sz>
@@ -130,7 +169,7 @@ struct Sg_Bit8
                 return ( m_ChSet[ i] < chSet.m_ChSet[ i]) ? 1 : -1;
         return 0;
     }
-     
+      
     int             ListChars( int *list) const
     {
         int     n = 0;
@@ -144,6 +183,39 @@ struct Sg_Bit8
             }
         }
         return n;
+    }
+    
+    bool            IsOnes( void) const 
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            if ( m_ChSet[ i] != CV_UINT8_MAX)
+                return false;
+        return true;
+    }
+    
+template < typename Lambda, typename... Args>
+    void            ForAllTrue( Lambda &lambda,  const Args &... args)
+    {
+        for ( uint32_t i = 0; i < Sz; i++) 
+        {
+            uint64_t   b = m_ChSet[ i];
+            for ( uint32_t j = 0; b; j++, b >>= 1)  
+            if ( b & 1)
+                lambda( (i << 3) | j, args...);
+        } 
+        return;
+    }
+
+    uint32_t         Index( bool t) const
+    {
+        for ( uint32_t i = 0; i < Sz; i++) 
+        {
+            uint64_t   b = t ? m_ChSet[ i] : ~m_ChSet[ i];
+            for ( uint32_t j = 0; b; j++, b >>= 1)  
+                if ( b & 1)
+                    return (i << 3) | j; 
+        }
+        return CV_UINT32_MAX;
     }
 };
 
@@ -162,6 +234,11 @@ struct Sg_Bit8< 0>
     void            UnionWith( const Sg_Bit8 &src2) {}
     int32_t         Compare( const Sg_Bit8 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
+    bool            IsOnes( void) const { return true; }
+
+ template < typename Lambda, typename... Args>
+    void            ForAllTrue( Lambda &lambda,  const Args&... args)   {}
+    uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -171,8 +248,8 @@ struct Sg_Bitset
 {
     enum {
         Sz64 = SzBits/64,
-        Sz8 =  (( SzBits - Sz64 * 8) + 7)/8,
         Width64 = Sz64 * 64,
+        Sz8 =  (( SzBits - Width64) + 7)/8,
         SzChBits = SzBits,
     };
     
@@ -198,7 +275,7 @@ struct Sg_Bitset
 
     void            SetChar( uint32_t c) { IsBit64( c) ? m_Bits64.SetChar( c) : m_Bits8.SetChar( c -Width64); } 
     void            ClearChar( uint32_t c)  { IsBit64( c) ? m_Bits64.ClearChar( c) : m_Bits8.ClearChar( c -Width64); }
-
+    
     void        Negate( void)
     { 
         m_Bits64.Negate();
@@ -225,6 +302,21 @@ struct Sg_Bitset
     { 
         int32_t     n = m_Bits64.ListChars( list);
         return  n + m_Bits8.ListChars( list +n); 
+    }
+
+    bool            IsOnes( void) const  { return m_Bits64.IsOnes() && m_Bits64.IsOnes();  }
+
+template < typename Lambda, typename... Args>
+    void            ForAllTrue( Lambda &lambda,  const Args&... args)   
+    {
+        m_Bits64.ForAllTrue( lambda, args...);
+        m_Bits8.ForAllTrue( lambda, args...);
+    }
+    
+    uint32_t         Index( bool t)
+    {
+        uint32_t    ind = m_Bits64.Index( t);
+        return ( ind != CV_UINT32_MAX) ? ind : m_Bits8.Index( t);
     }
 
     void    SetFilter(  int (*filter)( int c))

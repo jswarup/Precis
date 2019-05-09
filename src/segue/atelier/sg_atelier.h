@@ -5,6 +5,7 @@
 #include    "segue/timbre/sg_bitset.h"
 #include    "segue/timbre/sg_partition.h"
 #include    "segue/tremolo/sg_dfastate.h"
+#include    <array>
  
 //_____________________________________________________________________________________________________________________________
 
@@ -46,9 +47,13 @@ struct Sg_Parapet
 
 struct Sg_Rampart
 { 
-    FsaDfaRepos     *m_DfaRepos;
-    Sg_Parapet      m_Parapet;   
-    uint64_t        m_Curr;     
+    enum    {
+        Sz = 256
+    };
+    FsaDfaRepos                     *m_DfaRepos;
+    std::array< Sg_Parapet, 256>    m_Parapets;  
+    Sg_Bitset< Sz>                  m_Allocbits;  
+    uint64_t                        m_Curr;     
     
     Sg_Rampart( void)
         : m_DfaRepos( NULL), m_Curr( 0)
@@ -56,25 +61,51 @@ struct Sg_Rampart
     
     void        SetDfaRepos( FsaDfaRepos *dfaRepos) { m_DfaRepos = dfaRepos; }
     
-    bool        Play( uint8_t chr)
-    {
-        uint8_t     chrId = m_DfaRepos->m_DistribRepos.m_Base.Image( chr);
-        if ( !m_Parapet.IsLoaded())
-        {        
-            FsaDfaState     *rootDfaState = static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry());
-            m_Parapet.Load( rootDfaState, m_Curr);
-        }
-        ++m_Curr;
-        if ( !m_Parapet.Advance( m_DfaRepos, chrId))
-             return false;
-        Cv_CArr< uint64_t>      tokens = m_Parapet.Tokens();
-
+    void            DumpTokens( Sg_Parapet  *parapet)
+    { 
+        Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            std::cout << m_Parapet.Start() << " " << ( m_Curr -m_Parapet.Start()) << " " <<  tokens[ i] << "\n";
-        return true; 
+            std::cout << parapet->Start() << " " << ( m_Curr -parapet->Start()) << " " <<  tokens[ i] << "\n";
+        return;
+    }
+ 
+
+    void    Play( uint8_t chr)
+    {
+        uint8_t                 chrId = m_DfaRepos->m_DistribRepos.m_Base.Image( chr);  
+        Sg_Bitset< Sz>          allocbits; 
+        Cv_Array< uint8_t, 256> dones;
+        
+        m_Allocbits.ForAllTrue( [this]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits, Cv_Array< uint8_t, 256> *dones)
+            {
+                Sg_Parapet      *parapet = &m_Parapets[ ind];
+                if ( !parapet->Advance( m_DfaRepos, chrId))
+                {
+                    dones->Append( ind);
+                    return;
+                }
+                allocbits->Set( ind, true);
+                return;
+            }, chrId, &allocbits, &dones); 
+        for ( uint32_t i = 0; i < dones.SzFill(); ++i)
+            DumpTokens( &m_Parapets[ dones[ i]]);
+        
+        if (allocbits.IsOnes())
+        {
+        }
+
+        uint32_t        pickInd = dones.SzFill() ? dones[ 0] : allocbits.Index( false) ;
+        Sg_Parapet      *curent = &m_Parapets[ dones[ pickInd]];  
+        curent->Load( static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()), m_Curr); 
+        if ( curent->Advance( m_DfaRepos, chrId))
+            allocbits.Set( pickInd, true);    
+        ++m_Curr;
+        m_Allocbits = allocbits;
+        return; 
     }    
 };
 
+/*
 //_____________________________________________________________________________________________________________________________
 
 template < typename Wharf>
@@ -168,5 +199,5 @@ struct Sg_Bastion
         return dInd;
     }
 };
-
+*/
 //_____________________________________________________________________________________________________________________________

@@ -220,7 +220,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     rampart.SetDfaRepos( &dfaRepos);
     for ( uint32_t i = 0; i < dataMemVector.size(); ++i)
     {
-        bool    res = rampart.Play( dataMemVector[ i]);
+        rampart.Play( dataMemVector[ i]);
     }
 /*
     RExpRepos				                synCrate;
