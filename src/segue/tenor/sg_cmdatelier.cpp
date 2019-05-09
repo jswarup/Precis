@@ -105,7 +105,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
  
     InPort          m_DataPort;
     FsaDfaRepos     m_DfaRepos;
-    Sg_Rampart      m_Bastion;
+    Sg_Bulwark      m_Bastion;
     bool            m_CloseFlg;
 
     Sg_AtelierEasel( void) 

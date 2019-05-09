@@ -11,7 +11,7 @@
       "args": [
         // "rexp -i ip.rules -odfa a.dot -idata data.txt"
         // "trellis -i ip_1m.rules -o out.txt",
-        "atelier -i data.txt -o out.txt -r ip.rules"
+        "atelier -i d1.txt -o out.txt -r ip.rules"
       ]
     }
   ]
