@@ -10,30 +10,34 @@ namespace Sg_Timbre
    
 //_____________________________________________________________________________________________________________________________ 
 
-struct  StrInStream : public std::vector< char>
+struct  StrInStream 
 { 
     uint32_t                    m_Cursor;
-        
+    std::vector< char>          m_CharVec;
+  
 	StrInStream( void)
 		: m_Cursor( 0)
 	{}
 
 	StrInStream( const std::string &str)
-        : std::vector< char>( str.size() +1), m_Cursor( 0)
+        : m_Cursor( 0), m_CharVec( str.size() +1)
     {
-        std::copy( str.begin(), str.end(), begin());
-        SELF[ str.size()] = 0;
+        std::copy( str.begin(), str.end(), m_CharVec.begin());
+        m_CharVec[ str.size()] = 0;
     } 
+    
+    std::vector< char>  *CharVec( void) { return &m_CharVec; }
+    bool                IsCurValid( void) const { return m_Cursor < m_CharVec.size(); }
+    char                Curr( void) { return m_CharVec[ m_Cursor]; }
+    bool                IsBOL( void) const { return !m_Cursor || ( m_CharVec[ m_Cursor -1] == '\n'); }
 
-    bool                IsCurValid( void) { return m_Cursor < size(); }
-    char                Curr( void) { return SELF[ m_Cursor]; }
-    bool                Next( void) { return ++m_Cursor < size(); } 
+    bool                Next( void) { return ++m_Cursor < m_CharVec.size(); } 
     uint32_t            Marker( void) const { return m_Cursor; } 
     
     void                RollTo( uint32_t mark) { m_Cursor = mark; }
     uint32_t            SzFrom( uint32_t mark) { return m_Cursor -mark; }
 
-    Cv_CStr             Region( uint32_t m1, uint32_t m2) { return Cv_CStr( &SELF[ m1], m2 -m1); }
+    Cv_CStr             Region( uint32_t m1, uint32_t m2) { return Cv_CStr( &m_CharVec[ m1], m2 -m1); }
 }; 
 
 
@@ -142,12 +146,12 @@ public:
     bool            Next( void) { return m_InStream->Next(); } 
     Item            Curr( void) { return m_InStream->Curr(); } 
     Mark            Marker( void) const { return m_InStream->Marker(); }
-    
+    bool            IsBOL( void) const { return m_InStream->IsBOL(); }
+
       
     void            RollTo( const Mark &mark) { m_InStream->RollTo( mark); }
     uint32_t        SzFrom( const Mark &mark) { return m_InStream->SzFrom( mark); }
     Cv_CStr         Region( const Mark &m1, const Mark &m2) { return m_InStream->Region( m1, m2); }
-    
 
 template < typename TimbreShard>
     auto		    *Bottom(void) { return BottomForge()->template Whorl< TimbreShard>(); }
@@ -309,7 +313,7 @@ template < typename Forge>
         if ( !match)
             return false;
         parser->Next();
-        return  true;;
+        return  true;
     }   
 	  
 
@@ -364,8 +368,11 @@ template < typename Forge>
     bool    DoParse( Forge *ctxt) const
     {   
         typename Forge::Parser      *parser = ctxt->GetParser(); 
-        return  !parser->IsCurValid();
-    }   
+        for ( ; parser->IsCurValid(); parser->Next())
+            if ( parser->Curr())
+                return false;
+        return !parser->IsCurValid();
+    }
 	 
 
 template < typename Cnstr>
@@ -429,7 +436,7 @@ struct CharSet : public Shard< CharSet >
     
     CharSet operator ~( void) const 
     {
-        CharSet     neg( GetName());
+        CharSet     neg = SELF;
         neg.m_Bits.Negate();
         return neg;
     }

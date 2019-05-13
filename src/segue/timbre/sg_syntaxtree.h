@@ -11,20 +11,21 @@
 namespace Sg_Timbre
 {
     
-struct     SynElem;
-struct     RefSynElem;
-struct     ActionSynElem;
-struct     SeqSynElem;
-struct     AltSynElem;
-struct     RepeatSynElem;
-struct     RefSynElem;
-struct	   LexemeSynElem;
-struct	   ErrorSynElem;
-struct     Cv_SynCrate; 
+struct      SynElem;
+struct      RefSynElem;
+struct      ActionSynElem;
+struct      BOLSynElem;
+struct      SeqSynElem;
+struct      AltSynElem;
+struct      RepeatSynElem;
+struct      RefSynElem;
+struct	    LexemeSynElem;
+struct	    ErrorSynElem;
+struct      Cv_SynCrate; 
 
 //_____________________________________________________________________________________________________________________________ 
 
-typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynElem, RefSynElem, LexemeSynElem, ErrorSynElem, SynElem>   SynCrate; 
+typedef Cv_Crate< RefSynElem, RepeatSynElem, AltSynElem, SeqSynElem, ActionSynElem, BOLSynElem, RefSynElem, LexemeSynElem, ErrorSynElem, SynElem>   SynCrate; 
 typedef Cv_CrateRepos< SynCrate>                                                                                                        SynRepos;
 
 //_____________________________________________________________________________________________________________________________ 
@@ -106,6 +107,25 @@ struct     ErrorSynElem : public SynElem
 	} 
 
 };
+
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct     BOLSynElem : public SynElem 
+{ 
+
+    std::string		GetName( void) const { return Cv_Aid::ToStr( "BOL", GetId()); }
+
+    bool    WriteDot( Cv_DotStream &strm)  
+    {
+        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << "BOL" << " " << "<BR />" ; 
+        strm << " </FONT>>];\n "; 
+
+        return true;
+    } 
+
+};
+
 //_____________________________________________________________________________________________________________________________ 
 
 struct     ActionSynElem : public SynElem 

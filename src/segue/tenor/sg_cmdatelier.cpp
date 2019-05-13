@@ -117,7 +117,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         if ( !Sg_BaseEasel::DoInit( vita))
             return false; 
         StrInStream			    memVector;
-        bool	                res = Cv_Aid::ReadVec( &memVector, vita->m_RuleFile.c_str()); 
+        bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), vita->m_RuleFile.c_str()); 
         if ( !res)
         {
             std::cerr << "Not Found : " << vita->m_RuleFile << '\n';

@@ -17,6 +17,7 @@ using namespace Sg_Timbre;
 //_____________________________________________________________________________________________________________________________  
 
 struct      RExpDoc;
+struct      LexDoc;
 struct      RExpQuanta;
 struct      RExpDocSynElem;
 struct      RExpEntrySeqElem;
@@ -52,6 +53,10 @@ struct RExpPrimitive
 	auto        OptBlankSpace(void) const { return *(WhiteChars() | NL()); }
 	auto        BlankLine(void) const { return OptWhiteSpace() >> (NL() | EoS()); }
 	auto        Comment(void) const { return Str("<!--") >> *(Any() - Str("-->")) >> Str("-->"); } 
+    auto        Dot( void) const { return ~CharSet( "\n"); }
+    auto        LineEntry( void) const { return *( Dot()) >> NL(); }
+    auto        BOL( void) const { return BOLShard(); }
+    auto        AnyLine( void) const { return BOL() >> *Dot() >> BlankLine() ; } 
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -97,34 +102,34 @@ struct RExpNamedCharClass : public Shard< RExpNamedCharClass>, public RExpPrimit
         auto        FetchCCL( void) const { return m_NegateFlg ? m_ChSet.Negative() : m_ChSet; }
         void        SetName( const Cv_CStr &name)
         {
-                if ( name == "alnum")
-                    m_ChSet = Sg_ChSet::AlphaNum();
-                else if ( name == "alpha")
-                    m_ChSet = Sg_ChSet::Alpha();
-                else if ( name == "ascii")
-                    m_ChSet = Sg_ChSet::Ascii();
-                else if ( name == "blank")
-                    m_ChSet = Sg_ChSet::Blank();
-                else if ( name == "cntrl")
-                    m_ChSet = Sg_ChSet::Cntrl();
-                else if ( name == "digit")
-                    m_ChSet = Sg_ChSet::Digit();
-                else if ( name == "graph")
-                    m_ChSet = Sg_ChSet::Graph();
-                else if ( name == "lower")
-                    m_ChSet = Sg_ChSet::Lower();
-                else if ( name == "print")
-                    m_ChSet = Sg_ChSet::Print();
-                else if ( name == "punct")
-                    m_ChSet = Sg_ChSet::Punct();
-                else if ( name == "space")
-                    m_ChSet = Sg_ChSet::Space();
-                else if ( name == "upper")
-                    m_ChSet = Sg_ChSet::Upper();
-                else if ( name == "word")
-                    m_ChSet = Sg_ChSet::Word();
-                else if ( name == "xdigit")
-                    m_ChSet = Sg_ChSet::XDigit(); 
+            if ( name == "alnum")
+                m_ChSet = Sg_ChSet::AlphaNum();
+            else if ( name == "alpha")
+                m_ChSet = Sg_ChSet::Alpha();
+            else if ( name == "ascii")
+                m_ChSet = Sg_ChSet::Ascii();
+            else if ( name == "blank")
+                m_ChSet = Sg_ChSet::Blank();
+            else if ( name == "cntrl")
+                m_ChSet = Sg_ChSet::Cntrl();
+            else if ( name == "digit")
+                m_ChSet = Sg_ChSet::Digit();
+            else if ( name == "graph")
+                m_ChSet = Sg_ChSet::Graph();
+            else if ( name == "lower")
+                m_ChSet = Sg_ChSet::Lower();
+            else if ( name == "print")
+                m_ChSet = Sg_ChSet::Print();
+            else if ( name == "punct")
+                m_ChSet = Sg_ChSet::Punct();
+            else if ( name == "space")
+                m_ChSet = Sg_ChSet::Space();
+            else if ( name == "upper")
+                m_ChSet = Sg_ChSet::Upper();
+            else if ( name == "word")
+                m_ChSet = Sg_ChSet::Word();
+            else if ( name == "xdigit")
+                m_ChSet = Sg_ChSet::XDigit(); 
         }
     };
     
@@ -948,6 +953,184 @@ template < typename Forge>
 		return true;
 	} 
  
+    void    Dump( std::ostream &ostr) const
+    {
+        return;
+    } 
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct LexEntry : public Shard< LexEntry>, public RExpPrimitive
+{
+    struct Whorl
+    { 
+        uint64_t					    m_Index;
+        std::vector< RExpRepos::Id>		m_RExps;
+
+        Whorl( void)
+            : m_Index( 0)
+        {} 
+
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
+        {
+            if ( !m_RExps.size())
+                return RExpRepos::Id();
+            auto    actElem = new ActionSynElem();
+            auto    synElem = new RExpEntrySeqElem( repos->m_RuleSz++);
+            synElem->m_SeqList = m_RExps; 
+            actElem->m_Elem = repos->Store( synElem);  
+            actElem->m_Token = m_Index;
+            return  repos->Store( actElem); 
+        }
+    };
+
+    auto           RExpressionListener(void) const {
+        return []( auto forge) {
+            //std::cout << forge->MatchStr() << "\n"; 
+            return true;  }; }
+
+    auto          IndexListener(void) const {
+        return [this]( auto forge) {   
+            forge->template Pred< LexEntry>()->m_Index = forge->num;
+            return true;  }; }
+
+    auto          SeqListener(void) const {
+        return [this]( auto forge) { 
+            //std::cout << forge->MatchStr() << "\n";
+            auto        docWhorl = forge->template Bottom< LexDoc>();
+            forge->template Pred< LexEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
+            return true;  }; }
+    auto          MatchListener(void) const {
+        return [this]( auto forge) {  
+            std::string     art = forge->MatchStr();
+            std::cout << art << '\n';
+            std::cout.flush();
+            return true;  }; }
+
+    auto           Output( void) const { return Str( "<<") >> OptBlankSpace() >> IStr( "output") >> WhiteSpace() >> ParseInt<uint64_t>()[IndexListener()] >> OptBlankSpace()  >> Str( ">>"); }
+    auto		   LexExpression( void) const { return +(RExpSeq()[ SeqListener()] - ( WhiteSpace() | Char('<'))) ; }
+    //auto		   LexLine(void) const { return  Comment()  | ( OptBlankSpace()  >> LexExpression () [ MatchListener()] >>  OptBlankSpace() >> Output() >> BlankLine()) | BlankLine(); }
+    auto		   LexLine(void) const { return  ( LexExpression()  >> OptBlankSpace() >> Output() >> BlankLine() ) | BlankLine()[ MatchListener()] ; }
+template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {     
+        forge->Push();
+        auto	rexpLine = LexLine( ); 
+        if (!rexpLine.DoMatch(forge))
+            return false;
+        //std::cout << forge->m_Index << "\n";
+        auto        docWhorl = forge->template Bottom< LexDoc>(); 
+        return true;
+    }
+
+
+    void    Dump( std::ostream &ostr) const
+    {
+        ostr << "Entry";
+        return;
+    } 
+};
+
+
+//_____________________________________________________________________________________________________________________________
+
+struct LexDoc  : public Shard< LexDoc>, public RExpPrimitive
+{   
+    struct XAct
+    {
+        RExpRepos                       *m_Repos;
+        Sg_Partition::CCLImpressor      m_Impressor;
+
+        RExpRepos::Id                   m_Id;
+
+        XAct( RExpRepos *repos) 
+            : m_Repos( repos), m_Impressor( &repos->m_Base)
+        {} 
+    };
+
+    struct Whorl
+    {
+        RExpRepos                       *m_Repos; 
+        Sg_Partition::CCLImpressor      *m_Impressor;
+        std::vector< RExpRepos::Id>     m_RExps;
+
+        ~Whorl( void)
+        {
+            m_Impressor->Over();
+        }
+
+        bool    PrimeIn( XAct *xact)
+        {
+            m_Repos = xact->m_Repos;
+            m_Impressor = &xact->m_Impressor;
+            return true;
+        }
+
+        bool    ExtractOut( XAct *xact)
+        {
+            xact->m_Id = m_Repos->m_RootId;
+            return true;
+        }
+
+        RExpRepos::Id           FetchId( RExpRepos *repos) 
+        {
+            auto    synElem = new RExpDocSynElem();
+            synElem->m_AltList = m_RExps; 
+            return repos->Store( synElem);        
+        }
+    };
+
+    LexDoc( void) 
+    {}  
+
+    auto          LexListener(void) const {
+        return [this]( auto forge) {  
+            auto            docWhorl = forge->template Pred< LexDoc>();
+            RExpRepos::Id   id = forge->FetchId( docWhorl->m_Repos);
+            if ( id.IsValid())
+                return true;
+            docWhorl->m_RExps.push_back( );
+            return true;  }; }
+
+    auto          MatchListener(void) const {
+        return [this]( auto forge) {  
+            std::string     art = forge->MatchStr();
+            std::cout << art << '\n';
+            std::cout.flush();
+            return true;  }; }
+
+    auto          MatchListener1(void) const {
+        return [this]( auto forge) {  
+            std::string     art = forge->MatchStr();
+            std::cout << art << '\n';
+            std::cout.flush();
+            return true;  }; }
+
+
+    auto    SectionBdy( void) const { return BOL() >> Str( "%%") >> BlankLine(); } 
+    auto    DefnEntry( void) const { return BOL() >> *Dot() >> BlankLine() ; } 
+    auto    OptionSection( void) const { return *( DefnEntry() -SectionBdy())[ MatchListener()] >> SectionBdy()[ MatchListener1()] ; } 
+    auto    RuleSection( void) const { return  +LexEntry()[ LexListener()] ; }
+    
+
+    auto    DocumentOver( void) const { return [ this]( auto forge) { 
+        auto            docWhorl = forge->template Bottom< LexDoc>(); 
+        docWhorl->m_Repos->m_RootId = docWhorl->FetchId( docWhorl->m_Repos);
+        return true;  };  } 
+
+    auto            Document( void) const { return ( OptionSection() >> RuleSection() )[ DocumentOver()]; } 
+
+    template < typename Forge>
+    bool    DoParse( Forge *forge) const
+    {    
+        forge->Push();
+        auto    doc = Document();
+        if (  !doc.DoMatch( forge))
+            return false;   
+        return true;
+    } 
+
     void    Dump( std::ostream &ostr) const
     {
         return;

@@ -37,6 +37,8 @@ struct RefShard;
 template <const char C1, const char C2>
 struct RangeShard;
 
+struct BOLShard;
+
 //_____________________________________________________________________________________________________________________________  
 
 template < typename TimbreShard, typename Parser, typename = void>
@@ -133,6 +135,7 @@ template < typename Right>
 	  
 template < typename Right>
 	RefShard< Right>							Ref( const Right &p) const { return RefShard< Right>( p); } 
+ 
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -272,6 +275,34 @@ template < typename Cnstr>
 		elem->m_Elem = cnstr->FetchElemId( &m_LexShard);  
 		return cnstr->Store( elem);
 	} 
+};
+ 
+
+//_____________________________________________________________________________________________________________________________ 
+///  Lexeme class defines a new grammar terminator. 
+ 
+struct BOLShard : public  Shard< BOLShard  >
+{ 
+ 
+
+public:
+    BOLShard( void) 
+    {}
+
+    template < typename Forge>
+    bool    DoParse( Forge *ctxt) const
+    { 
+        typename Forge::Parser	*parser = ctxt->GetParser();
+        return parser->IsBOL();  
+    } 
+
+
+template < typename Cnstr>
+    auto        FetchElemId( Cnstr *cnstr)
+    {  
+        auto	elem = new BOLSynElem(); 
+        return cnstr->Store( elem);
+    } 
 };
  
 //_____________________________________________________________________________________________________________________________ 

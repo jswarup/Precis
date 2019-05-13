@@ -18,7 +18,8 @@
 
 static Cv_CmdOption     s_RExpIfcOptions[] = 
 {         
-    { "-i",         "<input>",  "input rule-file"},
+    { "-irex",      "<input>",  "input rule-file"},
+    { "-ilex",      "<input>",  "input rule-file"},
     { "-d",         0 ,         "debug"},
     { "-oshard",    "<dot>",    0},
     { "-oelem",     "<dot>",    0},
@@ -31,7 +32,8 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 
 class Sg_RExpCmdProcessor : public Cv_CmdExecutor
 { 
-    std::string         m_InputFile;
+    std::string         m_LexInputFile;
+    std::string         m_RexInputFile;
     std::string         m_DataFile;
     std::string         m_ElemDotFile;
     std::string         m_ShardDotFile;
@@ -55,9 +57,14 @@ public:
 
     bool    ParseArg( const std::string &key, const std::string &arg)
     {
-        if ("-i" == key)
+        if ("-irex" == key)
         {
-            m_InputFile = arg;
+            m_RexInputFile = arg;
+            return true;
+        }
+        if ("-ilex" == key)
+        {
+            m_LexInputFile = arg;
             return true;
         }
         if ("-d" == key)
@@ -144,6 +151,7 @@ auto ProcessMatch( TimbreShard *shard, ...) -> void
 
 int     Sg_RExpCmdProcessor::Test(void)
 { 
+    int32_t	    apiErrCode = 0;
    // typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
 
   /*  std::cout << PartitionStash::SizeOf( 256) << " ";
@@ -156,24 +164,42 @@ int     Sg_RExpCmdProcessor::Test(void)
     */
     //RExpQuanta                   tx;
     //Cv_TypeEngage::Dump( &tx, std::cout, 0);
-    if ( !m_InputFile.size())
+    StrInStream			    memVector;
+    if ( m_RexInputFile.size())
+	{
+	    bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_RexInputFile.c_str()); 
+        if ( !res)
+        {
+            std::cerr << "Not Found : " << m_RexInputFile << '\n';
+            return -1;
+        }
+    } else if ( m_LexInputFile.size())
+    { 
+        bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_LexInputFile.c_str()); 
+        if ( !res)
+        {
+            std::cerr << "Not Found : " << m_LexInputFile << '\n';
+            return -1;
+        }
+    } else
         return 0;
-
-	StrInStream			    memVector;
-	bool	                res = Cv_Aid::ReadVec( &memVector, m_InputFile.c_str()); 
-    if ( !res)
-    {
-        std::cerr << "Not Found : " << m_InputFile << '\n';
-        return -1;
-    }
+    
+    
 	Parser< StrInStream>	parser( &memVector);  
     if ( m_DebugFlg)
         parser.SetLogStream( &std::cout);
     RExpRepos				rexpRepos;
-    RExpDoc					rexpDoc; 
-    RExpDoc::XAct           xact( &rexpRepos); 
-    bool					apiErrCode = parser.Match( &rexpDoc, &xact);
-
+    if ( m_RexInputFile.size())
+    {
+        RExpDoc					rexpDoc; 
+        RExpDoc::XAct           xact( &rexpRepos); 
+        apiErrCode = parser.Match( &rexpDoc, &xact) ? 0 : -1;
+    } else if ( m_LexInputFile.size())
+    {
+        LexDoc					lexDoc; 
+        LexDoc::XAct            xact( &rexpRepos); 
+        apiErrCode = parser.Match( &lexDoc, &xact) ? 0 : -1; 
+    }
     if ( m_ShardDotFile.size())
     {
         std::ofstream							ostrm( m_ShardDotFile);
@@ -208,19 +234,22 @@ int     Sg_RExpCmdProcessor::Test(void)
         dfaRepos.WriteDot( fsaDotStrm);
     }
      
-    StrInStream			    dataMemVector;
-    bool	                res1 = Cv_Aid::ReadVec( &dataMemVector, m_DataFile.c_str()); 
-    if ( !res1)
+    if ( m_DataFile.c_str())
     {
-        std::cerr << "Not Found : " << m_DataFile << '\n';
-        return -1;
-    }
+        StrInStream			    dataMemVector;
+        bool	                res1 = Cv_Aid::ReadVec( dataMemVector.CharVec(), m_DataFile.c_str()); 
+        if ( !res1)
+        {
+            std::cerr << "Not Found : " << m_DataFile << '\n';
+            return -1;
+        }
     
-    Sg_Rampart               rampart;
-    rampart.SetDfaRepos( &dfaRepos);
-    for ( uint32_t i = 0; i < dataMemVector.size(); ++i)
-    {
-        rampart.Play( dataMemVector[ i]);
+        Sg_Rampart               rampart;
+        rampart.SetDfaRepos( &dfaRepos);
+        for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
+        {
+            rampart.Play( dataMemVector.CharVec()->at( i));
+        }
     }
 /*
     RExpRepos				                synCrate;
