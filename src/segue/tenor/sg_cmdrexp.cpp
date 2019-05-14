@@ -165,6 +165,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     //RExpQuanta                   tx;
     //Cv_TypeEngage::Dump( &tx, std::cout, 0);
     StrInStream			    memVector;
+    bool                    posizFlg = false;
     if ( m_RexInputFile.size())
 	{
 	    bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_RexInputFile.c_str()); 
@@ -181,6 +182,7 @@ int     Sg_RExpCmdProcessor::Test(void)
             std::cerr << "Not Found : " << m_LexInputFile << '\n';
             return -1;
         }
+        posizFlg = true;
     } else
         return 0;
     
@@ -189,17 +191,12 @@ int     Sg_RExpCmdProcessor::Test(void)
     if ( m_DebugFlg)
         parser.SetLogStream( &std::cout);
     RExpRepos				rexpRepos;
-    if ( m_RexInputFile.size())
-    {
-        RExpDoc					rexpDoc; 
-        RExpDoc::XAct           xact( &rexpRepos); 
-        apiErrCode = parser.Match( &rexpDoc, &xact) ? 0 : -1;
-    } else if ( m_LexInputFile.size())
-    {
-        LexDoc					lexDoc; 
-        LexDoc::XAct            xact( &rexpRepos); 
-        apiErrCode = parser.Match( &lexDoc, &xact) ? 0 : -1; 
-    }
+    rexpRepos.m_PosixFmt = posizFlg;
+    
+    RExpDoc					rexpDoc; 
+    RExpDoc::XAct           xact( &rexpRepos); 
+    apiErrCode = parser.Match( &rexpDoc, &xact) ? 0 : -1;
+    
     if ( m_ShardDotFile.size())
     {
         std::ofstream							ostrm( m_ShardDotFile);
@@ -234,7 +231,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         dfaRepos.WriteDot( fsaDotStrm);
     }
      
-    if ( m_DataFile.c_str())
+    if ( m_DataFile.size())
     {
         StrInStream			    dataMemVector;
         bool	                res1 = Cv_Aid::ReadVec( dataMemVector.CharVec(), m_DataFile.c_str()); 

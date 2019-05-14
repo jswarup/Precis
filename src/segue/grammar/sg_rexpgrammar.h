@@ -16,8 +16,7 @@ using namespace Sg_Timbre;
 
 //_____________________________________________________________________________________________________________________________  
 
-struct      RExpDoc;
-struct      LexDoc;
+struct      RExpDoc; 
 struct      RExpQuanta;
 struct      RExpDocSynElem;
 struct      RExpEntrySeqElem;
@@ -31,9 +30,10 @@ struct RExpRepos : public Cv_CrateRepos< RExpCrate>
     RExpRepos::Id               m_RootId; 
     uint32_t                    m_RuleSz;
     Sg_Partition                m_Base;
+    bool                        m_PosixFmt;
         
     RExpRepos( void)
-        : m_RuleSz( 0)
+        : m_RuleSz( 0), m_PosixFmt( false)
     {}
 };
 
@@ -391,7 +391,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     Dec         m_BackRef;
     RExpCCL     m_CCLExpr;
 
-    static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|";    // "[]+*?{}().\\/"
+    static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|:/=&-_~%."; //";    // "[]+*?{}().\\/" [ /:=&-_~%. added for a test ]
 
     struct Whorl
     {
@@ -480,6 +480,10 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
         return [](auto forge) {
             return true;  }; } 
 
+    auto		TrailCtxtListener(void) const {
+        return [](auto forge) { 
+            return true;  }; }
+
     auto           KeyChar( void) const {
         return  Char('s')[ WhiteSpaceListener()] |
             Char('S')[ NonWhiteSpaceListener()] |
@@ -490,16 +494,25 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
             Char('b')[ WordBdyListener()] |
             Char('B')[ NonWordBdyListener()];  } 
 
-    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | Char( '.')[ DotListener()] |
+    auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | 
+                            Char( '.')[ DotListener()] | 
                             ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
                               m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
+    auto        PxUnit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | 
+                            Char( '.')[ DotListener()] | Char( '/')[ TrailCtxtListener()] |
+                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
+                                m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] |  Any()[ CharListener()])) ; } 
+
 
  template < typename Forge>
     bool    DoParse( Forge *forge) const
     {
-        forge->Push();
-        auto	unit = Unit();
-        if ( !unit.DoMatch( forge))
+        auto        docWhorl = forge->template Bottom< RExpDoc>(); 
+        
+        forge->Push(); 
+        if ( !docWhorl->m_Repos->m_PosixFmt && !Unit().DoMatch( forge))
+            return false; 
+        if ( docWhorl->m_Repos->m_PosixFmt && !PxUnit().DoMatch( forge))
             return false; 
         return true;
     }
@@ -810,23 +823,25 @@ template < typename Forge>
         ostr << "Quanta";
         return;
     } 
-};
+}; 
 
 //_____________________________________________________________________________________________________________________________
 
 struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 {
-	struct Whorl
-	{ 
-		uint64_t					    m_Index;
-		std::vector< RExpRepos::Id>		m_RExps;
+    struct Whorl
+    { 
+        uint64_t					    m_Index;
+        std::vector< RExpRepos::Id>		m_RExps;
 
-		Whorl( void)
-			: m_Index( 0)
-		{} 
+        Whorl( void)
+            : m_Index( 0)
+        {} 
 
-        RExpRepos::Id           FetchId( RExpRepos *repos) 
+        RExpRepos::Id                   FetchId( RExpRepos *repos) 
         {
+            if ( !m_RExps.size())
+                return RExpRepos::Id();
             auto    actElem = new ActionSynElem();
             auto    synElem = new RExpEntrySeqElem( repos->m_RuleSz++);
             synElem->m_SeqList = m_RExps; 
@@ -834,13 +849,8 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
             actElem->m_Token = m_Index;
             return  repos->Store( actElem); 
         }
-	};
- 
-	auto           RExpressionListener(void) const {
-		return []( auto forge) {
-			//std::cout << forge->MatchStr() << "\n"; 
-			return true;  }; }
-
+    };
+  
 	auto          IndexListener(void) const {
 		return [this]( auto forge) {   
  		    forge->template Pred< RExpEntry>()->m_Index = forge->num;
@@ -853,20 +863,29 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
  	        forge->template Pred< RExpEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
 			return true;  }; }
 
-	auto           RExpression(void) const { return (+(RExpSeq()[ SeqListener()] - Char('/')))[ RExpressionListener()]; }
+	auto           RExpression(void) const { return +(RExpSeq()[ SeqListener()] - Char('/')); }
 	auto           RExpEnd( void) const { return Char( '/')  ; }
 	auto           RExpBegin( void) const { return ( Char( '/') >>  OptBlankSpace()); }
 	auto		   RExpLine(void) const { return  ( Comment()  | ( OptBlankSpace()  >> ParseInt<uint64_t>()[IndexListener()] >> Char(',') >> RExpBegin() >> RExpression() >> RExpEnd() >> BlankLine())); }
 
+    auto           Output( void) const { return Str( "<<") >> OptBlankSpace() >> IStr( "output") >> WhiteSpace() >> ParseInt<uint64_t>()[IndexListener()] >> OptBlankSpace()  >> Str( ">>"); }
+    auto		   LexExpression( void) const { return +(RExpSeq()[ SeqListener()] - ( WhiteSpace() | Char('<'))) ; }
+    auto		   LexLine(void) const { return  ( LexExpression()  >> OptBlankSpace() >> Output() >> BlankLine() ) | BlankLine() ; }
+
+     
+ 
+
 template < typename Forge>
 	bool    DoParse( Forge *forge) const
 	{     
-		forge->Push();
-		auto	rexpLine = RExpLine( ); 
-		if (!rexpLine.DoMatch(forge))
+        forge->Push(); 
+
+        auto        docWhorl = forge->template Bottom< RExpDoc>();
+		if ( !docWhorl->m_Repos->m_PosixFmt && !RExpLine().DoMatch(forge))
 			return false;
-		//std::cout << forge->m_Index << "\n";
-        auto        docWhorl = forge->template Bottom< RExpDoc>(); 
+        if ( docWhorl->m_Repos->m_PosixFmt && !LexLine().DoMatch(forge))
+            return false;
+        //std::cout << forge->m_Index << "\n"; 
 		return true;
 	}
 	 
@@ -880,7 +899,7 @@ template < typename Forge>
 
 //_____________________________________________________________________________________________________________________________
 
-struct RExpDoc  : public Shard< RExpDoc>
+struct RExpDoc  : public Shard< RExpDoc>, public RExpPrimitive
 {   
     struct XAct
     {
@@ -932,210 +951,43 @@ struct RExpDoc  : public Shard< RExpDoc>
     auto          RExpListener(void) const {
         return [this]( auto forge) {  
             auto            docWhorl = forge->template Pred< RExpDoc>();
-            docWhorl->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
-            return true;  }; }
-
+            RExpRepos::Id   id = forge->FetchId( docWhorl->m_Repos);
+            if ( !id.IsValid())
+                return true;
+            docWhorl->m_RExps.push_back( id);
+            return true;  }; }  
     
 	auto           DocumentOver( void) const { return [ this]( auto forge) { 
         auto            docWhorl = forge->template Bottom< RExpDoc>(); 
         docWhorl->m_Repos->m_RootId = docWhorl->FetchId( docWhorl->m_Repos);
 		return true;  };  } 
 	 
-	auto           Document( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
+    auto            SectionBdy( void) const { return BOL() >> Str( "%%") >> BlankLine(); } 
+    auto            DefnEntry( void) const { return BOL() >> *Dot() >> BlankLine() ; } 
+    auto            OptionSection( void) const { return *( DefnEntry() -SectionBdy()) >> SectionBdy(); } 
+    auto            RuleSection( void) const { return  +RExpEntry()[ RExpListener()] ; } 
+    auto            LexDocument( void) const { return ( OptionSection() >> RuleSection() )[ DocumentOver()]; } 
+
+	auto            RexDocument( void) const { return (+RExpEntry()[ RExpListener()] )[ DocumentOver()]; } 
 
 template < typename Forge>
 	bool    DoParse( Forge *forge) const
 	{    
-		forge->Push();
-		auto    doc = Document();
-		if (  !doc.DoMatch( forge))
+        bool    pxFmt = forge->m_Repos->m_PosixFmt;
+
+		forge->Push(); 
+		if ( !pxFmt && !RexDocument().DoMatch( forge))
 			return false;   
-		return true;
+        if ( pxFmt && !LexDocument().DoMatch( forge))
+            return false;   
+        return true;
 	} 
  
     void    Dump( std::ostream &ostr) const
     {
         return;
     } 
-};
-
-//_____________________________________________________________________________________________________________________________
-
-struct LexEntry : public Shard< LexEntry>, public RExpPrimitive
-{
-    struct Whorl
-    { 
-        uint64_t					    m_Index;
-        std::vector< RExpRepos::Id>		m_RExps;
-
-        Whorl( void)
-            : m_Index( 0)
-        {} 
-
-        RExpRepos::Id           FetchId( RExpRepos *repos) 
-        {
-            if ( !m_RExps.size())
-                return RExpRepos::Id();
-            auto    actElem = new ActionSynElem();
-            auto    synElem = new RExpEntrySeqElem( repos->m_RuleSz++);
-            synElem->m_SeqList = m_RExps; 
-            actElem->m_Elem = repos->Store( synElem);  
-            actElem->m_Token = m_Index;
-            return  repos->Store( actElem); 
-        }
-    };
-
-    auto           RExpressionListener(void) const {
-        return []( auto forge) {
-            //std::cout << forge->MatchStr() << "\n"; 
-            return true;  }; }
-
-    auto          IndexListener(void) const {
-        return [this]( auto forge) {   
-            forge->template Pred< LexEntry>()->m_Index = forge->num;
-            return true;  }; }
-
-    auto          SeqListener(void) const {
-        return [this]( auto forge) { 
-            //std::cout << forge->MatchStr() << "\n";
-            auto        docWhorl = forge->template Bottom< LexDoc>();
-            forge->template Pred< LexEntry>()->m_RExps.push_back( forge->FetchId( docWhorl->m_Repos));
-            return true;  }; }
-    auto          MatchListener(void) const {
-        return [this]( auto forge) {  
-            std::string     art = forge->MatchStr();
-            std::cout << art << '\n';
-            std::cout.flush();
-            return true;  }; }
-
-    auto           Output( void) const { return Str( "<<") >> OptBlankSpace() >> IStr( "output") >> WhiteSpace() >> ParseInt<uint64_t>()[IndexListener()] >> OptBlankSpace()  >> Str( ">>"); }
-    auto		   LexExpression( void) const { return +(RExpSeq()[ SeqListener()] - ( WhiteSpace() | Char('<'))) ; }
-    //auto		   LexLine(void) const { return  Comment()  | ( OptBlankSpace()  >> LexExpression () [ MatchListener()] >>  OptBlankSpace() >> Output() >> BlankLine()) | BlankLine(); }
-    auto		   LexLine(void) const { return  ( LexExpression()  >> OptBlankSpace() >> Output() >> BlankLine() ) | BlankLine()[ MatchListener()] ; }
-template < typename Forge>
-    bool    DoParse( Forge *forge) const
-    {     
-        forge->Push();
-        auto	rexpLine = LexLine( ); 
-        if (!rexpLine.DoMatch(forge))
-            return false;
-        //std::cout << forge->m_Index << "\n";
-        auto        docWhorl = forge->template Bottom< LexDoc>(); 
-        return true;
-    }
-
-
-    void    Dump( std::ostream &ostr) const
-    {
-        ostr << "Entry";
-        return;
-    } 
-};
-
-
-//_____________________________________________________________________________________________________________________________
-
-struct LexDoc  : public Shard< LexDoc>, public RExpPrimitive
-{   
-    struct XAct
-    {
-        RExpRepos                       *m_Repos;
-        Sg_Partition::CCLImpressor      m_Impressor;
-
-        RExpRepos::Id                   m_Id;
-
-        XAct( RExpRepos *repos) 
-            : m_Repos( repos), m_Impressor( &repos->m_Base)
-        {} 
-    };
-
-    struct Whorl
-    {
-        RExpRepos                       *m_Repos; 
-        Sg_Partition::CCLImpressor      *m_Impressor;
-        std::vector< RExpRepos::Id>     m_RExps;
-
-        ~Whorl( void)
-        {
-            m_Impressor->Over();
-        }
-
-        bool    PrimeIn( XAct *xact)
-        {
-            m_Repos = xact->m_Repos;
-            m_Impressor = &xact->m_Impressor;
-            return true;
-        }
-
-        bool    ExtractOut( XAct *xact)
-        {
-            xact->m_Id = m_Repos->m_RootId;
-            return true;
-        }
-
-        RExpRepos::Id           FetchId( RExpRepos *repos) 
-        {
-            auto    synElem = new RExpDocSynElem();
-            synElem->m_AltList = m_RExps; 
-            return repos->Store( synElem);        
-        }
-    };
-
-    LexDoc( void) 
-    {}  
-
-    auto          LexListener(void) const {
-        return [this]( auto forge) {  
-            auto            docWhorl = forge->template Pred< LexDoc>();
-            RExpRepos::Id   id = forge->FetchId( docWhorl->m_Repos);
-            if ( id.IsValid())
-                return true;
-            docWhorl->m_RExps.push_back( );
-            return true;  }; }
-
-    auto          MatchListener(void) const {
-        return [this]( auto forge) {  
-            std::string     art = forge->MatchStr();
-            std::cout << art << '\n';
-            std::cout.flush();
-            return true;  }; }
-
-    auto          MatchListener1(void) const {
-        return [this]( auto forge) {  
-            std::string     art = forge->MatchStr();
-            std::cout << art << '\n';
-            std::cout.flush();
-            return true;  }; }
-
-
-    auto    SectionBdy( void) const { return BOL() >> Str( "%%") >> BlankLine(); } 
-    auto    DefnEntry( void) const { return BOL() >> *Dot() >> BlankLine() ; } 
-    auto    OptionSection( void) const { return *( DefnEntry() -SectionBdy())[ MatchListener()] >> SectionBdy()[ MatchListener1()] ; } 
-    auto    RuleSection( void) const { return  +LexEntry()[ LexListener()] ; }
-    
-
-    auto    DocumentOver( void) const { return [ this]( auto forge) { 
-        auto            docWhorl = forge->template Bottom< LexDoc>(); 
-        docWhorl->m_Repos->m_RootId = docWhorl->FetchId( docWhorl->m_Repos);
-        return true;  };  } 
-
-    auto            Document( void) const { return ( OptionSection() >> RuleSection() )[ DocumentOver()]; } 
-
-    template < typename Forge>
-    bool    DoParse( Forge *forge) const
-    {    
-        forge->Push();
-        auto    doc = Document();
-        if (  !doc.DoMatch( forge))
-            return false;   
-        return true;
-    } 
-
-    void    Dump( std::ostream &ostr) const
-    {
-        return;
-    } 
-};
+}; 
 
 //_____________________________________________________________________________________________________________________________
 

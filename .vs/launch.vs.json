@@ -9,9 +9,10 @@
       "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "args": [
-        // "rexp -i ip.rules -odfa a.dot -idata data.txt"
+        //"rexp -irex ip3.rex  -oelem a.dot"
+        "rexp -ilex ip1.lex  -oelem a.dot"
         // "trellis -i ip_1m.rules -o out.txt",
-        "atelier -i d1.txt -o out.txt -r ip.rules"
+        //  "atelier -i d1.txt -o out.txt -r ip.rules"
       ]
     }
   ]
