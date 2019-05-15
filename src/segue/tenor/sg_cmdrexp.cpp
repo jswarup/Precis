@@ -10,6 +10,7 @@
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
 #include    "segue/atelier/sg_atelier.h"
+#include	"cove/flux/cv_spritz.h"
 
 #include	<utility>
 #include	<tuple>
@@ -24,6 +25,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
     { "-oshard",    "<dot>",    0},
     { "-oelem",     "<dot>",    0},
     { "-odfa",      "<dot>",    0},
+    { "-oimg",      "<dot>",    0},
     { "-idata",     "<input>",  0},
     { 0,            0,          0},
 };
@@ -35,6 +37,7 @@ class Sg_RExpCmdProcessor : public Cv_CmdExecutor
     std::string         m_LexInputFile;
     std::string         m_RexInputFile;
     std::string         m_DataFile;
+    std::string         m_ImgFile;
     std::string         m_ElemDotFile;
     std::string         m_ShardDotFile;
     std::string         m_DfaDotFile;
@@ -98,6 +101,11 @@ public:
             m_DataFile = arg;
             return true;
         }  
+        if ("-oimg" == key)
+        {
+            m_ImgFile = arg;
+            return true;
+        }
         return false;
     }
 };
@@ -230,7 +238,12 @@ int     Sg_RExpCmdProcessor::Test(void)
         Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
         dfaRepos.WriteDot( fsaDotStrm);
     }
-     
+    
+    if ( m_ImgFile.size())
+    {
+        //Cv_FileSpritz   imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
+        //Cv_Serializer< FsaDfaRepos>( dfaRepos, imgSpritz).Save();
+    }
     if ( m_DataFile.size())
     {
         StrInStream			    dataMemVector;

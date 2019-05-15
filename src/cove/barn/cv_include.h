@@ -85,6 +85,7 @@ struct  Cv_Couple : public std::tuple< X, X>
 
 #define CV_FUNCNAME()       Cv_CStr( __FUNCTION__)
 #define CV_LSEEK            _lseeki64
+#define CV_FSEEK            _fseeki64
 #define CV_FTELL            _ftelli64 
 #define CV_STRCASECMP       stricmp
 #define CV_STRNCASECMP      strnicmp 
