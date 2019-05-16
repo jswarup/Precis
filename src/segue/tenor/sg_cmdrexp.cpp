@@ -10,7 +10,7 @@
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
 #include    "segue/atelier/sg_atelier.h"
-#include	"cove/flux/cv_spritz.h"
+#include	"cove/flux/cv_serializer.h"
 
 #include	<utility>
 #include	<tuple>
@@ -241,8 +241,8 @@ int     Sg_RExpCmdProcessor::Test(void)
     
     if ( m_ImgFile.size())
     {
-        //Cv_FileSpritz   imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
-        //Cv_Serializer< FsaDfaRepos>( dfaRepos, imgSpritz).Save();
+        Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
+        
     }
     if ( m_DataFile.size())
     {

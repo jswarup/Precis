@@ -4,6 +4,7 @@
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_cstr.h"
 #include	"cove/silo/cv_tuple.h"
+#include	"cove/flux/cv_serializer.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -122,6 +123,15 @@ template <typename T>
 		fclose( infile);
 		return true;
 	}  
+
+    //_____________________________________________________________________________________________________________________________
+
+template <typename T>
+    static auto  Save( T *t, Cv_Spritz *spritz) 
+    {
+        Cv_Serializer< T>       serializer( t);
+        return serializer.Save( spritz);
+    }
 
 	//_____________________________________________________________________________________________________________________________
 };

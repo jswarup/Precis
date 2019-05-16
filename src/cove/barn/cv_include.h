@@ -7,6 +7,7 @@
 #define     CV_WINDOWS
 #endif
 
+#include    <type_traits>
 #include    <list>
 #include    <stack>
 #include    <string>

@@ -147,4 +147,21 @@ template<class T, class EqualTo = T>
 
 //_____________________________________________________________________________________________________________________________
 
+template < typename T, typename = void>
+struct Cv_TrivialCopy
+{
+};
+
+template < typename T>
+struct Cv_TrivialCopy< T, typename std::enable_if< std::is_arithmetic<T>::value>::type> 
+{
+    typedef void        Note;
+};
+
+template < typename T>
+struct Cv_TrivialCopy< T, typename T::Copiable> 
+{
+    typedef void        Note;
+};
+
 //_____________________________________________________________________________________________________________________________
