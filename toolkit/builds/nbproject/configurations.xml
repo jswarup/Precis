@@ -10,6 +10,9 @@
           <in>cv_aid.cpp</in>
           <in>cv_include.cpp</in>
         </df>
+        <df name="flux">
+          <in>cv_spritz.cpp</in>
+        </df>
         <df name="snip">
           <in>cv_cmdexec.cpp</in>
           <in>cv_typerep.cpp</in>
@@ -20,6 +23,7 @@
           <in>sg_cmdatelier.cpp</in>
           <in>sg_cmdfilt.cpp</in>
           <in>sg_cmdrexp.cpp</in>
+          <in>sg_cmdserial.cpp</in>
           <in>sg_cmdtimbre.cpp</in>
           <in>sg_cmdxml.cpp</in>
           <in>sg_include.cpp</in>
@@ -69,7 +73,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-O2 -std=c++1z"/>
+        <element flagsID="0" commonFlags="-std=c++1z"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -86,7 +90,7 @@
               <pElem>../../delivery</pElem>
             </incDir>
             <preprocessorList>
-              <Elem>NDEBUG</Elem>
+              <Elem>EBUG</Elem>
             </preprocessorList>
           </ccTool>
         </makeTool>
@@ -108,6 +112,10 @@
             ex="false"
             tool="1"
             flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../src/cove/flux/cv_spritz.cpp" ex="false" tool="1" flavor2="11">
         <ccTool flags="0">
         </ccTool>
       </item>
@@ -140,6 +148,16 @@
         </ccTool>
       </item>
       <item path="../../src/segue/tenor/sg_cmdrexp.cpp"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="../../src/segue/tenor/sg_cmdserial.cpp"
             ex="false"
             tool="1"
             flavor2="11">

@@ -51,7 +51,18 @@ CV_CMD_DEFINE( Sg_SerializeCmdProcessor, "serial", "serial", s_SerializeIfcOptio
 
 struct  Test23
 {
-    int         *m;
+    int                         m;
+    std::vector< uint32_t>      vec;
+    
+    
+    struct Serializer : public Cv_MemberSerializer< std::vector< uint32_t >, int>
+    {
+        typedef Cv_MemberSerializer< std::vector< uint32_t>, int>    Base;
+
+        Serializer( const Test23 &t)
+            : Base( t.vec, t.m)
+        {}
+    };
 };
  
 //_____________________________________________________________________________________________________________________________ 
@@ -67,7 +78,14 @@ int     Sg_SerializeCmdProcessor::Test(void)
     bool                   t = true;
      
     Cv_CArr< uint32_t>     arr( &vec.at( 0), uint32_t( vec.size()));
-    Cv_Aid::Save( vec, &imgSpritz);
+    int                     t1 = 0;
+    Test23                  t23;
+    t23.m = 137;
+    t23.vec = vec;
+
+    Cv_Aid::Save( t23, &imgSpritz);
+    //Cv_Serializer< int *>   ser( &t1);
+    //ser.Serialize( &imgSpritz);
     return 0;
 }
 

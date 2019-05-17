@@ -132,6 +132,11 @@ template <typename T>
         Cv_SerializeUtils::Save( t, spritz);
     }
 
+template <typename T>
+    static void  Save( T *t, Cv_Spritz *spritz) 
+    {
+        Cv_SerializeUtils::Save( t, spritz);
+    } 
 	//_____________________________________________________________________________________________________________________________
 };
 

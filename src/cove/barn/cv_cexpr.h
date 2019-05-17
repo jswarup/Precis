@@ -164,4 +164,18 @@ struct Cv_TrivialCopy< T, typename T::Copiable>
     typedef void        Note;
 };
 
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename T, typename = void>
+struct Cv_PointerType
+{
+};
+
+template < typename T>
+struct Cv_PointerType< T, typename std::enable_if< std::is_pointer<T>::value>::type >
+{
+    typedef void        Note;
+};
+
 //_____________________________________________________________________________________________________________________________
