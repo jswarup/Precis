@@ -127,10 +127,9 @@ template <typename T>
     //_____________________________________________________________________________________________________________________________
 
 template <typename T>
-    static auto  Save( T *t, Cv_Spritz *spritz) 
+    static void Save( const T &t, Cv_Spritz *spritz) 
     {
-        Cv_Serializer< T>       serializer( t);
-        return serializer.Save( spritz);
+        Cv_SerializeUtils::Save( t, spritz);
     }
 
 	//_____________________________________________________________________________________________________________________________

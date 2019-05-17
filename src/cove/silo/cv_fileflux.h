@@ -32,7 +32,7 @@ public:
 
     bool    Open( const char *name, bool readFlg)
     { 
-        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_WRONLY|O_CREAT|O_TRUNC | O_BINARY), Mode); 
+        m_FileNo = open( name, readFlg ? O_RDONLY : ( O_WRONLY|O_CREAT|O_TRUNC ), Mode); 
         if ( m_FileNo == -1)
             return false;
         return true;

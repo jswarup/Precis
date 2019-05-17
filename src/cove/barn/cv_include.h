@@ -5,6 +5,7 @@
 
 #ifdef _MSC_VER
 #define     CV_WINDOWS
+ 
 #endif
 
 #include    <type_traits>
@@ -95,6 +96,7 @@ struct  Cv_Couple : public std::tuple< X, X>
 
 #define CV_FUNCNAME()       Cv_Aid::TrimFuncName( __PRETTY_FUNCTION__)
 #define CV_LSEEK            lseek64
+#define CV_FSEEK            fseek
 #define CV_FTELL            ftell      
 #define CV_STRCASECMP       strcasecmp 
 #define CV_STRNCASECMP      strncasecmp

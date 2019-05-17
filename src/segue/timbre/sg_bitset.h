@@ -75,7 +75,7 @@ struct Sg_Bit64
     }
 
 template < typename Lambda, typename... Args>
-    void    ForAllTrue( Lambda &lambda,  const Args&... args)  
+    void    ForAllTrue( const Lambda &lambda,  const Args&... args)  
     {
         for ( uint32_t i = 0; i < Sz; i++) 
         {
@@ -117,7 +117,7 @@ struct Sg_Bit64< 0>
     bool            IsOnes( void) const { return true; }
 
 template < typename Lambda, typename... Args>
-    void            ForAllTrue( Lambda &lambda,  const Args&... args)   {}
+    void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
 
     uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
 };
@@ -194,7 +194,7 @@ struct Sg_Bit8
     }
     
 template < typename Lambda, typename... Args>
-    void            ForAllTrue( Lambda &lambda,  const Args &... args)
+    void            ForAllTrue( const Lambda &lambda,  const Args &... args)
     {
         for ( uint32_t i = 0; i < Sz; i++) 
         {
@@ -237,7 +237,7 @@ struct Sg_Bit8< 0>
     bool            IsOnes( void) const { return true; }
 
  template < typename Lambda, typename... Args>
-    void            ForAllTrue( Lambda &lambda,  const Args&... args)   {}
+    void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
     uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
 };
 
@@ -307,7 +307,7 @@ struct Sg_Bitset
     bool            IsOnes( void) const  { return m_Bits64.IsOnes() && m_Bits64.IsOnes();  }
 
 template < typename Lambda, typename... Args>
-    void            ForAllTrue( Lambda &lambda,  const Args&... args)   
+    void            ForAllTrue( const Lambda &lambda,  const Args&... args)   
     {
         m_Bits64.ForAllTrue( lambda, args...);
         m_Bits8.ForAllTrue( lambda, args...);

@@ -2,7 +2,7 @@
 #pragma once
  
 #include	"cove/flux/cv_spritz.h"
-//_____________________________________________________________________________________________________________________________
+#include	"cove/silo/cv_array.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -17,75 +17,89 @@ struct Cv_Serializer
 struct Cv_SerializeUtils
 { 
 template <typename T>
-    static auto  Serialize( T *t, Cv_Spritz *spritz) 
+    static void  Save( const T &t, Cv_Spritz *spritz) 
     {
         Cv_Serializer< T>       serializer( t);
-        return serializer.Save( spritz);
-    }
-
-};
-
+        serializer.Serialize( spritz);
+    } 
+}; 
 
 //_____________________________________________________________________________________________________________________________
 
 template < typename T> 
-struct Cv_Serializer< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
+struct Cv_Serializer< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils 
 {      
-    typedef T                   Type;
-    typedef T                   FileType; 
+    typedef T           Type;
+    typedef T           FileType; 
 
-    Type                *m_Obj;
+    const T                 &m_Obj;
 
-    Cv_Serializer( Type *obj)
+    Cv_Serializer( const T &obj)
         : m_Obj( obj)
-    {} 
- 
-    FileType    Save( Cv_Spritz *spritz)
+    {}  
+
+    FileType    Serialize( Cv_Spritz *spritz)
     {
-        bool    res = spritz->Write( m_Obj, sizeof( Type));        
-        return *m_Obj;
+        bool    res = spritz->Write( &m_Obj, sizeof( Type));        
+        return m_Obj;
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
 template < typename T> 
-struct Cv_Serializer< std::vector< T> > : public Cv_SerializeUtils
-{ 
-    typedef T                   Type; 
+struct Cv_Serializer< Cv_CArr< T> > : public Cv_SerializeUtils 
+{
+    typedef T           Type; 
 
     struct  FileType
     {
         uint64_t    m_Offset;
-        uint32_t    m_Size;
-        
-        typedef void Copiable;
-        
-        FileType( uint64_t off, uint32_t sz)
-            :   m_Offset( off), m_Size( sz)
-        {}
+        uint64_t    m_Size;
+
+        typedef void Copiable; 
+
     };
 
-    std::vector< Type>     *m_Obj;
+    Cv_CArr< Type>      m_Obj; 
 
-    Cv_Serializer( std::vector< Type> *obj)
+    Cv_Serializer( const Cv_CArr< Type> &obj)
         : m_Obj( obj)
     {} 
- 
 
-    FileType    Save( Cv_Spritz *spritz)
+    uint32_t    ObjLen( void) const { return  sizeof( FileType); }
+
+    FileType    Serialize( Cv_Spritz *spritz)
     {
-        uint64_t                        off = spritz->Offset();
-        FileType                        fileObj( off, uint32_t( m_Obj->size()));
-        Serialize( &fileObj, spritz);
-        off = spritz->Offset();
+        spritz->EnsureSize( ObjLen());
+        uint64_t    off = spritz->Offset();
         spritz->SetOffsetAtEnd();
-        for ( auto it = m_Obj->begin(); it != m_Obj->end(); ++it)
-            Serialize( &*it, spritz);    
+        FileType    fileObj;
+        fileObj.m_Offset = spritz->Offset();
+        fileObj.m_Size = m_Obj.Size();
+        for ( auto it = m_Obj.Begin(); it != m_Obj.End(); ++it)
+            Save( *it, spritz);    
         spritz->SetOffset( off);
+        Save( fileObj, spritz);
         return fileObj;
     }
 };
 
+//_____________________________________________________________________________________________________________________________
+
+template < typename T> 
+struct Cv_Serializer< std::vector< T> > : public Cv_Serializer< Cv_CArr< T> > 
+{  
+    typedef Cv_Serializer< Cv_CArr< T>>     Base;
+    
+    Cv_Serializer( const std::vector< Type> &obj)
+        : Base( Cv_CArr< T>( ( T *) &obj[ 0], uint32_t( obj.size())))
+    {}  
+};
+
+//_____________________________________________________________________________________________________________________________
+
+
+ 
 //_____________________________________________________________________________________________________________________________
 

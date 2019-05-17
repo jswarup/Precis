@@ -53,7 +53,7 @@ struct  Test23
 {
     int         *m;
 };
-
+ 
 //_____________________________________________________________________________________________________________________________ 
 
 int     Sg_SerializeCmdProcessor::Test(void)
@@ -65,9 +65,9 @@ int     Sg_SerializeCmdProcessor::Test(void)
     vec.push_back( 67);
     vec.push_back( 32);
     bool                   t = true;
-    Cv_Serializer< std::vector< uint32_t> > serializer( &vec);
-    serializer.Save( &imgSpritz);
-    //Cv_Aid::Save( &vec, &imgSpritz);
+     
+    Cv_CArr< uint32_t>     arr( &vec.at( 0), uint32_t( vec.size()));
+    Cv_Aid::Save( vec, &imgSpritz);
     return 0;
 }
 

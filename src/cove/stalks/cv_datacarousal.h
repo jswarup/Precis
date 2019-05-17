@@ -165,7 +165,7 @@ struct Sg_DataSink
     enum {
         CarousalSz = CarousSz
     };
-    typedef typename DGram                              Datagram;
+    typedef DGram                                       Datagram;
     typedef Cv_FreeStore< Datagram, uint16_t, StoreSz>  DataStore;
     typedef Cv_FreeCache< CacheSz, DataStore>           DataCache;
 
