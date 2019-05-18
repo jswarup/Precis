@@ -243,7 +243,9 @@ struct CharDistribBase : public Cv_CrateEntry
 template < uint32_t Bits>
 struct CharDistrib : public Sg_CharPartition< Bits>, public CharDistribBase
 {  
-     
+
+    typedef void                    Copiable;
+
     enum  { 
         BitSz = Bits
     };    
@@ -355,10 +357,10 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
 
     struct Serializer : public Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>
     {
-        typedef Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>    Base;
+        typedef Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>    BaseSerializer;
 
         Serializer( const DistribRepos &t)
-            : Base( t.m_Base, t)
+            : BaseSerializer( t.m_Base, t)
         {}
     };
 
