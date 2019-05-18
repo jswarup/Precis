@@ -101,7 +101,7 @@ struct Cv_Serializer< std::vector< T> > : public Cv_Serializer< Cv_CArr< T> >
 {  
     typedef Cv_Serializer< Cv_CArr< T>>     Base;
     
-    Cv_Serializer( const std::vector< Type> &obj)
+    Cv_Serializer( const std::vector< T> &obj)
         : Base( Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())))
     {}  
 };
@@ -147,20 +147,20 @@ struct Cv_Serializer< T *> : public Cv_SerializeUtils
 template < typename T, typename... Rest>
 struct Cv_MemberSerializer : public Cv_Serializer< T>, public Cv_MemberSerializer< Rest...> 
 {
-    typedef Cv_Serializer< T>               Serializer;
-    typedef Cv_MemberSerializer< Rest...>   Base;
+    typedef Cv_Serializer< T>               ItemSerializer;
+    typedef Cv_MemberSerializer< Rest...>   BaseSerializer;
 
     Cv_MemberSerializer( const T &obj,  const Rest &... rest)
-        : Serializer( obj), Base( rest...)
+        : ItemSerializer( obj), BaseSerializer( rest...)
     {}
 
-    uint32_t    ObjLen( void) const { return  Serializer::ObjLen() + Base::ObjLen(); }
+    uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen() + BaseSerializer::ObjLen(); }
 
     bool    Serialize( Cv_Spritz *spritz)
     {
         spritz->EnsureSize( ObjLen());
-        Serializer::Serialize( spritz);
-        Base::Serialize( spritz);
+        ItemSerializer::Serialize( spritz);
+        BaseSerializer::Serialize( spritz);
         return true;  
     }
 };
@@ -170,18 +170,18 @@ struct Cv_MemberSerializer : public Cv_Serializer< T>, public Cv_MemberSerialize
 template < typename T>
 struct Cv_MemberSerializer< T> : public Cv_Serializer< T> 
 {
-    typedef  Cv_Serializer< T>                 Serializer;
+    typedef  Cv_Serializer< T>                 ItemSerializer;
 
     Cv_MemberSerializer( const T &obj)
-        : Serializer( obj)
+        : ItemSerializer( obj)
     {}
 
-    uint32_t    ObjLen( void) const { return  Serializer::ObjLen(); }
+    uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen(); }
 
     bool    Serialize( Cv_Spritz *spritz)
     {
         spritz->EnsureSize( ObjLen());
-        Serializer::Serialize( spritz); 
+        ItemSerializer::Serialize( spritz); 
         return true;  
     }
 };
@@ -200,6 +200,9 @@ struct Cv_Serializer< T, typename Cv_TypeEngage::Exist< typename T::Serializer>:
     Cv_Serializer( const T &obj)
         : m_Serializer( obj)
     {}  
+
+
+    uint32_t    ObjLen( void) const { return  m_Serializer.ObjLen(); }
 
     bool    Serialize( Cv_Spritz *spritz)
     {       

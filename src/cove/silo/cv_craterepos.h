@@ -3,6 +3,7 @@
 
 #include    "cove/silo/cv_repos.h"
 #include    "cove/barn/cv_cexpr.h"
+#include    "cove/barn/cv_aid.h"
 #include    "cove/silo/cv_crate.h" 
 
 //_____________________________________________________________________________________________________________________________
@@ -304,16 +305,40 @@ struct   Cv_CrateConstructor
 template < typename Crate, typename=void>
 struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 {
-    typedef Cv_CratePile< typename Crate::CrateBase>    Base;
+
+    typedef typename Crate::CrateBase       CrateBase;
+
+    typedef Cv_CratePile< CrateBase>        Base;
 
     typedef typename Crate::Entry           Entry;
     typedef typename Crate::Elem            Elem;
     typedef typename Base::Id               Id;
     typedef typename Crate::Var	            Var; 
     typedef typename Entry::TypeStor		TypeStor; 
-    typedef typename Entry::IndexStor		IndexStor;
+    typedef typename Entry::IndexStor		IndexStor; 
 
     std::vector< Elem>                  m_Elems;
+
+    struct Serializer : public Cv_MemberSerializer< std::vector< Elem>>, public Base::Serializer
+    { 
+        typedef typename Cv_CratePile< CrateBase>::Serializer        BaseSerializer;
+        typedef Cv_MemberSerializer< std::vector< Elem>>    ItemSerializer;
+
+        Serializer( const Cv_CratePile &t)
+            : ItemSerializer( t.m_Elems), BaseSerializer( ( const Cv_CratePile< CrateBase> &) t)
+        {}
+
+        uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen() + BaseSerializer::ObjLen(); }
+
+        bool    Serialize( Cv_Spritz *spritz)
+        {
+            spritz->EnsureSize( ObjLen());
+            ItemSerializer::Serialize( spritz);
+            BaseSerializer::Serialize( spritz);
+            return true;  
+        }
+
+    };
 
     Id    Push( const Elem &elm) 
     { 
@@ -373,6 +398,24 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     typedef typename Crate::Var         Var;
 
     std::vector< Elem>                  m_Elems; 
+
+    struct Serializer : public Cv_MemberSerializer< std::vector< Elem>>
+    { 
+        typedef Cv_MemberSerializer< std::vector< Elem>>    ItemSerializer;
+
+        Serializer( const Cv_CratePile &t)
+            : ItemSerializer( t.m_Elems)
+        {}
+
+        uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen(); }
+
+        bool    Serialize( Cv_Spritz *spritz)
+        {
+            spritz->EnsureSize( ObjLen());
+            ItemSerializer::Serialize( spritz); 
+            return true;  
+        }
+    };
 
     Id          Push( const Elem &elm) 
     { 

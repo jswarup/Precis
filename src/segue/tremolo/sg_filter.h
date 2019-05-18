@@ -220,8 +220,8 @@ typedef Cv_Crate< CharDistrib< 256>, CharDistrib< 128>, CharDistrib< 64>, CharDi
 
 struct CharDistribBase : public Cv_CrateEntry
 {   
+    typedef void                    Copiable;
 
-public:
     CharDistribBase( void) 
     {
         SetType( DistribCrate::TypeOf< CharDistribBase>());
@@ -352,6 +352,15 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     std::set< Id, LessOp>       m_IdTbl; 
     DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base;
+
+    struct Serializer : public Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>
+    {
+        typedef Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>    Base;
+
+        Serializer( const DistribRepos &t)
+            : Base( t.m_Base, t)
+        {}
+    };
 
     DistribRepos( void) 
         : m_IdTbl( LessOp( this))

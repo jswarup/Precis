@@ -30,6 +30,7 @@ protected:
     
 public: 
     typedef Sg_Bitset< SzChBits>    Bitset;
+    typedef void                    Copiable;
 
     Sg_CharPartition( void) { MakeUniversal(); }
 
@@ -323,7 +324,7 @@ template < typename FilterIt>
     // Intersects a new Bitset with all subsets in a partition, making it finer.
     // Returns 1 if anything changed (equivalent to partitionCutByCCL return value).
 
-    void                ImpressCCL(  const Bitset & ccl)  {  CCLImpressCntl( &ccl).ImpressWith< 1>( this); }
+    void                ImpressCCL(  const Bitset & ccl)  {  CCLImpressCntl( &ccl).template ImpressWith<1>( this); }
 
 template < uint32_t N>
     Sg_Bitset< N>     Map( const Bitset &chSet) 

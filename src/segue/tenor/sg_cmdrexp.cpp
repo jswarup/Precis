@@ -242,7 +242,7 @@ int     Sg_RExpCmdProcessor::Test(void)
     if ( m_ImgFile.size())
     {
         Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
-        
+        //Cv_Aid::Save( dfaRepos.m_DistribRepos, &imgSpritz);
     }
     if ( m_DataFile.size())
     {

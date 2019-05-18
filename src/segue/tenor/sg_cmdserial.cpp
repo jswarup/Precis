@@ -4,6 +4,7 @@
 #include    "segue/tenor/sg_include.h" 
 #include    "cove/snip/cv_cmdexec.h"
 #include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/timbre/sg_partition.h"
 
 #include <utility>
 #include  <tuple>
@@ -11,8 +12,7 @@
 ///_____________________________________________________________________________________________________________________________ 
 
 static Cv_CmdOption     s_SerializeIfcOptions[] = 
-{
-     
+{ 
     { 0, 0,  0},
 };
 
@@ -63,8 +63,8 @@ struct  Test23
             : Base( t.vec, t.m)
         {}
     };
-};
- 
+}; 
+
 //_____________________________________________________________________________________________________________________________ 
 
 int     Sg_SerializeCmdProcessor::Test(void)
@@ -83,7 +83,16 @@ int     Sg_SerializeCmdProcessor::Test(void)
     t23.m = 137;
     t23.vec = vec;
 
-    Cv_Aid::Save( t23, &imgSpritz);
+    Sg_CharPartition< 64>       charPrtn;    
+    Sg_Bitset< 64>              ccl;
+    ccl.SetByteRange( 5, 13, true);
+    charPrtn.ImpressCCL( ccl);
+    
+    Sg_Bitset< 64>              ccl1;
+    ccl1.SetByteRange( 45, 53, true);
+    charPrtn.ImpressCCL( ccl1);
+    
+    Cv_Aid::Save( charPrtn, &imgSpritz);
     //Cv_Serializer< int *>   ser( &t1);
     //ser.Serialize( &imgSpritz);
     return 0;

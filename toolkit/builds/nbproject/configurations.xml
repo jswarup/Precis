@@ -152,9 +152,6 @@
             tool="1"
             flavor2="11">
         <ccTool flags="0">
-          <preprocessorList>
-            <Elem>NDEBUG</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
       <item path="../../src/segue/tenor/sg_cmdserial.cpp"
