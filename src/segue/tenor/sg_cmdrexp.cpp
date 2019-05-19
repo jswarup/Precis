@@ -10,7 +10,7 @@
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
 #include    "segue/atelier/sg_atelier.h"
-#include	"cove/flux/cv_serializer.h"
+#include	"cove/flux/cv_cask.h"
 
 #include	<utility>
 #include	<tuple>

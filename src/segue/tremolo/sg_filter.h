@@ -355,13 +355,11 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base;
 
-    struct Serializer : public Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>
+    struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
     {
-        typedef Cv_MemberSerializer< Sg_Partition, Cv_CratePile< DistribCrate>>    BaseSerializer;
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>    BaseCask; 
 
-        Serializer( const DistribRepos &t)
-            : BaseSerializer( t.m_Base, t)
-        {}
+        bool        Serialize( const DistribRepos &t, Cv_Spritz *spritz) { return BaseCask::Serialize( t.m_Base, t, spritz); }
     };
 
     DistribRepos( void) 

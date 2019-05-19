@@ -319,22 +319,18 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 
     std::vector< Elem>                  m_Elems;
 
-    struct Serializer : public Cv_MemberSerializer< std::vector< Elem>>, public Base::Serializer
+    struct Cask : public Cv_MemberCask< std::vector< Elem>>, public Base::Cask
     { 
-        typedef typename Cv_CratePile< CrateBase>::Serializer        BaseSerializer;
-        typedef Cv_MemberSerializer< std::vector< Elem>>    ItemSerializer;
+        typedef typename Cv_CratePile< CrateBase>::Cask     BaseCask;
+        typedef Cv_MemberCask< std::vector< Elem>>          ItemCask;
+ 
+        uint32_t    ObjLen( void) const { return  ItemCask().ObjLen() + BaseCask().ObjLen(); }
 
-        Serializer( const Cv_CratePile &t)
-            : ItemSerializer( t.m_Elems), BaseSerializer( ( const Cv_CratePile< CrateBase> &) t)
-        {}
-
-        uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen() + BaseSerializer::ObjLen(); }
-
-        bool    Serialize( Cv_Spritz *spritz)
+        bool        Serialize( const Cv_CratePile &t, Cv_Spritz *spritz)
         {
             spritz->EnsureSize( ObjLen());
-            ItemSerializer::Serialize( spritz);
-            BaseSerializer::Serialize( spritz);
+            ItemCask::Serialize( t.m_Elems, spritz);
+            BaseCask::Serialize( ( const Cv_CratePile< CrateBase> &) t, spritz);
             return true;  
         }
 
@@ -399,20 +395,16 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
 
     std::vector< Elem>                  m_Elems; 
 
-    struct Serializer : public Cv_MemberSerializer< std::vector< Elem>>
+    struct Cask : public Cv_MemberCask< std::vector< Elem>>
     { 
-        typedef Cv_MemberSerializer< std::vector< Elem>>    ItemSerializer;
+        typedef Cv_MemberCask< std::vector< Elem>>    ItemCask; 
 
-        Serializer( const Cv_CratePile &t)
-            : ItemSerializer( t.m_Elems)
-        {}
+        uint32_t    ObjLen( void) const { return  ItemCask().ObjLen(); }
 
-        uint32_t    ObjLen( void) const { return  ItemSerializer::ObjLen(); }
-
-        bool    Serialize( Cv_Spritz *spritz)
+        bool        Serialize( const Cv_CratePile &t, Cv_Spritz *spritz)
         {
             spritz->EnsureSize( ObjLen());
-            ItemSerializer::Serialize( spritz); 
+            ItemCask::Serialize( t.m_Elems, spritz); 
             return true;  
         }
     };

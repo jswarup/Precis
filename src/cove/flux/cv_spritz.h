@@ -29,9 +29,7 @@ public:
     
     virtual   uint64_t      SaveBuffer( uint64_t fOff, const void *buf, uint64_t sz) = 0;
     virtual   void          RestoreBuffer( uint64_t fOff, void *buf, uint64_t sz) = 0;
-};
-
- 
+}; 
 
 //_____________________________________________________________________________________________________________________________
 
