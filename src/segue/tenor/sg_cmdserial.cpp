@@ -66,32 +66,46 @@ struct  Test23
 
 int     Sg_SerializeCmdProcessor::Test(void)
 {
-    Cv_FileSpritz           imgSpritz( "a.txt", Cv_FileSpritz::WriteTrim);
+    {
+        Cv_FileSpritz           imgSpritz( "a.txt", Cv_FileSpritz::WriteTrim);
     
-    std::vector< uint32_t>  vec;
-    vec.push_back( 80);
-    vec.push_back( 67);
-    vec.push_back( 32);
-    bool                   t = true;
+        std::vector< uint32_t>  vec;
+        vec.push_back( 80);
+        vec.push_back( 67);
+        vec.push_back( 32);
+        bool                   t = true;
      
-    Cv_CArr< uint32_t>     arr( &vec.at( 0), uint32_t( vec.size()));
-    int                     t1 = 0;
-    Test23                  t23;
-    t23.m = 137;
-    t23.vec = vec;
+        Cv_CArr< uint32_t>     arr( &vec.at( 0), uint32_t( vec.size()));
+        int                     t1 = 0;
+        Test23                  t23;
+        t23.m = 137;
+        t23.vec = vec;
 
-    Sg_CharPartition< 64>       charPrtn;    
-    Sg_Bitset< 64>              ccl;
-    ccl.SetByteRange( 5, 13, true);
-    charPrtn.ImpressCCL( ccl);
+        Sg_CharPartition< 64>       charPrtn;    
+        Sg_Bitset< 64>              ccl;
+        ccl.SetByteRange( 5, 13, true);
+        charPrtn.ImpressCCL( ccl);
     
-    Sg_Bitset< 64>              ccl1;
-    ccl1.SetByteRange( 45, 53, true);
-    charPrtn.ImpressCCL( ccl1);
+        Sg_Bitset< 64>              ccl1;
+        ccl1.SetByteRange( 45, 53, true);
+        charPrtn.ImpressCCL( ccl1);
     
-    Cv_Aid::Save( charPrtn, &imgSpritz);
-    //Cv_Cask< int *>   ser( &t1);
-    //ser.Serialize( &imgSpritz);
+        Cv_Aid::Save( charPrtn, &imgSpritz);
+        Cv_Aid::Save( t23, &imgSpritz);
+        //Cv_Cask< int *>   ser( &t1);
+        //ser.Serialize( &imgSpritz);
+    }
+    {
+        Cv_FileSpritz       imgSpritz( "a.txt", Cv_FileSpritz::ReadOnly);
+        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom(  &imgSpritz);
+        ct.Dump( std::cout);
+       // auto                ct1 = Cv_Cask< Test23>().Bloom( &imgSpritz);
+        std::cout << '\n';
+        //std::cout << ct1.m_Size << ' ' << ct1.m_Size << '\n';
+        
+        std::cout << '\n';
+    }
+
     return 0;
 }
 

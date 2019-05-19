@@ -357,7 +357,8 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
 
     struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
     {
-        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>    BaseCask; 
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask; 
+        typedef typename BaseCask::ContentType                              ContentType;
 
         bool        Serialize( const DistribRepos &t, Cv_Spritz *spritz) { return BaseCask::Serialize( t.m_Base, t, spritz); }
     };
