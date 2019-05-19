@@ -45,6 +45,13 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
         bool    res = spritz->Write( &obj, ObjLen());        
         return true;
     }
+
+    ContentType Bloom( Cv_Spritz *spritz)
+    {
+        ContentType     obj;
+        bool    res = spritz->Read( &obj, ObjLen()); 
+        return obj;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -52,7 +59,9 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
 template < typename T> 
 struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils 
 {
-    typedef T           Type; 
+    typedef T                               Type; 
+    typedef  Cv_Cask< Type>                 SubCask;
+    typedef typename SubCask::ContentType   SubContent;
 
     struct  ContentType
     {
@@ -61,6 +70,16 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
         typedef void Copiable; 
 
+        SubContent     Content( uint32_t k, Cv_Spritz *spritz)
+        {
+            uint32_t        objLen = SubCask().ObjLen();
+            uint64_t        off = spritz->Offset();
+            spritz->SetOffset( m_Offset + k * SubCask().ObjLen());
+            SubContent      obj;
+            bool    res = spritz->Read( &obj, ObjLen());   
+            spritz->SetOffset( off);
+            return obj;
+        }
     }; 
 
     uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
@@ -79,6 +98,13 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         Save( fileObj, spritz);
         return true;
     }
+
+    ContentType     Bloom( Cv_Spritz *spritz)
+    {
+        ContentType     obj;
+        bool    res = spritz->Read( &obj, ObjLen()); 
+        return obj;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -88,7 +114,7 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
      
-    bool    Serialize( const std::vector< Type> &obj, Cv_Spritz *spritz)
+    bool    Serialize( const std::vector< T> &obj, Cv_Spritz *spritz)
     {
         return BaseCask::Serialize( Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())), spritz);
     }
@@ -99,13 +125,26 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 template < typename T> 
 struct Cv_Cask< T *> : public Cv_SerializeUtils 
 {  
-    typedef T  Type;
+    typedef T                               Type;
+    typedef Cv_Cask< Type>                  SubCask;
+    typedef typename SubCask::ContentType   SubContent;
 
     struct  ContentType
     {
-        uint64_t    m_Offset;
+        uint64_t        m_Offset;
 
-        typedef void Copiable; 
+        typedef void    Copiable; 
+
+        SubContent      Content( Cv_Spritz *spritz)
+        {
+            uint32_t        objLen = SubCask().ObjLen();
+            uint64_t    off = spritz->Offset();
+            spritz->SetOffset( m_Offset);
+            SubContent      obj;
+            bool            res = spritz->Read( &obj, ObjLen()); 
+            spritz->SetOffset( off);
+            return obj;
+        }
     };  
 
     uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
@@ -123,6 +162,13 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
         Save( fileObj, spritz);
         return true;
     }
+
+    ContentType     Bloom( Cv_Spritz *spritz)
+    {
+        ContentType     obj;
+        bool    res = spritz->Read( &obj, ObjLen()); 
+        return obj;
+    }
 };
  
 //_____________________________________________________________________________________________________________________________
@@ -133,13 +179,32 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
     typedef Cv_Cask< T>               ItemCask;
     typedef Cv_MemberCask< Rest...>   BaseCask; 
 
-    uint32_t    ObjLen( void) const { return  ItemCask::ObjLen() + BaseCask::ObjLen(); }
+    enum {
+        Sz = BaseCask::Sz +1
+    };
 
-    bool        Serialize( const T &obj,  const Rest &... rest, Cv_Spritz *spritz)
+    struct  ContentType : public ItemCask::ContentType, public BaseCask::ContentType
+    {
+        typedef typename ItemCask::ContentType    ItemContent;
+        typedef typename BaseCask::ContentType    BaseContent;
+        ContentType( const ItemContent &t1, const BaseContent &t2)
+            : ItemContent( t1), BaseContent( t2)
+        {}
+    };
+
+    uint32_t        ObjLen( void) const { return  ItemCask::ObjLen() + BaseCask::ObjLen(); }
+
+    bool            Serialize( const T &obj,  const Rest &... rest, Cv_Spritz *spritz)
     { 
         ItemCask::Serialize( obj, spritz);
         BaseCask::Serialize( rest..., spritz);
         return true;  
+    }
+    
+    ContentType     Bloom( Cv_Spritz *spritz)
+    {
+        ContentType     obj( ItemCask::Bloom( spritz), BaseCask::Bloom( spritz)); 
+        return obj;
     }
 };
 
@@ -149,14 +214,32 @@ template < typename T>
 struct Cv_MemberCask< T> : public Cv_Cask< T> 
 {
     typedef  Cv_Cask< T>            ItemCask;
- 
-    uint32_t    ObjLen( void) const { return  ItemCask::ObjLen(); }
+    enum {
+        Sz = 1
+    };
 
+    struct  ContentType : public ItemCask::ContentType
+    {
+        typedef typename ItemCask::ContentType    ItemContent;
+
+        ContentType( const ItemContent &t1)
+            : ItemContent( t1)
+        {}
+    };
+
+    uint32_t    ObjLen( void) const { return  ItemCask::ObjLen(); }
+ 
     bool        Serialize( const T &obj, Cv_Spritz *spritz)
     {
         spritz->EnsureSize( ObjLen());
         ItemCask::Serialize( obj, spritz); 
         return true;  
+    }
+
+    ContentType     Bloom( Cv_Spritz *spritz)
+    {
+        ContentType     obj( ItemCask::Bloom( spritz)); 
+        return obj;
     }
 };
 
@@ -175,6 +258,11 @@ struct Cv_Cask< T, typename Cv_TypeEngage::Exist< typename T::Cask>::Note > : pu
     {       
         Cask().Serialize( obj, spritz);
         return true;
+    }
+
+    ContentType     Bloom( Cv_Spritz *spritz)
+    {
+        return Cask().Bloom( spritz); 
     }
 };
 
