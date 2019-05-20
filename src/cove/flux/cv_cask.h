@@ -17,15 +17,15 @@ struct Cv_Cask
 struct Cv_SerializeUtils
 { 
 template <typename T>
-    static void  Save( const T &t, Cv_Spritz *spritz) 
+    static void  Save( Cv_Spritz *spritz, const T &t) 
     {
-        Cv_Cask< T>().Serialize( t, spritz);
+        Cv_Cask< T>().Serialize( spritz, t);
     } 
 
 template <typename T>
-    static void  Save( T *t, Cv_Spritz *spritz) 
+    static void  Save( Cv_Spritz *spritz, T *t) 
     {
-        Cv_Cask< T*>().Serialize(  t, spritz);
+        Cv_Cask< T*>().Serialize( spritz, t);
     } 
 }; 
 
@@ -40,7 +40,7 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
 
     uint32_t    ObjLen( void) const { return  sizeof( Type); }
 
-    bool        Serialize( const T &obj, Cv_Spritz *spritz)
+    bool        Serialize( Cv_Spritz *spritz, const T &obj)
     {
         bool    res = spritz->Write( &obj, ObjLen());        
         return true;
@@ -70,7 +70,7 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
         typedef void Copiable; 
 
-        SubContent     Content( uint32_t k, Cv_Spritz *spritz)
+        SubContent     Content( Cv_Spritz *spritz, uint32_t k)
         {
             uint32_t        objLen = SubCask().ObjLen();
             uint64_t        off = spritz->Offset();
@@ -84,7 +84,7 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
     uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
 
-    bool        Serialize( const Cv_CArr< Type> &obj, Cv_Spritz *spritz)
+    bool        Serialize( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
     {
         spritz->EnsureSize( ObjLen());
         uint64_t        off = spritz->Offset();
@@ -93,9 +93,9 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         fileObj.m_Offset = spritz->Offset();
         fileObj.m_Size = obj.Size();
         for ( auto it = obj.Begin(); it != obj.End(); ++it)
-            Save( *it, spritz);    
+            Save( spritz, *it);    
         spritz->SetOffset( off);
-        Save( fileObj, spritz);
+        Save( spritz, fileObj);
         return true;
     }
 
@@ -114,9 +114,9 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
      
-    bool    Serialize( const std::vector< T> &obj, Cv_Spritz *spritz)
+    bool    Serialize( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
-        return BaseCask::Serialize( Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())), spritz);
+        return BaseCask::Serialize( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
     }
 };
 
@@ -149,7 +149,7 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
 
     uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
 
-    bool        Serialize( Type *obj, Cv_Spritz *spritz)
+    bool        Serialize( Cv_Spritz *spritz, Type *obj)
     {
         spritz->EnsureSize( ObjLen());
         uint64_t    off = spritz->Offset();
@@ -157,9 +157,9 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
 
         ContentType    fileObj;
         fileObj.m_Offset = spritz->Offset();  
-        Save( *obj, spritz);    
+        Save( spritz, *obj);    
         spritz->SetOffset( off);
-        Save( fileObj, spritz);
+        Save( spritz, fileObj);
         return true;
     }
 
@@ -183,21 +183,24 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         Sz = BaseCask::Sz +1
     };
 
-    struct  ContentType : public ItemCask::ContentType, public BaseCask::ContentType
+    typedef typename ItemCask::ContentType    ItemContent;
+    typedef typename BaseCask::ContentType    BaseContent;
+
+    struct  ContentType : public BaseContent
     {
-        typedef typename ItemCask::ContentType    ItemContent;
-        typedef typename BaseCask::ContentType    BaseContent;
+        ItemContent    m_Value;
+    
         ContentType( const ItemContent &t1, const BaseContent &t2)
-            : ItemContent( t1), BaseContent( t2)
+            : m_Value( t1), BaseContent( t2)
         {}
     };
 
     uint32_t        ObjLen( void) const { return  ItemCask::ObjLen() + BaseCask::ObjLen(); }
 
-    bool            Serialize( const T &obj,  const Rest &... rest, Cv_Spritz *spritz)
+    bool            Serialize( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
     { 
-        ItemCask::Serialize( obj, spritz);
-        BaseCask::Serialize( rest..., spritz);
+        BaseCask::Serialize( spritz,  rest...);
+        ItemCask::Serialize( spritz, obj);
         return true;  
     }
     
@@ -218,21 +221,23 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         Sz = 1
     };
 
-    struct  ContentType : public ItemCask::ContentType
+    typedef typename ItemCask::ContentType    ItemContent;
+
+    struct  ContentType 
     {
-        typedef typename ItemCask::ContentType    ItemContent;
+        ItemContent   m_Value;
 
         ContentType( const ItemContent &t1)
-            : ItemContent( t1)
+            : m_Value( t1)
         {}
     };
 
     uint32_t    ObjLen( void) const { return  ItemCask::ObjLen(); }
  
-    bool        Serialize( const T &obj, Cv_Spritz *spritz)
+    bool        Serialize( Cv_Spritz *spritz, const T &obj)
     {
         spritz->EnsureSize( ObjLen());
-        ItemCask::Serialize( obj, spritz); 
+        ItemCask::Serialize( spritz, obj); 
         return true;  
     }
 
@@ -248,15 +253,15 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
 template < typename T> 
 struct Cv_Cask< T, typename Cv_TypeEngage::Exist< typename T::Cask>::Note > : public Cv_SerializeUtils 
 {      
-    typedef T                       Type;
-    typedef typename T::Cask        Cask;
-    typedef T                       ContentType;  
+    typedef T                           Type;
+    typedef typename T::Cask            Cask;
+    typedef typename Cask::ContentType  ContentType;  
 
     uint32_t    ObjLen( void) const { return  Cask().ObjLen(); }
 
-    bool        Serialize( const Type &obj, Cv_Spritz *spritz)
+    bool        Serialize( Cv_Spritz *spritz, const Type &obj)
     {       
-        Cask().Serialize( obj, spritz);
+        Cask().Serialize( spritz, obj);
         return true;
     }
 

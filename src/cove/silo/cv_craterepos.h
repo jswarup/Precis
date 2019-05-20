@@ -323,14 +323,25 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     { 
         typedef typename Cv_CratePile< CrateBase>::Cask     BaseCask;
         typedef Cv_MemberCask< std::vector< Elem>>          ItemCask;
- 
+        typedef typename ItemCask::ContentType    ItemContent;
+        typedef typename BaseCask::ContentType    BaseContent;
+
+        struct  ContentType : public BaseContent
+        {
+            ItemContent    m_Value;
+
+            ContentType( const ItemContent &t1, const BaseContent &t2)
+                : m_Value( t1), BaseContent( t2)
+            {}
+        };
+
         uint32_t    ObjLen( void) const { return  ItemCask().ObjLen() + BaseCask().ObjLen(); }
 
-        bool        Serialize( const Cv_CratePile &t, Cv_Spritz *spritz)
+        bool        Serialize( Cv_Spritz *spritz, const Cv_CratePile &t)
         {
             spritz->EnsureSize( ObjLen());
-            ItemCask::Serialize( t.m_Elems, spritz);
-            BaseCask::Serialize( ( const Cv_CratePile< CrateBase> &) t, spritz);
+            ItemCask::Serialize( spritz, t.m_Elems);
+            BaseCask::Serialize( spritz, ( const Cv_CratePile< CrateBase> &) t);
             return true;  
         }
 
@@ -398,13 +409,23 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     struct Cask : public Cv_MemberCask< std::vector< Elem>>
     { 
         typedef Cv_MemberCask< std::vector< Elem>>    ItemCask; 
+        typedef typename ItemCask::ContentType      ItemContent;
+
+        struct  ContentType 
+        {
+            ItemContent   m_Value;
+
+            ContentType( const ItemContent &t1)
+                : m_Value( t1)
+            {}
+        };
 
         uint32_t    ObjLen( void) const { return  ItemCask().ObjLen(); }
 
-        bool        Serialize( const Cv_CratePile &t, Cv_Spritz *spritz)
+        bool        Serialize( Cv_Spritz *spritz, const Cv_CratePile &t)
         {
             spritz->EnsureSize( ObjLen());
-            ItemCask::Serialize( t.m_Elems, spritz); 
+            ItemCask::Serialize( spritz, t.m_Elems); 
             return true;  
         }
     };

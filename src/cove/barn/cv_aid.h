@@ -127,15 +127,15 @@ template <typename T>
     //_____________________________________________________________________________________________________________________________
 
 template <typename T>
-    static void Save( const T &t, Cv_Spritz *spritz) 
+    static void Save( Cv_Spritz *spritz, const T &t) 
     {
-        Cv_SerializeUtils::Save( t, spritz);
+        Cv_SerializeUtils::Save( spritz, t);
     }
 
 template <typename T>
-    static void  Save( T *t, Cv_Spritz *spritz) 
+    static void  Save( Cv_Spritz *spritz, T *t) 
     {
-        Cv_SerializeUtils::Save( t, spritz);
+        Cv_SerializeUtils::Save( spritz, t);
     } 
 	//_____________________________________________________________________________________________________________________________
 };
@@ -214,6 +214,6 @@ struct  Cv_StdEnumerator : public Cv_StdEnumeration< Container, Cv_Enumerator< t
         : Base( container)
     {}
 };
-
+ 
 
 //_____________________________________________________________________________________________________________________________
