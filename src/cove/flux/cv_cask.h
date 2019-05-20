@@ -16,21 +16,41 @@ struct Cv_Cask
 
 struct Cv_SerializeUtils
 { 
-template <typename T>
-    static void  Save( Cv_Spritz *spritz, const T &t) 
+template < typename Spritz, typename T>
+    static void  Save( Spritz *spritz, const T &t) 
     {
-        Cv_Cask< T>().Serialize( spritz, t);
+        auto    cnt = Cv_Cask< T>().Encase( spritz, t);
+        bool    res = spritz->Write( &cnt, sizeof( cnt));  
     } 
-
-template <typename T>
-    static void  Save( Cv_Spritz *spritz, T *t) 
+/*
+template < typename Spritz, typename T>
+    static void  Save( Spritz *spritz, T *t) 
     {
-        Cv_Cask< T*>().Serialize( spritz, t);
+        Cv_Cask< T*>().Encase( spritz, t);
     } 
+*/
 }; 
 
-//_____________________________________________________________________________________________________________________________
+template < typename T> 
+struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils 
+{      
+    typedef T           Type;
+    typedef T           Content;  
+ 
 
+    Content         Encase( Cv_Spritz *spritz, const T &obj)
+    { 
+        return obj;
+    }
+ 
+    Content     *Bloom( Cv_CArr< uint8_t> *arr)
+    {
+        return ( Content *) arr->Ptr();
+    } 
+};
+
+//_____________________________________________________________________________________________________________________________
+/*
 template < typename T> 
 struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils 
 {      
@@ -46,12 +66,20 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
         return true;
     }
 
-    ContentType Bloom( Cv_Spritz *spritz)
+template < typename Spritz>
+    ContentType Bloom( Spritz *spritz)
     {
         ContentType     obj;
         bool    res = spritz->Read( &obj, ObjLen()); 
         return obj;
     }
+
+
+    ContentType *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return ( ContentType *) arr->Ptr();
+    }
+
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -99,11 +127,17 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         return true;
     }
 
-    ContentType     Bloom( Cv_Spritz *spritz)
+template < typename Spritz>
+    ContentType     Bloom( Spritz *spritz)
     {
         ContentType     obj;
         bool    res = spritz->Read( &obj, ObjLen()); 
         return obj;
+    }
+
+    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return ( ContentType *) arr->Ptr();
     }
 };
 
@@ -163,11 +197,17 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
         return true;
     }
 
-    ContentType     Bloom( Cv_Spritz *spritz)
+template < typename Spritz>
+    ContentType     Bloom( Spritz *spritz)
     {
         ContentType     obj;
         bool    res = spritz->Read( &obj, ObjLen()); 
         return obj;
+    }
+    
+    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return ( ContentType *) arr->Ptr();
     }
 };
  
@@ -203,12 +243,18 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         ItemCask::Serialize( spritz, obj);
         return true;  
     }
-    
-    ContentType     Bloom( Cv_Spritz *spritz)
+
+template < typename Spritz>
+    ContentType     Bloom(  Spritz *spritz)
     {
         ContentType     obj( ItemCask::Bloom( spritz), BaseCask::Bloom( spritz)); 
         return obj;
     }
+
+    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return  ( ContentType *) arr->Ptr();
+    }    
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -241,10 +287,16 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         return true;  
     }
 
-    ContentType     Bloom( Cv_Spritz *spritz)
+template < typename Spritz>
+    ContentType     Bloom( Spritz *spritz)
     {
         ContentType     obj( ItemCask::Bloom( spritz)); 
         return obj;
+    }
+
+    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return arr->Ptr();
     }
 };
 
@@ -265,11 +317,17 @@ struct Cv_Cask< T, typename Cv_TypeEngage::Exist< typename T::Cask>::Note > : pu
         return true;
     }
 
-    ContentType     Bloom( Cv_Spritz *spritz)
+template < typename Spritz>
+    ContentType     Bloom( Spritz *spritz)
     {
         return Cask().Bloom( spritz); 
     }
-};
 
+    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    {
+        return ( ContentType *) Cask().Blossom( arr); 
+    }
+};
+*/
 //_____________________________________________________________________________________________________________________________
 

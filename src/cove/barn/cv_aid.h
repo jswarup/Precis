@@ -126,14 +126,14 @@ template <typename T>
 
     //_____________________________________________________________________________________________________________________________
 
-template <typename T>
-    static void Save( Cv_Spritz *spritz, const T &t) 
+template < typename Spritz, typename T>
+    static void Save( Spritz *spritz, const T &t) 
     {
         Cv_SerializeUtils::Save( spritz, t);
     }
 
-template <typename T>
-    static void  Save( Cv_Spritz *spritz, T *t) 
+template < typename Spritz, typename T>
+    static void  Save( Spritz *spritz, T *t) 
     {
         Cv_SerializeUtils::Save( spritz, t);
     } 

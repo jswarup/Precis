@@ -318,7 +318,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     typedef typename Entry::IndexStor		IndexStor; 
 
     std::vector< Elem>                  m_Elems;
-
+/*
     struct Cask : public Cv_MemberCask< std::vector< Elem>>, public Base::Cask
     { 
         typedef typename Cv_CratePile< CrateBase>::Cask     BaseCask;
@@ -346,7 +346,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
         }
 
     };
-
+*/
     Id    Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
@@ -405,7 +405,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     typedef typename Crate::Var         Var;
 
     std::vector< Elem>                  m_Elems; 
-
+/*
     struct Cask : public Cv_MemberCask< std::vector< Elem>>
     { 
         typedef Cv_MemberCask< std::vector< Elem>>    ItemCask; 
@@ -429,7 +429,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             return true;  
         }
     };
-
+*/
     Id          Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 

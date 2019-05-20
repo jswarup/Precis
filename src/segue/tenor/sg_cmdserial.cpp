@@ -53,7 +53,7 @@ struct  Test23
 {
     int                         m;
     std::vector< uint32_t>      vec; 
- 
+ /*
     struct Cask : public Cv_MemberCask< std::vector< uint32_t>, int>
     {  
         typedef Cv_MemberCask< std::vector< uint32_t>, int>     BaseCask; 
@@ -77,7 +77,7 @@ struct  Test23
             return obj;
         }
     };
-    
+ */  
 
 }; 
 
@@ -86,6 +86,26 @@ struct  Test23
 int     Sg_SerializeCmdProcessor::Test(void)
 {
     {
+        Cv_FileSpritz           imgSpritz( "a.txt", Cv_FileSpritz::WriteTrim);
+        Sg_CharPartition< 64>       charPrtn;    
+        Sg_Bitset< 64>              ccl;
+        ccl.SetByteRange( 5, 13, true);
+        charPrtn.ImpressCCL( ccl);
+
+        Sg_Bitset< 64>              ccl1;
+        ccl1.SetByteRange( 45, 53, true);
+        charPrtn.ImpressCCL( ccl1);
+
+        Cv_Aid::Save( &imgSpritz, charPrtn);
+    }
+    {
+        std::vector< char>  charVec;
+        bool	            res = Cv_Aid::ReadVec( &charVec, "a.txt"); 
+        Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), charVec.size());
+        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom(  &memArr);
+        ct->Dump( std::cout);
+    }   
+   /* {
         Cv_FileSpritz           imgSpritz( "a.txt", Cv_FileSpritz::WriteTrim);
     
         std::vector< uint32_t>  vec;
@@ -99,7 +119,8 @@ int     Sg_SerializeCmdProcessor::Test(void)
         Test23                  t23;
         t23.m = 137;
         t23.vec = vec;
-
+        Cv_Aid::Save( &imgSpritz, t23);
+/*
         Sg_CharPartition< 64>       charPrtn;    
         Sg_Bitset< 64>              ccl;
         ccl.SetByteRange( 5, 13, true);
@@ -110,21 +131,33 @@ int     Sg_SerializeCmdProcessor::Test(void)
         charPrtn.ImpressCCL( ccl1);
     
         Cv_Aid::Save( &imgSpritz, charPrtn);
-        Cv_Aid::Save( &imgSpritz, t23);
+*/
+//        Cv_Aid::Save( &imgSpritz, t23);
         //Cv_Cask< int *>   ser( &t1);
         //ser.Serialize( &imgSpritz);
-    }
+/*    }
+    if ( 1)
     {
         Cv_FileSpritz       imgSpritz( "a.txt", Cv_FileSpritz::ReadOnly);
-        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom(  &imgSpritz);
-        ct.Dump( std::cout);
-        auto                ct1 = Cv_Cask< Test23>().Bloom( &imgSpritz);
-        std::cout << '\n';
-        std::cout << ct1.GetM() <<  ' ' << ct1.GetSize() << '\n';
+      //  auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom(  &imgSpritz);
+     //   ct.Dump( std::cout);
+      //  auto                ct1 = Cv_Cask< Test23>().Bloom( &imgSpritz);
+      //  std::cout << '\n';
+      //  std::cout << ct1.GetM() <<  ' ' << ct1.GetSize() << '\n';
         
         std::cout << '\n';
     }
-
+    {
+        std::vector< char>  charVec;
+        bool	                res = Cv_Aid::ReadVec( &charVec, "a.txt"); 
+        Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), charVec.size());
+     //   auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Blossom( &memArr);
+     //   ct->Dump( std::cout);
+       // memArr.Advance( Cv_Cask< Sg_CharPartition< 64>>().ObjLen());
+        auto                ct1 = Cv_Cask< Test23>().Blossom( &memArr);
+        bool    t = true;
+    }
+*/
     return 0;
 }
 

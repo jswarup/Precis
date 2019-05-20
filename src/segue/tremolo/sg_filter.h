@@ -354,7 +354,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     std::set< Id, LessOp>       m_IdTbl; 
     DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base;
-
+/*
     struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
     {
         typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask; 
@@ -372,7 +372,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
             return BaseCask::Serialize( spritz, t.m_Base, t); 
         }
     };
-
+*/
     DistribRepos( void) 
         : m_IdTbl( LessOp( this))
     {}
