@@ -318,35 +318,40 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     typedef typename Entry::IndexStor		IndexStor; 
 
     std::vector< Elem>                  m_Elems;
-/*
+
     struct Cask : public Cv_MemberCask< std::vector< Elem>>, public Base::Cask
     { 
         typedef typename Cv_CratePile< CrateBase>::Cask     BaseCask;
         typedef Cv_MemberCask< std::vector< Elem>>          ItemCask;
-        typedef typename ItemCask::ContentType    ItemContent;
-        typedef typename BaseCask::ContentType    BaseContent;
+        typedef typename ItemCask::ContentType              ItemContent;
+        typedef typename BaseCask::ContentType              BaseContent;
 
         struct  ContentType : public BaseContent
         {
             ItemContent    m_Value;
 
-            ContentType( const ItemContent &t1, const BaseContent &t2)
-                : m_Value( t1), BaseContent( t2)
+            ContentType( const BaseContent &t2, const ItemContent &t1)
+                : BaseContent( t2), m_Value( t1)
             {}
-        };
+        }; 
 
-        uint32_t    ObjLen( void) const { return  ItemCask().ObjLen() + BaseCask().ObjLen(); }
-
-        bool        Serialize( Cv_Spritz *spritz, const Cv_CratePile &t)
+        uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
         {
-            spritz->EnsureSize( ObjLen());
-            ItemCask::Serialize( spritz, t.m_Elems);
-            BaseCask::Serialize( spritz, ( const Cv_CratePile< CrateBase> &) t);
-            return true;  
+            return BaseCask().Spread( obj, arr) +ItemCask().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
         }
 
-    };
-*/
+        ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
+        {   
+            spritz->EnsureSize( sizeof( ContentType)); 
+            return ContentType( BaseCask::Encase( spritz,  obj), ItemCask::Encase( spritz, obj.m_Elems));
+        }
+
+        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        {
+            return ( ContentType *) arr.Begin();
+        }
+    }; 
+ 
     Id    Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
@@ -405,9 +410,9 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     typedef typename Crate::Var         Var;
 
     std::vector< Elem>                  m_Elems; 
-/*
+    
     struct Cask : public Cv_MemberCask< std::vector< Elem>>
-    { 
+    {  
         typedef Cv_MemberCask< std::vector< Elem>>    ItemCask; 
         typedef typename ItemCask::ContentType      ItemContent;
 
@@ -418,18 +423,25 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             ContentType( const ItemContent &t1)
                 : m_Value( t1)
             {}
-        };
+        }; 
 
-        uint32_t    ObjLen( void) const { return  ItemCask().ObjLen(); }
-
-        bool        Serialize( Cv_Spritz *spritz, const Cv_CratePile &t)
+        uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
         {
-            spritz->EnsureSize( ObjLen());
-            ItemCask::Serialize( spritz, t.m_Elems); 
-            return true;  
+            return ItemCask().Spread( &obj->m_Value, arr);
         }
-    };
-*/
+
+        ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
+        { 
+            return ContentType( ItemCask::Encase( spritz, obj.m_Elems));
+        }
+
+        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        {
+            return ( ContentType *) arr.Begin();
+        }
+    }; 
+ 
+
     Id          Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 

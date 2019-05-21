@@ -353,26 +353,34 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
 
     std::set< Id, LessOp>       m_IdTbl; 
     DistribCrate::Var           m_TVar;
-    Sg_Partition                m_Base;
-/*
-    struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
-    {
-        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask; 
-        typedef typename BaseCask::ContentType                              BaseContent; 
+    Sg_Partition                m_Base; 
 
-        struct ContentType : public BaseContent       
-        {
-            ContentType( const BaseContent &ct)
-                : BaseContent( ct)
+    struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
+    {  
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>     BaseCask; 
+        typedef typename BaseCask::ContentType                              BaseContent;
+
+        struct  ContentType : public BaseContent
+        {  
+            ContentType(  const BaseContent &t2)
+                : BaseContent( t2)
             {}
+  
+            auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
-        bool        Serialize( Cv_Spritz *spritz, const DistribRepos &t) 
+        ContentType     Encase( Cv_Spritz *spritz, const DistribRepos &obj)
         { 
-            return BaseCask::Serialize( spritz, t.m_Base, t); 
+            return BaseCask::Encase( spritz, obj.m_Base, obj);
         }
-    };
-*/
+
+        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        {
+            return ( ContentType *) arr.Begin();
+        }
+    }; 
+ 
+
     DistribRepos( void) 
         : m_IdTbl( LessOp( this))
     {}
