@@ -110,12 +110,11 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
 
-    ContentType    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
+    auto    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
         return BaseCask::Encase( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
     }
-};
-
+}; 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -143,7 +142,7 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
     
     uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
     {
-        return BaseContent().Spread( obj, arr) +ItemCask::().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
+        return BaseCask().Spread( obj, arr) +ItemCask().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
     }
 
     ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
