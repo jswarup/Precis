@@ -97,13 +97,25 @@ int     Sg_SerializeCmdProcessor::Test(void)
         charPrtn.ImpressCCL( ccl1);
 
         Cv_Aid::Save( &imgSpritz, charPrtn);
+
+        std::vector< uint32_t>  vec;
+        vec.push_back( 80);
+        vec.push_back( 67);
+        vec.push_back( 32); 
+
+        Cv_CArr< uint32_t>     arr( &vec.at( 0), uint32_t( vec.size()));
+        Cv_Aid::Save( &imgSpritz, arr);
     }
     {
         std::vector< char>  charVec;
         bool	            res = Cv_Aid::ReadVec( &charVec, "a.txt"); 
-        Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), charVec.size());
-        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom(  &memArr);
+        Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
+        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom( memArr);
         ct->Dump( std::cout);
+        memArr = memArr.Ahead( sizeof( *ct));
+        auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>().Bloom( memArr);
+        auto        arr = ct1->Value( memArr);
+        bool t = true;
     }   
    /* {
         Cv_FileSpritz           imgSpritz( "a.txt", Cv_FileSpritz::WriteTrim);

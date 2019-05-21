@@ -100,14 +100,21 @@ public:
     X           &operator[]( uint32_t i) { return m_CStr[ i]; }
     const X     &At( uint32_t i) const { return m_CStr[ i]; }  
 
-    Cv_CArr     &Advance( uint32_t k)
+    void        Advance( uint32_t k)
     {
         if ( k > m_Len)
             k = m_Len;
         m_Len -= k;
         m_CStr = m_Len ? ( m_CStr + k) : NULL;
-        return SELF;
+        return;
     } 
+    
+    Cv_CArr     Ahead( uint32_t k)
+    {
+        Cv_CArr     arr = SELF;
+        arr.Advance( k);
+        return arr;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________

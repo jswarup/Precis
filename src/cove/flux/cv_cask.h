@@ -31,22 +31,67 @@ template < typename Spritz, typename T>
 */
 }; 
 
+//_____________________________________________________________________________________________________________________________
+
 template < typename T> 
 struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils 
 {      
     typedef T           Type;
-    typedef T           Content;  
+    typedef T           ContentType;  
  
 
-    Content         Encase( Cv_Spritz *spritz, const T &obj)
+    ContentType         Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return obj;
     }
  
-    Content     *Bloom( Cv_CArr< uint8_t> *arr)
+    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
     {
-        return ( Content *) arr->Ptr();
+        return ( ContentType *) arr.Ptr();
     } 
+};
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename T> 
+struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils 
+{
+    typedef T                               Type; 
+    typedef  Cv_Cask< Type>                 SubCask;
+    typedef typename SubCask::ContentType   SubContent;
+
+    struct  ContentType
+    {
+        uint32_t    m_Offset;
+        uint32_t    m_Size;
+
+        typedef void Copiable;  
+ 
+        Cv_CArr< SubContent>     Value( const Cv_CArr< uint8_t> &arr)
+        {
+            return Cv_CArr< SubContent>( ( SubContent *) ( arr.Begin() + m_Offset), m_Size);
+        }
+ 
+    }; 
+
+    ContentType        Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
+    {
+        spritz->EnsureSize( sizeof( ContentType));
+        uint64_t        off = spritz->Offset();
+        spritz->SetOffsetAtEnd();
+        ContentType    fileObj;
+        fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+        fileObj.m_Size = obj.Size();
+        for ( auto it = obj.Begin(); it != obj.End(); ++it)
+            Save( spritz, *it);    
+        spritz->SetOffset( off); 
+        return fileObj;
+    } 
+ 
+    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+    {
+        return ( ContentType *) arr.Begin();
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
