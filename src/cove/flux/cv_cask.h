@@ -39,13 +39,14 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
     typedef T           Type;
     typedef T           ContentType;  
  
-
+    uint32_t            Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) { return sizeof( *obj); }
+    
     ContentType         Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return obj;
     }
- 
-    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+    
+    ContentType         *Bloom( const Cv_CArr< uint8_t> &arr)
     {
         return ( ContentType *) arr.Ptr();
     } 
@@ -71,10 +72,18 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         {
             return Cv_CArr< SubContent>( ( SubContent *) ( arr.Begin() + m_Offset), m_Size);
         }
- 
     }; 
 
-    ContentType        Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
+    uint32_t            Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+    {
+        uint32_t                sz = sizeof( *obj); 
+        Cv_CArr< SubContent>    subArr = obj->Value( arr);
+        uint32_t                off = obj->m_Offset;
+        for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
+            sz += SubCask().Spread( &subArr[ i], arr.Ahead( off));
+        return sz;
+    }
+    ContentType         Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
     {
         spritz->EnsureSize( sizeof( ContentType));
         uint64_t        off = spritz->Offset();
@@ -95,167 +104,19 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 };
 
 //_____________________________________________________________________________________________________________________________
-/*
-template < typename T> 
-struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils 
-{      
-    typedef T           Type;
-    typedef T           ContentType;  
- 
-
-    uint32_t    ObjLen( void) const { return  sizeof( Type); }
-
-    bool        Serialize( Cv_Spritz *spritz, const T &obj)
-    {
-        bool    res = spritz->Write( &obj, ObjLen());        
-        return true;
-    }
-
-template < typename Spritz>
-    ContentType Bloom( Spritz *spritz)
-    {
-        ContentType     obj;
-        bool    res = spritz->Read( &obj, ObjLen()); 
-        return obj;
-    }
-
-
-    ContentType *Blossom( Cv_CArr< uint8_t> *arr)
-    {
-        return ( ContentType *) arr->Ptr();
-    }
-
-};
-
-//_____________________________________________________________________________________________________________________________
-
-template < typename T> 
-struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils 
-{
-    typedef T                               Type; 
-    typedef  Cv_Cask< Type>                 SubCask;
-    typedef typename SubCask::ContentType   SubContent;
-
-    struct  ContentType
-    {
-        uint64_t    m_Offset;
-        uint64_t    m_Size;
-
-        typedef void Copiable; 
-
-        SubContent     Content( Cv_Spritz *spritz, uint32_t k)
-        {
-            uint32_t        objLen = SubCask().ObjLen();
-            uint64_t        off = spritz->Offset();
-            spritz->SetOffset( m_Offset + k * SubCask().ObjLen());
-            SubContent      obj;
-            bool    res = spritz->Read( &obj, ObjLen());   
-            spritz->SetOffset( off);
-            return obj;
-        }
-    }; 
-
-    uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
-
-    bool        Serialize( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
-    {
-        spritz->EnsureSize( ObjLen());
-        uint64_t        off = spritz->Offset();
-        spritz->SetOffsetAtEnd();
-        ContentType    fileObj;
-        fileObj.m_Offset = spritz->Offset();
-        fileObj.m_Size = obj.Size();
-        for ( auto it = obj.Begin(); it != obj.End(); ++it)
-            Save( spritz, *it);    
-        spritz->SetOffset( off);
-        Save( spritz, fileObj);
-        return true;
-    }
-
-template < typename Spritz>
-    ContentType     Bloom( Spritz *spritz)
-    {
-        ContentType     obj;
-        bool    res = spritz->Read( &obj, ObjLen()); 
-        return obj;
-    }
-
-    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
-    {
-        return ( ContentType *) arr->Ptr();
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
 
 template < typename T> 
 struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> > 
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
-     
-    bool    Serialize( Cv_Spritz *spritz, const std::vector< T> &obj)
+
+    ContentType    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
-        return BaseCask::Serialize( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
+        return BaseCask::Encase( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
     }
 };
 
-//_____________________________________________________________________________________________________________________________
 
-template < typename T> 
-struct Cv_Cask< T *> : public Cv_SerializeUtils 
-{  
-    typedef T                               Type;
-    typedef Cv_Cask< Type>                  SubCask;
-    typedef typename SubCask::ContentType   SubContent;
-
-    struct  ContentType
-    {
-        uint64_t        m_Offset;
-
-        typedef void    Copiable; 
-
-        SubContent      Content( Cv_Spritz *spritz)
-        {
-            uint32_t        objLen = SubCask().ObjLen();
-            uint64_t    off = spritz->Offset();
-            spritz->SetOffset( m_Offset);
-            SubContent      obj;
-            bool            res = spritz->Read( &obj, ObjLen()); 
-            spritz->SetOffset( off);
-            return obj;
-        }
-    };  
-
-    uint32_t    ObjLen( void) const { return  sizeof( ContentType); }
-
-    bool        Serialize( Cv_Spritz *spritz, Type *obj)
-    {
-        spritz->EnsureSize( ObjLen());
-        uint64_t    off = spritz->Offset();
-        spritz->SetOffsetAtEnd();
-
-        ContentType    fileObj;
-        fileObj.m_Offset = spritz->Offset();  
-        Save( spritz, *obj);    
-        spritz->SetOffset( off);
-        Save( spritz, fileObj);
-        return true;
-    }
-
-template < typename Spritz>
-    ContentType     Bloom( Spritz *spritz)
-    {
-        ContentType     obj;
-        bool    res = spritz->Read( &obj, ObjLen()); 
-        return obj;
-    }
-    
-    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
-    {
-        return ( ContentType *) arr->Ptr();
-    }
-};
- 
 //_____________________________________________________________________________________________________________________________
 
 template < typename T, typename... Rest>
@@ -274,32 +135,27 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
     struct  ContentType : public BaseContent
     {
         ItemContent    m_Value;
-    
-        ContentType( const ItemContent &t1, const BaseContent &t2)
-            : m_Value( t1), BaseContent( t2)
+
+        ContentType(  const BaseContent &t2, const ItemContent &t1)
+            : BaseContent( t2), m_Value( t1)
         {}
     };
-
-    uint32_t        ObjLen( void) const { return  ItemCask::ObjLen() + BaseCask::ObjLen(); }
-
-    bool            Serialize( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
-    { 
-        BaseCask::Serialize( spritz,  rest...);
-        ItemCask::Serialize( spritz, obj);
-        return true;  
+    
+    uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+    {
+        return BaseContent().Spread( obj, arr) +ItemCask::().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
     }
 
-template < typename Spritz>
-    ContentType     Bloom(  Spritz *spritz)
-    {
-        ContentType     obj( ItemCask::Bloom( spritz), BaseCask::Bloom( spritz)); 
-        return obj;
+    ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
+    {   
+        spritz->EnsureSize( sizeof( ContentType)); 
+        return ContentType( BaseCask::Encase( spritz,  rest...), ItemCask::Encase( spritz, obj));
     }
-
-    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+ 
+    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
     {
-        return  ( ContentType *) arr->Ptr();
-    }    
+        return ( ContentType *) arr.Begin();
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -323,56 +179,32 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         {}
     };
 
-    uint32_t    ObjLen( void) const { return  ItemCask::ObjLen(); }
- 
-    bool        Serialize( Cv_Spritz *spritz, const T &obj)
+    uint32_t        Spread( ContentType *obj) 
     {
-        spritz->EnsureSize( ObjLen());
-        ItemCask::Serialize( spritz, obj); 
-        return true;  
+        return ItemCask().Spread( &obj->m_Value);
     }
 
-template < typename Spritz>
-    ContentType     Bloom( Spritz *spritz)
-    {
-        ContentType     obj( ItemCask::Bloom( spritz)); 
-        return obj;
+    ContentType     Encase( Cv_Spritz *spritz, const T &obj)
+    { 
+        return ContentType( ItemCask::Encase( spritz, obj));
     }
 
-    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
+    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
     {
-        return arr->Ptr();
+        return ( ContentType *) arr.Begin();
     }
 };
+
 
 //_____________________________________________________________________________________________________________________________
 
 template < typename T> 
-struct Cv_Cask< T, typename Cv_TypeEngage::Exist< typename T::Cask>::Note > : public Cv_SerializeUtils 
+struct Cv_Cask< T, typename Cv_TypeEngage::Exist< typename T::Cask>::Note > :  public T::Cask 
 {      
     typedef T                           Type;
     typedef typename T::Cask            Cask;
-    typedef typename Cask::ContentType  ContentType;  
-
-    uint32_t    ObjLen( void) const { return  Cask().ObjLen(); }
-
-    bool        Serialize( Cv_Spritz *spritz, const Type &obj)
-    {       
-        Cask().Serialize( spritz, obj);
-        return true;
-    }
-
-template < typename Spritz>
-    ContentType     Bloom( Spritz *spritz)
-    {
-        return Cask().Bloom( spritz); 
-    }
-
-    ContentType     *Blossom( Cv_CArr< uint8_t> *arr)
-    {
-        return ( ContentType *) Cask().Blossom( arr); 
-    }
+    typedef typename Cask::ContentType  ContentType;   
 };
-*/
-//_____________________________________________________________________________________________________________________________
+
+//_____________________________________________________________________________________________________________________________ 
 

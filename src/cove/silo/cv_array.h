@@ -109,7 +109,7 @@ public:
         return;
     } 
     
-    Cv_CArr     Ahead( uint32_t k)
+    Cv_CArr     Ahead( uint32_t k) const
     {
         Cv_CArr     arr = SELF;
         arr.Advance( k);
