@@ -178,9 +178,9 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         {}
     };
 
-    uint32_t        Spread( ContentType *obj) 
+    uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
     {
-        return ItemCask().Spread( &obj->m_Value);
+        return ItemCask().Spread( &obj->m_Value, arr);
     }
 
     ContentType     Encase( Cv_Spritz *spritz, const T &obj)

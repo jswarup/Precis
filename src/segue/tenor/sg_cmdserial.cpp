@@ -106,13 +106,15 @@ int     Sg_SerializeCmdProcessor::Test(void)
         vec.push_back( 67);
         vec.push_back( 32); 
  
-        Cv_Aid::Save( &imgSpritz, vec);
-        imgSpritz.SetOffsetAtEnd();
+        
 
         Test23                  t23;
         t23.m = 137;
         t23.vec = vec;
         Cv_Aid::Save( &imgSpritz, t23);
+        imgSpritz.SetOffsetAtEnd();
+
+        Cv_Aid::Save( &imgSpritz, vec);
         imgSpritz.SetOffsetAtEnd();
 
     }
@@ -125,6 +127,15 @@ int     Sg_SerializeCmdProcessor::Test(void)
         ct->Dump( std::cout);
         memArr = memArr.Ahead( Cv_Cask< Sg_CharPartition< 64>>().Spread( ct, memArr));
  
+        auto                ct2 = Test23::Cask().Bloom( memArr);
+        bool    t1 = true;
+        std::cout << ct2->GetM() << ' ' << ct2->GetSize() <<  '\n';
+        auto                arr1 = ct2->GetVec( memArr);
+        for ( uint32_t i = 0; i < arr1.Size(); ++i)
+            std::cout << arr1[ i] << ' ';
+        std::cout  <<  '\n';
+        memArr = memArr.Ahead( Cv_Cask<Test23>().Spread( ct2, memArr));
+
         auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>().Bloom( memArr);
         auto        arr = ct1->Value( memArr);
         for ( uint32_t i = 0; i < arr.Size(); ++i)
@@ -133,14 +144,7 @@ int     Sg_SerializeCmdProcessor::Test(void)
         memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>().Spread( ct1, memArr));
         bool t = true;
      
-        auto                ct2 = Test23::Cask().Bloom( memArr);
-        bool    t1 = true;
-        std::cout << ct2->GetM() << ' ' << ct2->GetSize() <<  '\n';
-
-        auto                arr1 = ct2->GetVec( memArr);
-        for ( uint32_t i = 0; i < arr1.Size(); ++i)
-            std::cout << arr1[ i] << ' ';
-        std::cout  <<  '\n';
+        
     }    
     return 0;
 }
