@@ -250,7 +250,7 @@ int     Sg_RExpCmdProcessor::Test(void)
             bool	            res = Cv_Aid::ReadVec( &charVec, m_ImgFile.c_str()); 
             Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
 
-            auto                ct = Cv_Cask< DistribRepos>().Bloom( memArr);
+            auto                ct = Cv_Cask< DistribRepos>().Bloom( memArr.Ptr());
             bool t = true;
         }
     }

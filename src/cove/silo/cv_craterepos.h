@@ -333,6 +333,15 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             ContentType( const BaseContent &t2, const ItemContent &t1)
                 : BaseContent( t2), m_Value( t1)
             {}
+
+            Var     ToVar( const Id &id)  
+            {  
+                switch ( id.GetType())
+                {
+                    case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
+                    default :           auto    var = Base::ToVar( id); return Var( var.GetEntry(), var.GetType());
+                }
+            }
         }; 
 
         uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
@@ -346,9 +355,9 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             return ContentType( BaseCask::Encase( spritz,  obj), ItemCask::Encase( spritz, obj.m_Elems));
         }
 
-        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        ContentType     *Bloom( uint8_t *arr)
         {
-            return ( ContentType *) arr.Begin();
+            return ( ContentType *) arr;
         }
     }; 
  
@@ -423,6 +432,11 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             ContentType( const ItemContent &t1)
                 : m_Value( t1)
             {}
+
+            void         ToVar( const Id &id, uint8_t *arr)  
+            {  
+                 
+            }
         }; 
 
         uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
@@ -435,13 +449,13 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             return ContentType( ItemCask::Encase( spritz, obj.m_Elems));
         }
 
-        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        ContentType     *Bloom( uint8_t *arr)
         {
-            return ( ContentType *) arr.Begin();
+            return ( ContentType *) arr;
         }
     }; 
- 
-
+    
+     
     Id          Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 

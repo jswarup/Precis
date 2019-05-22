@@ -39,16 +39,16 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
     typedef T           Type;
     typedef T           ContentType;  
  
-    uint32_t            Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) { return sizeof( *obj); }
+    uint32_t            Spread( ContentType *obj, uint8_t *arr) { return sizeof( *obj); }
     
     ContentType         Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return obj;
     }
     
-    ContentType         *Bloom( const Cv_CArr< uint8_t> &arr)
+    ContentType         *Bloom( uint8_t *arr)
     {
-        return ( ContentType *) arr.Ptr();
+        return ( ContentType *) arr;
     } 
 };
 
@@ -68,19 +68,19 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
         typedef void Copiable;  
  
-        Cv_CArr< SubContent>     Value( const Cv_CArr< uint8_t> &arr)
+        Cv_CArr< SubContent>     Value( uint8_t *arr)
         {
-            return Cv_CArr< SubContent>( ( SubContent *) ( arr.Begin() + m_Offset), m_Size);
+            return Cv_CArr< SubContent>( ( SubContent *) ( arr + m_Offset), m_Size);
         }
     }; 
 
-    uint32_t            Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+    uint32_t            Spread( ContentType *obj, uint8_t *arr) 
     {
         uint32_t                sz = sizeof( *obj); 
         Cv_CArr< SubContent>    subArr = obj->Value( arr);
         uint32_t                off = obj->m_Offset;
         for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
-            sz += SubCask().Spread( &subArr[ i], arr.Ahead( off));
+            sz += SubCask().Spread( &subArr[ i], arr + off);
         return sz;
     }
     ContentType         Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
@@ -97,9 +97,9 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         return fileObj;
     } 
  
-    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+    ContentType     *Bloom( uint8_t *arr)
     {
-        return ( ContentType *) arr.Begin();
+        return ( ContentType *) arr;
     }
 };
 
@@ -140,9 +140,9 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         {}
     };
     
-    uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+    uint32_t        Spread( ContentType *obj, uint8_t *arr) 
     {
-        return BaseCask().Spread( obj, arr) +ItemCask().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
+        return BaseCask().Spread( obj, arr) +ItemCask().Spread( &obj->m_Value, arr +sizeof( BaseContent) );
     }
 
     ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
@@ -151,9 +151,9 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         return ContentType( BaseCask::Encase( spritz,  rest...), ItemCask::Encase( spritz, obj));
     }
  
-    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+    ContentType     *Bloom( uint8_t *arr)
     {
-        return ( ContentType *) arr.Begin();
+        return ( ContentType *) arr;
     }
 };
 
@@ -178,7 +178,7 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         {}
     };
 
-    uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+    uint32_t        Spread( ContentType *obj, uint8_t *arr) 
     {
         return ItemCask().Spread( &obj->m_Value, arr);
     }
@@ -188,9 +188,9 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         return ContentType( ItemCask::Encase( spritz, obj));
     }
 
-    ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+    ContentType     *Bloom( uint8_t *arr)
     {
-        return ( ContentType *) arr.Begin();
+        return ( ContentType *) arr;
     }
 };
 

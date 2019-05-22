@@ -374,12 +374,25 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
             return BaseCask::Encase( spritz, obj.m_Base, obj);
         }
 
-        ContentType     *Bloom( const Cv_CArr< uint8_t> &arr)
+        ContentType     *Bloom( uint8_t *arr)
         {
-            return ( ContentType *) arr.Begin();
+            return ( ContentType *) arr;
         }
     }; 
- 
+    
+    struct Blossom
+    {
+        Cask::ContentType    *m_Root;
+        
+        Blossom( uint8_t *arr)
+            : m_Root( ( Cask::ContentType  *) arr)
+        {}
+
+        void         ToVar( const Id &id)  
+        {  
+
+        }
+    };
 
     DistribRepos( void) 
         : m_IdTbl( LessOp( this))
