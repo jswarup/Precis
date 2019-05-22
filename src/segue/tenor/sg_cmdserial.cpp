@@ -125,7 +125,7 @@ int     Sg_SerializeCmdProcessor::Test(void)
  
         auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom( memArr.Ptr());
         ct->Dump( std::cout);
-        memArr = memArr.Ahead( Cv_Cask< Sg_CharPartition< 64>>().Spread( ct, memArr.Ptr()));
+        memArr = memArr.Ahead( Cv_Cask< Sg_CharPartition< 64>>().Spread( ct));
  
         auto                ct2 = Test23::Cask().Bloom( memArr.Ptr());
         bool    t1 = true;
@@ -134,14 +134,14 @@ int     Sg_SerializeCmdProcessor::Test(void)
         for ( uint32_t i = 0; i < arr1.Size(); ++i)
             std::cout << arr1[ i] << ' ';
         std::cout  <<  '\n';
-        memArr = memArr.Ahead( Cv_Cask<Test23>().Spread( ct2, memArr.Ptr()));
+        memArr = memArr.Ahead( Cv_Cask<Test23>().Spread( ct2));
  
         auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>().Bloom( memArr.Ptr());
         auto        arr = ct1->Value();
         for ( uint32_t i = 0; i < arr.Size(); ++i)
             std::cout << arr[ i] << ' ';
         std::cout << '\n';
-        memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>().Spread( ct1, memArr.Ptr()));
+        memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>().Spread( ct1));
         bool t = true;
          
     }    
