@@ -118,7 +118,6 @@ CV_CMD_DEFINE( Sg_RExpCmdProcessor, "rexp", "rexp", s_RExpIfcOptions)
 using namespace Sg_Timbre;
 using namespace Sg_RExp; 
 
-
 class TestX
 {
     int     i;
@@ -143,15 +142,12 @@ public:
 template < typename TimbreShard>
 auto ProcessMatch( TimbreShard *shard, int k = 0) ->   decltype( std::declval<TimbreShard>().Dump( std::declval<std::ostream>()))
 {         
-
     return ;
 }
  
-
 template < typename TimbreShard>
 auto ProcessMatch( TimbreShard *shard, ...) -> void
 {         
-
     return ;
 }
 
@@ -250,7 +246,9 @@ int     Sg_RExpCmdProcessor::Test(void)
             bool	            res = Cv_Aid::ReadVec( &charVec, m_ImgFile.c_str()); 
             Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
 
-            auto                ct = Cv_Cask< DistribRepos>().Bloom( memArr.Ptr());
+            auto                    ct = Cv_Cask< DistribRepos>().Bloom( memArr.Ptr());
+            DistribRepos::Blossom   blossom( ct);
+            auto                    bls = blossom.ToVar( DistribRepos::Id( 1, 5));
             bool t = true;
         }
     }

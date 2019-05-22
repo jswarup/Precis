@@ -13,8 +13,8 @@
         //"rexp -ilex ip.lex  -oelem a.dot"
         // "trellis -i ip_1m.rules -o out.txt",
         //  "atelier -i d1.txt -o out.txt -r ip.rules"
-        // "rexp -ilex ip1.lex -oimg b.txt -odfa a.dot"
-       "serial"
+        "rexp -ilex ip1.lex -oimg b.txt -odfa a.dot"
+        //"serial"
       ]
     }
   ]

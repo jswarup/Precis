@@ -305,7 +305,6 @@ struct   Cv_CrateConstructor
 template < typename Crate, typename=void>
 struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 {
-
     typedef typename Crate::CrateBase       CrateBase;
 
     typedef Cv_CratePile< CrateBase>        Base;
@@ -317,8 +316,9 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     typedef typename Entry::TypeStor		TypeStor; 
     typedef typename Entry::IndexStor		IndexStor; 
 
-    std::vector< Elem>                  m_Elems;
-
+    std::vector< Elem>                      m_Elems;
+    
+    
     struct Cask : public Cv_MemberCask< std::vector< Elem>>, public Base::Cask
     { 
         typedef typename Cv_CratePile< CrateBase>::Cask     BaseCask;
@@ -344,15 +344,20 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             }
         }; 
 
-        uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+        uint32_t        Spread( ContentType *obj) 
         {
-            return BaseCask().Spread( obj, arr) +ItemCask().Spread( &obj->m_Value, arr.Ahead( sizeof( BaseContent) ));
+            return BaseCask().Spread( obj) +ItemCask().Spread( &obj->m_Value);
         }
 
         ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
         {   
-            spritz->EnsureSize( sizeof( ContentType)); 
-            return ContentType( BaseCask::Encase( spritz,  obj), ItemCask::Encase( spritz, obj.m_Elems));
+            spritz->EnsureSize( sizeof( ContentType));   
+            uint64_t    off = spritz->Offset();
+            auto    bc = BaseCask::Encase( spritz,  obj); 
+            spritz->SetOffset( off + uint64_t( &reinterpret_cast< ContentType *>( 0x8)->m_Value) - 0x8);
+            auto    ic = ItemCask::Encase( spritz, obj.m_Elems);
+            spritz->SetOffset( off);
+            return ContentType( bc, ic);
         }
 
         ContentType     *Bloom( uint8_t *arr)
@@ -360,7 +365,35 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             return ( ContentType *) arr;
         }
     }; 
- 
+     
+
+    struct Blossom
+    {
+        typedef typename Cask::ContentType  ContentType;
+        typedef typename Base::Blossom      BaseBlossom;
+        
+        ContentType    *m_Root;
+
+        Blossom( ContentType  *arr)
+            : m_Root(  arr)
+        {}
+
+        Var         ToVar( const Id &id)  
+        {  
+            uint32_t    k = Crate::Sz; 
+            switch ( id.GetType())
+            {
+                case  Crate::Sz:    
+                {
+                    auto arr = m_Root->m_Value.m_Value.Value();
+                    return Var( &arr[ id.GetId()], id.GetType()); 
+                }   
+                default :  auto   var = BaseBlossom( m_Root).ToVar( id); return Var( var.GetEntry(), var.GetType());
+            }
+            return Var();
+        }
+    };
+
     Id    Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
@@ -419,7 +452,8 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     typedef typename Crate::Var         Var;
 
     std::vector< Elem>                  m_Elems; 
-    
+
+
     struct Cask : public Cv_MemberCask< std::vector< Elem>>
     {  
         typedef Cv_MemberCask< std::vector< Elem>>    ItemCask; 
@@ -454,7 +488,24 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             return ( ContentType *) arr;
         }
     }; 
-    
+ 
+
+    struct Blossom
+    {
+        typedef typename Cask::ContentType  ContentType;
+
+        ContentType    *m_Root;
+
+        Blossom( ContentType  *arr)
+            : m_Root( arr)
+        {}
+
+        Var         ToVar( const Id &id)  
+        {  
+            auto arr = m_Root->m_Value.m_Value.Value();
+            return Var( &arr[ id.GetId()], id.GetType()); 
+        }
+    };
      
     Id          Push( const Elem &elm) 
     { 

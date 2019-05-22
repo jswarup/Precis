@@ -24,6 +24,8 @@ typedef Cv_Crate< ChSetFilter< 256>, ChSetFilter< 128>, ChSetFilter< 64>, ChSetF
 struct  Filter : public Cv_CrateEntry
 {   
 public:
+    typedef void                    Copiable;
+
     Filter( void) 
     {
         SetType( FilterCrate::TypeOf< Filter>());
@@ -382,15 +384,26 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     
     struct Blossom
     {
-        Cask::ContentType    *m_Root;
+        typedef typename Cask::ContentType                                  ContentType;
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask;  
+        typedef typename Cv_CratePile< DistribCrate>::Blossom               BaseBlossom;
+
+        ContentType     *m_Root;
         
-        Blossom( uint8_t *arr)
-            : m_Root( ( Cask::ContentType  *) arr)
+        Blossom( ContentType *arr)
+            : m_Root( arr)
         {}
 
-        void         ToVar( const Id &id)  
+        Sg_Partition   *Base( const Id &id)  
         {  
+            return &m_Root->m_Value;
+        }
 
+        auto     ToVar( const Id &id)  
+        {          
+            BaseCask::BaseContent     *base = m_Root; 
+            BaseBlossom     pileBlsm( &base->m_Value);   
+            return pileBlsm.ToVar( id);
         }
     };
 
