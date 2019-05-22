@@ -66,7 +66,7 @@ struct  Test23
             {}
             
             uint64_t    GetSize( void) { return m_Value.m_Size; } 
-            auto        GetVec(  uint8_t *arr) { return m_Value.Value( arr); }
+            auto        GetVec( void) { return m_Value.Value(); }
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
@@ -130,21 +130,20 @@ int     Sg_SerializeCmdProcessor::Test(void)
         auto                ct2 = Test23::Cask().Bloom( memArr.Ptr());
         bool    t1 = true;
         std::cout << ct2->GetM() << ' ' << ct2->GetSize() <<  '\n';
-        auto                arr1 = ct2->GetVec( memArr.Ptr());
+        auto                arr1 = ct2->GetVec();
         for ( uint32_t i = 0; i < arr1.Size(); ++i)
             std::cout << arr1[ i] << ' ';
         std::cout  <<  '\n';
         memArr = memArr.Ahead( Cv_Cask<Test23>().Spread( ct2, memArr.Ptr()));
-
+ 
         auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>().Bloom( memArr.Ptr());
-        auto        arr = ct1->Value( memArr.Ptr());
+        auto        arr = ct1->Value();
         for ( uint32_t i = 0; i < arr.Size(); ++i)
             std::cout << arr[ i] << ' ';
         std::cout << '\n';
         memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>().Spread( ct1, memArr.Ptr()));
         bool t = true;
-     
-        
+         
     }    
     return 0;
 }

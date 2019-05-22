@@ -68,16 +68,16 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
         typedef void Copiable;  
  
-        Cv_CArr< SubContent>     Value( uint8_t *arr)
-        {
-            return Cv_CArr< SubContent>( ( SubContent *) ( arr + m_Offset), m_Size);
+        Cv_CArr< SubContent>     Value( void)
+        { 
+            return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
         }
     }; 
 
     uint32_t            Spread( ContentType *obj, uint8_t *arr) 
     {
         uint32_t                sz = sizeof( *obj); 
-        Cv_CArr< SubContent>    subArr = obj->Value( arr);
+        Cv_CArr< SubContent>    subArr = obj->Value();
         uint32_t                off = obj->m_Offset;
         for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
             sz += SubCask().Spread( &subArr[ i], arr + off);
@@ -148,7 +148,12 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
     ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
     {   
         spritz->EnsureSize( sizeof( ContentType)); 
-        return ContentType( BaseCask::Encase( spritz,  rest...), ItemCask::Encase( spritz, obj));
+        uint64_t    off = spritz->Offset();
+        auto    bc = BaseCask::Encase( spritz,  rest...); 
+        spritz->SetOffset( off + uint64_t( &reinterpret_cast< ContentType *>( 0x8)->m_Value) - 0x8);
+        auto    ic = ItemCask::Encase( spritz, obj);
+        spritz->SetOffset( off);
+        return ContentType( bc, ic);
     }
  
     ContentType     *Bloom( uint8_t *arr)
