@@ -149,6 +149,37 @@ protected:
     std::vector< TypeStor>					m_Types;
 
 public: 
+
+    struct Cask  
+    {   
+        struct  ContentType 
+        {
+            uint32_t    m_Sz;
+
+            Cv_CArr< uint32_t>   Offsets( void) const { return  Cv_CArr< uint32_t>( cv_pcast< uin32_t>( &m_Sz +1), m_Sz); }  
+            
+        }; 
+
+        static uint32_t        Spread( ContentType *obj) 
+        {
+            return ItemCask().Spread( &obj->m_Value);
+        }
+
+        static ContentType     Encase( Cv_Spritz *spritz, const Cv_CrateRepos &obj)
+        {   
+            spritz->EnsureSize( sizeof( ContentType));   
+            uint64_t    off = spritz->Offset();
+            auto        ic = ItemCask::Encase( spritz, obj.m_Elems);
+            spritz->SetOffset( off);
+            return ContentType( ic);
+        }
+
+        static ContentType     *Bloom( uint8_t *arr)
+        {
+            return ( ContentType *) arr;
+        }
+    }; 
+
     Cv_CrateRepos( void) 
     {
         m_Elems.push_back( NULL); 

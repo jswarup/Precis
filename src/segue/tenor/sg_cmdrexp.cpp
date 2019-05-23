@@ -242,15 +242,15 @@ int     Sg_RExpCmdProcessor::Test(void)
 
             Cv_ValidationSpritz     valSpritz( &imgSpritz);
 
-            Cv_Aid::Save( &valSpritz, dfaRepos.m_DistribRepos);
+            Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
         }
         {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());  
 
-            auto                    ct = Cv_Cask< DistribRepos>::Bloom( &memArr[ 0]);
-            DistribRepos::Blossom   blossom( ct);
+            auto                    ct = Cv_Cask< DistribRepos*>::Bloom( &memArr[ 0]);
+            DistribRepos::Blossom   blossom( ct->Value());
             auto                    dVar = blossom.ToVar( DistribRepos::Id( 0, 5));  
             uint8_t chrId = 25;
             uint8_t                  img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
