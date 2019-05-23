@@ -111,17 +111,20 @@ template <typename... Args>
 template <typename T>
 	static bool		ReadVec( std::vector< T> *pVec, const char *pathname) 
 	{
-		FILE                    *infile = fopen( pathname, "r");
-		if (!infile)
-			return false;
-		uint64_t                infileSz = Cv_Aid::FileSize( infile);
-		if ( !infileSz)
-			return false;
-		pVec->resize( ( infileSz + sizeof( T) -1)/sizeof( T));
-		uint64_t    sz = fread( &(*pVec)[ 0], 1, infileSz, infile);
-		CV_ERROR_ASSERT( sz == infileSz )	
-		fclose( infile);
-		return true;
+		std::ifstream   is;
+        is.open ( pathname, std::ios::binary ); 
+        if ( !is)
+            return false;
+
+        // get length of file:
+        is.seekg (0, std::ios::end);
+        uint64_t 	length = is.tellg(); 
+        pVec->resize( ( length + sizeof( T) -1)/sizeof( T)); 
+        is.seekg (0, std::ios::beg); 
+        // read data as a block:
+        is.read ( ( char *) &pVec->at( 0), uint32_t( length));
+        is.close();
+        return true;
 	}  
 
     //_____________________________________________________________________________________________________________________________

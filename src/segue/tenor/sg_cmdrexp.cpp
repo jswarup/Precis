@@ -246,14 +246,13 @@ int     Sg_RExpCmdProcessor::Test(void)
             bool t = true;
         }
         {
-            std::vector< char>  charVec;
-            bool	            res = Cv_Aid::ReadVec( &charVec, m_ImgFile.c_str()); 
-            Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
+            std::vector< uint8_t>   memArr;
+            bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());  
 
-            auto                    ct = Cv_Cask< DistribRepos>::Bloom( memArr.Ptr());
+            auto                    ct = Cv_Cask< DistribRepos>::Bloom( &memArr[ 0]);
             DistribRepos::Blossom   blossom( ct);
-            auto                    dVar = blossom.ToVar( DistribRepos::Id( 1, 5));  
-            uint8_t chrId = 4;
+            auto                    dVar = blossom.ToVar( DistribRepos::Id( 0, 5));  
+            uint8_t chrId = 25;
             uint8_t                  img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
             bool t = true;
         }

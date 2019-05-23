@@ -332,16 +332,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 
             ContentType( const BaseContent &t2, const ItemContent &t1)
                 : BaseContent( t2), m_Value( t1)
-            {}
-
-            Var     ToVar( const Id &id)  
-            {  
-                switch ( id.GetType())
-                {
-                    case  Crate::Sz:    return Var(  &m_Elems[ id.GetId()], id.GetType()); 
-                    default :           auto    var = Base::ToVar( id); return Var( var.GetEntry(), var.GetType());
-                }
-            }
+            {} 
         }; 
 
         static uint32_t        Spread( ContentType *obj) 
@@ -461,16 +452,11 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
 
         struct  ContentType 
         {
-            ItemContent   m_Value;
+            ItemContent     m_Value;
 
             ContentType( const ItemContent &t1)
                 : m_Value( t1)
-            {}
-
-            void         ToVar( const Id &id, uint8_t *arr)  
-            {  
-                 
-            }
+            {} 
         }; 
 
         static uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
