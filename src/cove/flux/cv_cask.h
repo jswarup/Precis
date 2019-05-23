@@ -14,19 +14,23 @@ struct Cv_Cask
 
 //_____________________________________________________________________________________________________________________________
 
-struct Cv_SerializeUtils
+class Cv_SerializeUtils
 { 
+    Cv_SerializeUtils( void)
+    {}
+
+public:
 template < typename Spritz, typename T>
     static void  Save( Spritz *spritz, const T &t) 
     {
-        auto    cnt = Cv_Cask< T>().Encase( spritz, t);
+        auto    cnt = Cv_Cask< T>::Encase( spritz, t);
         bool    res = spritz->Write( &cnt, sizeof( cnt));  
     } 
 /*
 template < typename Spritz, typename T>
     static void  Save( Spritz *spritz, T *t) 
     {
-        Cv_Cask< T*>().Encase( spritz, t);
+        Cv_Cask< T*>::Encase( spritz, t);
     } 
 */
 }; 
@@ -39,14 +43,14 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
     typedef T           Type;
     typedef T           ContentType;  
  
-    uint32_t            Spread( ContentType *obj) { return sizeof( *obj); }
+    static uint32_t            Spread( ContentType *obj) { return sizeof( *obj); }
     
-    ContentType         Encase( Cv_Spritz *spritz, const T &obj)
+    static ContentType         Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return obj;
     }
     
-    ContentType         *Bloom( uint8_t *arr)
+    static ContentType         *Bloom( uint8_t *arr)
     {
         return ( ContentType *) arr;
     } 
@@ -74,16 +78,16 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         }
     }; 
 
-    uint32_t            Spread( ContentType *obj) 
+    static uint32_t            Spread( ContentType *obj) 
     {
         uint32_t                sz = sizeof( *obj); 
         Cv_CArr< SubContent>    subArr = obj->Value();
         uint32_t                off = obj->m_Offset;
         for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
-            sz += SubCask().Spread( &subArr[ i]);
+            sz += SubCask::Spread( &subArr[ i]);
         return sz;
     }
-    ContentType         Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
+    static ContentType         Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
     {
         spritz->EnsureSize( sizeof( ContentType));
         uint64_t        off = spritz->Offset();
@@ -97,7 +101,7 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         return fileObj;
     } 
  
-    ContentType     *Bloom( uint8_t *arr)
+    static ContentType     *Bloom( uint8_t *arr)
     {
         return ( ContentType *) arr;
     }
@@ -110,7 +114,7 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
 
-    auto    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
+    static auto    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
         return BaseCask::Encase( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
     }
@@ -140,12 +144,12 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         {}
     };
     
-    uint32_t        Spread( ContentType *obj) 
+    static uint32_t        Spread( ContentType *obj) 
     {
-        return BaseCask().Spread( obj) +ItemCask().Spread( &obj->m_Value);
+        return BaseCask::Spread( obj) +ItemCask::Spread( &obj->m_Value);
     }
 
-    ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
+    static ContentType     Encase( Cv_Spritz *spritz, const T &obj,  const Rest &... rest)
     {   
         spritz->EnsureSize( sizeof( ContentType)); 
         uint64_t    off = spritz->Offset();
@@ -156,7 +160,7 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         return ContentType( bc, ic);
     }
  
-    ContentType     *Bloom( uint8_t *arr)
+    static ContentType     *Bloom( uint8_t *arr)
     {
         return ( ContentType *) arr;
     }
@@ -183,17 +187,17 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         {}
     };
 
-    uint32_t        Spread( ContentType *obj) 
+    static uint32_t        Spread( ContentType *obj) 
     {
-        return ItemCask().Spread( &obj->m_Value);
+        return ItemCask::Spread( &obj->m_Value);
     }
 
-    ContentType     Encase( Cv_Spritz *spritz, const T &obj)
+    static ContentType     Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return ContentType( ItemCask::Encase( spritz, obj));
     }
 
-    ContentType     *Bloom( uint8_t *arr)
+    static ContentType     *Bloom( uint8_t *arr)
     {
         return ( ContentType *) arr;
     }

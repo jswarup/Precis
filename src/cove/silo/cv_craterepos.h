@@ -344,12 +344,12 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             }
         }; 
 
-        uint32_t        Spread( ContentType *obj) 
+        static uint32_t        Spread( ContentType *obj) 
         {
             return BaseCask().Spread( obj) +ItemCask().Spread( &obj->m_Value);
         }
 
-        ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
+        static ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
         {   
             spritz->EnsureSize( sizeof( ContentType));   
             uint64_t    off = spritz->Offset();
@@ -360,7 +360,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             return ContentType( bc, ic);
         }
 
-        ContentType     *Bloom( uint8_t *arr)
+        static ContentType     *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
         }
@@ -473,17 +473,17 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             }
         }; 
 
-        uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+        static uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
         {
             return ItemCask().Spread( &obj->m_Value, arr);
         }
 
-        ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
+        static ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
         { 
             return ContentType( ItemCask::Encase( spritz, obj.m_Elems));
         }
 
-        ContentType     *Bloom( uint8_t *arr)
+        static ContentType     *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
         }

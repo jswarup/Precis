@@ -371,12 +371,12 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
-        ContentType     Encase( Cv_Spritz *spritz, const DistribRepos &obj)
+        static ContentType     Encase( Cv_Spritz *spritz, const DistribRepos &obj)
         { 
             return BaseCask::Encase( spritz, obj.m_Base, obj);
         }
 
-        ContentType     *Bloom( uint8_t *arr)
+        static ContentType     *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
         }

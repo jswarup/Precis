@@ -70,12 +70,12 @@ struct  Test23
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
-        ContentType     Encase( Cv_Spritz *spritz, const Test23 &obj)
+        static ContentType     Encase( Cv_Spritz *spritz, const Test23 &obj)
         { 
             return BaseCask::Encase( spritz, obj.vec, obj.m);
         }
  
-        ContentType     *Bloom( uint8_t *arr)
+        static ContentType     *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
         }
@@ -123,25 +123,25 @@ int     Sg_SerializeCmdProcessor::Test(void)
         bool	            res = Cv_Aid::ReadVec( &charVec, "a.txt"); 
         Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
  
-        auto                ct = Cv_Cask< Sg_CharPartition< 64>>().Bloom( memArr.Ptr());
+        auto                ct = Cv_Cask< Sg_CharPartition< 64>>::Bloom( memArr.Ptr());
         ct->Dump( std::cout);
-        memArr = memArr.Ahead( Cv_Cask< Sg_CharPartition< 64>>().Spread( ct));
+        memArr = memArr.Ahead( Cv_Cask< Sg_CharPartition< 64>>::Spread( ct));
  
-        auto                ct2 = Test23::Cask().Bloom( memArr.Ptr());
+        auto                ct2 = Test23::Cask::Bloom( memArr.Ptr());
         bool    t1 = true;
         std::cout << ct2->GetM() << ' ' << ct2->GetSize() <<  '\n';
         auto                arr1 = ct2->GetVec();
         for ( uint32_t i = 0; i < arr1.Size(); ++i)
             std::cout << arr1[ i] << ' ';
         std::cout  <<  '\n';
-        memArr = memArr.Ahead( Cv_Cask<Test23>().Spread( ct2));
+        memArr = memArr.Ahead( Cv_Cask<Test23>::Spread( ct2));
  
-        auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>().Bloom( memArr.Ptr());
+        auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>::Bloom( memArr.Ptr());
         auto        arr = ct1->Value();
         for ( uint32_t i = 0; i < arr.Size(); ++i)
             std::cout << arr[ i] << ' ';
         std::cout << '\n';
-        memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>().Spread( ct1));
+        memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>::Spread( ct1));
         bool t = true;
          
     }    
