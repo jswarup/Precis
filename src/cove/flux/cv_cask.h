@@ -24,15 +24,15 @@ template < typename Spritz, typename T>
     static void  Save( Spritz *spritz, const T &t) 
     {
         auto    cnt = Cv_Cask< T>::Encase( spritz, t);
-        bool    res = spritz->Write( &cnt, sizeof( cnt));  
+        bool    res = spritz->Write( &cnt, Cv_Cask< T>::ContentSize( cnt));  
     } 
-/*
+ 
 template < typename Spritz, typename T>
     static void  Save( Spritz *spritz, T *t) 
     {
-        Cv_Cask< T*>::Encase( spritz, t);
-    } 
-*/
+        auto    cnt = Cv_Cask< T*>::Encase( spritz, t);
+        bool    res = spritz->Write( &cnt, Cv_Cask< T*>::ContentSize( cnt));  
+    }  
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -42,15 +42,17 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
 {      
     typedef T           Type;
     typedef T           ContentType;  
- 
-    static uint32_t            Spread( ContentType *obj) { return sizeof( *obj); }
+
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); }  
+
+    static uint32_t         Spread( ContentType *obj) { return sizeof( *obj); }
     
-    static ContentType         Encase( Cv_Spritz *spritz, const T &obj)
+    static ContentType      Encase( Cv_Spritz *spritz, const T &obj)
     { 
         return obj;
     }
     
-    static ContentType         *Bloom( uint8_t *arr)
+    static ContentType      *Bloom( uint8_t *arr)
     {
         return ( ContentType *) arr;
     } 
@@ -78,7 +80,9 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
         }
     }; 
 
-    static uint32_t            Spread( ContentType *obj) 
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
+    static uint32_t         Spread( ContentType *obj) 
     {
         uint32_t                sz = sizeof( *obj); 
         Cv_CArr< SubContent>    subArr = obj->Value();
@@ -114,9 +118,58 @@ struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> >
 {  
     typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
 
-    static auto    Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
+    static auto             Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
         return BaseCask::Encase( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
+    }
+}; 
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename T> 
+struct Cv_Cask< T *> : public Cv_SerializeUtils 
+{
+    typedef T                               Type; 
+    typedef  Cv_Cask< Type>                 SubCask;
+    typedef typename SubCask::ContentType   SubContent;
+
+    struct  ContentType
+    {
+        uint32_t    m_Offset; 
+
+        typedef void Copiable;  
+
+        SubContent  *Value( void)
+        { 
+            return ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset);
+        }
+    }; 
+
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); }
+
+    static uint32_t         Spread( ContentType *obj) 
+    {
+        uint32_t                sz = sizeof( *obj); 
+        sz += SubCask::Spread( obj->Value());
+        return sz;
+    }
+    static ContentType      Encase( Cv_Spritz *spritz, const Type *obj)
+    {
+        spritz->EnsureSize( sizeof( ContentType));
+        uint64_t        off = spritz->Offset();
+        spritz->SetOffsetAtEnd();
+        ContentType    fileObj;
+        fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+        Save( spritz, *obj);    
+        spritz->SetOffset( off); 
+        return fileObj;
+    } 
+
+    static ContentType     *Bloom( uint8_t *arr)
+    {
+        return ( ContentType *) arr;
     }
 }; 
 
@@ -144,7 +197,9 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         {}
     };
     
-    static uint32_t        Spread( ContentType *obj) 
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+    
+    static uint32_t         Spread( ContentType *obj) 
     {
         return BaseCask::Spread( obj) +ItemCask::Spread( &obj->m_Value);
     }
@@ -187,7 +242,9 @@ struct Cv_MemberCask< T> : public Cv_Cask< T>
         {}
     };
 
-    static uint32_t        Spread( ContentType *obj) 
+    static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
+    static uint32_t         Spread( ContentType *obj) 
     {
         return ItemCask::Spread( &obj->m_Value);
     }

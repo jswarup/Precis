@@ -335,12 +335,14 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             {} 
         }; 
 
-        static uint32_t        Spread( ContentType *obj) 
+        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
+        static uint32_t         Spread( ContentType *obj) 
         {
             return BaseCask().Spread( obj) +ItemCask().Spread( &obj->m_Value);
         }
 
-        static ContentType     Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
+        static ContentType      Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
         {   
             spritz->EnsureSize( sizeof( ContentType));   
             uint64_t    off = spritz->Offset();
@@ -351,7 +353,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             return ContentType( bc, ic);
         }
 
-        static ContentType     *Bloom( uint8_t *arr)
+        static ContentType      *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
         }
@@ -458,6 +460,8 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
                 : m_Value( t1)
             {} 
         }; 
+
+        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
 
         static uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
         {

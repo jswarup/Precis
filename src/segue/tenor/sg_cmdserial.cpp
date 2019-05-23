@@ -70,6 +70,8 @@ struct  Test23
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
+        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
         static ContentType     Encase( Cv_Spritz *spritz, const Test23 &obj)
         { 
             return BaseCask::Encase( spritz, obj.vec, obj.m);
