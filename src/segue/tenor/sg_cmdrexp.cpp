@@ -248,7 +248,9 @@ int     Sg_RExpCmdProcessor::Test(void)
 
             auto                    ct = Cv_Cask< DistribRepos>().Bloom( memArr.Ptr());
             DistribRepos::Blossom   blossom( ct);
-            auto                    bls = blossom.ToVar( DistribRepos::Id( 1, 5));
+            auto                    dVar = blossom.ToVar( DistribRepos::Id( 1, 5));  
+            uint8_t chrId = 4;
+            uint8_t                  img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
             bool t = true;
         }
     }
