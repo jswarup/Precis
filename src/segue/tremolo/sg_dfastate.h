@@ -218,6 +218,31 @@ private:
     {}
 
 public:
+    struct Cask : public Cv_SerializeUtils 
+    {      
+        typedef FsaDfaState        Type;
+        typedef FsaDfaState        ContentType;  
+
+        static uint32_t             Spread( ContentType *obj) { return sizeof( *obj); }
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) {  return obj; }  
+
+    template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaState &obj) 
+        { 
+            FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
+            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            Cv_CArr< FsaId>         dests = dfaState.Dests();
+            std::vector< uint32_t>  ids( dests.Size());
+            for ( uint32_t i = 0; i < dests.Size(); ++i)
+                ids[ i] = dests[ i].GetId();
+
+            res = spritz->Write( &ids[ 0], sizeof( uint32_t) *  dests.Size()); 
+            Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
+            res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
+            return;
+        }
+    };
+
     typedef FsaDfaRepos     Repos;
 
     ~FsaDfaState( void)

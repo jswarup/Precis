@@ -62,13 +62,25 @@ struct  Action
 //_____________________________________________________________________________________________________________________________ 
 
 struct FsaState  : public Cv_CrateEntry
-{ 
-    typedef void                DynCopiable;
+{  
     typedef FsaCrate            Crate;
     typedef  Id                 FsaId;
     typedef FilterRepos::Id     FiltId;
-    typedef FilterCrate::Var    FiltVar;
-    
+    typedef FilterCrate::Var    FiltVar; 
+ 
+    struct Cask : public Cv_SerializeUtils 
+    {      
+        typedef FsaState           Type;
+        typedef FsaState          ContentType;  
+
+        static uint32_t         Spread( ContentType *obj) { return sizeof( *obj); }
+
+        static ContentType      Encase( Cv_Spritz *spritz, const FsaState &obj)
+        { 
+            return obj;
+        } 
+    };
+
 public:
     ~FsaState( void) {}
 

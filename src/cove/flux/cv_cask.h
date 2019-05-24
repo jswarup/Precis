@@ -20,14 +20,13 @@ class Cv_SerializeUtils
     Cv_SerializeUtils( void)
     {}
 
-public:
-
-    template < typename Spritz, typename T>
+public:  
+template < typename Spritz, typename T>
     static void   SaveContent( Spritz *spritz, const T &t) 
     {
         bool    res = spritz->Write( &t, sizeof( t));  
     }
-    template < typename Spritz, typename T>
+template < typename Spritz, typename T>
     static void  Save( Spritz *spritz, const T &t) 
     {
         auto    cnt = Cv_Cask< T>::Encase( spritz, t);
@@ -75,26 +74,6 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
     } 
 }; 
 
-//_____________________________________________________________________________________________________________________________
-
-template < typename T> 
-struct Cv_Cask< T, typename Cv_DynCopy< T>::Note> : public Cv_SerializeUtils 
-{      
-    typedef T           Type;
-    typedef T           ContentType;  
-  
-    static uint32_t         Spread( ContentType *obj) { return sizeof( *obj); }
-
-    static ContentType      Encase( Cv_Spritz *spritz, const T &obj)
-    { 
-        return obj;
-    }
-
-    static ContentType      *Bloom( uint8_t *arr)
-    {
-        return ( ContentType *) arr;
-    } 
-};
 
 //_____________________________________________________________________________________________________________________________
 
