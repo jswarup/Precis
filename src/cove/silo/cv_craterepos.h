@@ -151,33 +151,61 @@ protected:
 public: 
 
     struct Cask  
-    {   
-        struct  ContentType 
-        {
-            uint32_t    m_Sz;
+    {     
+        typedef  Cv_Cask< Entry *>              SubCask;
+        typedef typename SubCask::ContentType   SubContent;
 
-            Cv_CArr< uint32_t>   Offsets( void) const { return  Cv_CArr< uint32_t>( cv_pcast< uin32_t>( &m_Sz +1), m_Sz); }  
-            
+        struct  ContentType
+        {
+            uint32_t    m_Size;
+            uint32_t    m_Offset;
+
+            typedef void Copiable;  
+
+            Cv_CArr< SubContent>     Value( void)
+            { 
+                return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
+            }
         }; 
 
-        static uint32_t        Spread( ContentType *obj) 
+        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+
+        static uint32_t         Spread( ContentType *obj) 
         {
-            return ItemCask().Spread( &obj->m_Value);
+            uint32_t                sz = sizeof( *obj); 
+            Cv_CArr< SubContent>    subArr = obj->Value();
+            uint32_t                off = obj->m_Offset;
+            for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
+                sz += SubCask::Spread( &subArr[ i]);
+            return sz;
         }
 
-        static ContentType     Encase( Cv_Spritz *spritz, const Cv_CrateRepos &obj)
-        {   
-            spritz->EnsureSize( sizeof( ContentType));   
-            uint64_t    off = spritz->Offset();
-            auto        ic = ItemCask::Encase( spritz, obj.m_Elems);
-            spritz->SetOffset( off);
-            return ContentType( ic);
-        }
+        static ContentType         Encase( Cv_Spritz *spritz, const Cv_CrateRepos &repos)
+        {
+            spritz->EnsureSize( sizeof( ContentType));
+            uint64_t        off = spritz->Offset();
+            spritz->SetOffsetAtEnd();
+            ContentType    fileObj;
+            fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+            fileObj.m_Size = repos.Size();
+            for ( uint32_t i = 0; i < repos.Size(); ++i)
+            {
+                Entry       *elem = repos.m_Elems[ i];
+                if ( !elem)
+                    continue;  
+                Var( elem, repos.m_Types[ i])( [ spritz]( auto x) { 
+                    Cv_Aid::Save( spritz, x);    
+                    return true; }
+                );
+            }
+            spritz->SetOffset( off); 
+            return fileObj;
+        } 
 
         static ContentType     *Bloom( uint8_t *arr)
         {
             return ( ContentType *) arr;
-        }
+        } 
     }; 
 
     Cv_CrateRepos( void) 

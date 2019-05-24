@@ -206,7 +206,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         std::ofstream							ostrm( m_ShardDotFile);
         Cv_DotStream						    synDotStrm( &ostrm, false); 
         rexpRepos.OperateAll( [&synDotStrm]( auto k ){
-        return k->WriteDot( synDotStrm); 
+            return k->WriteDot( synDotStrm); 
         });
     } 
     //std::cout << rexpRepos.m_Base.ToString() << '\n';
@@ -238,22 +238,21 @@ int     Sg_RExpCmdProcessor::Test(void)
     if ( m_ImgFile.size())
     {
         {
-            Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
+            Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim); 
+            Cv_ValidationSpritz     valSpritz( &imgSpritz); 
 
-            Cv_ValidationSpritz     valSpritz( &imgSpritz);
-
-            Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
+            Cv_Aid::Save( &valSpritz, dfaRepos);
+            //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
         }
-        {
+        if ( 0) {
             std::vector< uint8_t>   memArr;
-            bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());  
-
+            bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());   
             auto                    ct = Cv_Cask< DistribRepos*>::Bloom( &memArr[ 0]);
             DistribRepos::Blossom   blossom( ct->Value());
             auto                    dVar = blossom.ToVar( DistribRepos::Id( 0, 5));  
-            uint8_t chrId = 25;
-            uint8_t                  img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
+            uint8_t                 chrId = 25;
+            uint8_t                 img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
             bool t = true;
         }
     }
