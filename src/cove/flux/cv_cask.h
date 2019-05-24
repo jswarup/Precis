@@ -3,6 +3,7 @@
  
 #include	"cove/flux/cv_spritz.h"
 #include	"cove/silo/cv_array.h"
+#include    "cove/silo/cv_crate.h" 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -33,6 +34,18 @@ template < typename Spritz, typename T>
         auto    cnt = Cv_Cask< T*>::Encase( spritz, t);
         bool    res = spritz->Write( &cnt, Cv_Cask< T*>::ContentSize( cnt));  
     }  
+/*
+template < typename Spritz, typename Crate>
+    static void  Save( Spritz *spritz, Cv_Var< Crate> var) 
+    {
+        var( [ spritz]( auto *x) { 
+            typedef std::remove_pointer<decltype(x)>::type  DynType;
+//            Cv_DynCask< DynType>    
+            auto    cnt = Cv_CaskVar< T*>::Encase( spritz, x);
+            bool    res = spritz->Write( &cnt, Cv_Cask< T*>::ContentSize( cnt));  
+            return true; });
+    }
+*/
 }; 
 
 //_____________________________________________________________________________________________________________________________

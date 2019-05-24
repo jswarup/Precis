@@ -58,7 +58,20 @@ template < typename T1, typename T2>
 		typedef void        Note;
 	};
 
-	//_____________________________________________________________________________________________________________________________
+    //_____________________________________________________________________________________________________________________________
+
+    template < typename T, typename = void> 
+    struct  Not
+    {  
+    };
+
+    template < typename T> 
+    struct  Not< T, typename Exist< T>::Note> 
+    {
+        typedef void        Note; 
+    };
+
+    //_____________________________________________________________________________________________________________________________
 
 template < typename T1, typename T2> 
     struct Same
@@ -86,19 +99,6 @@ template < typename T1>
     { 
     };
 
-    //_____________________________________________________________________________________________________________________________
-
-template < typename T, typename = void> 
-    struct  NotVoid
-    { 
-        typedef void        Note; 
-    };
-
-template < typename T> 
-    struct  NotVoid< T, typename Same<  T, void>::Note> 
-    {
-    };
-    
     //_____________________________________________________________________________________________________________________________
 
 template < typename T, typename = void> 

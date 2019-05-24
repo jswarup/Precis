@@ -214,7 +214,8 @@ bool    Cv_MemSpritz::CheckFill(  uint64_t sz)
     uint64_t    value =  -1;
     for ( uint32_t i = 0; i < ( sz/16); ++i)
         Write( &value, 16);
-    Write( &value, sz % 16);
+    if ( sz % 16)
+        Write( &value, sz % 16);
     return true;
 }
 

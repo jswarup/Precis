@@ -161,7 +161,8 @@ public:
             uint32_t    m_Offset;
 
             typedef void Copiable;  
-
+            
+            uint32_t                 DataSize( void) { return   sizeof( ContentType) + m_Size * sizeof( SubContent); }
             Cv_CArr< SubContent>     Value( void)
             { 
                 return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
@@ -182,12 +183,15 @@ public:
 
         static ContentType         Encase( Cv_Spritz *spritz, const Cv_CrateRepos &repos)
         {
-            spritz->EnsureSize( sizeof( ContentType));
             uint64_t        off = spritz->Offset();
-            spritz->SetOffsetAtEnd();
+            
             ContentType    fileObj;
-            fileObj.m_Offset = uint32_t( spritz->Offset() -off);
             fileObj.m_Size = repos.Size();
+            spritz->EnsureSize( fileObj.DataSize());
+
+            spritz->SetOffsetAtEnd();
+            fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+            spritz->SetOffset( off +sizeof( ContentType)); 
             for ( uint32_t i = 0; i < repos.Size(); ++i)
             {
                 Entry       *elem = repos.m_Elems[ i];

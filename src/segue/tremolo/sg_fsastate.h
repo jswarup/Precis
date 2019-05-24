@@ -62,10 +62,10 @@ struct  Action
 //_____________________________________________________________________________________________________________________________ 
 
 struct FsaState  : public Cv_CrateEntry
-{
+{ 
     typedef void                Copiable;
+    typedef FsaCrate            Crate;
     typedef  Id                 FsaId;
-
     typedef FilterRepos::Id     FiltId;
     typedef FilterCrate::Var    FiltVar;
     
