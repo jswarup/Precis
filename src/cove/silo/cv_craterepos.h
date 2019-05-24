@@ -150,7 +150,7 @@ protected:
 
 public: 
 
-    struct Cask  
+    struct Cask : public Cv_SerializeUtils 
     {     
         typedef  Cv_Cask< Entry *>              SubCask;
         typedef typename SubCask::ContentType   SubContent;
@@ -167,9 +167,7 @@ public:
             { 
                 return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
             }
-        }; 
-
-        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+        };  
 
         static uint32_t         Spread( ContentType *obj) 
         {
@@ -396,9 +394,7 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             ContentType( const BaseContent &t2, const ItemContent &t1)
                 : BaseContent( t2), m_Value( t1)
             {} 
-        }; 
-
-        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+        };  
 
         static uint32_t         Spread( ContentType *obj) 
         {
@@ -522,9 +518,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             ContentType( const ItemContent &t1)
                 : m_Value( t1)
             {} 
-        }; 
-
-        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
+        };  
 
         static uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
         {

@@ -370,9 +370,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
   
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
-
-        static uint32_t         ContentSize( const ContentType &obj) { return sizeof( ContentType); } 
-
+ 
         static ContentType      Encase( Cv_Spritz *spritz, const DistribRepos &obj)
         { 
             return BaseCask::Encase( spritz, obj.m_Base, obj);

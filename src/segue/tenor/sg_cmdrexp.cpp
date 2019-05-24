@@ -241,11 +241,11 @@ int     Sg_RExpCmdProcessor::Test(void)
             Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim); 
             Cv_ValidationSpritz     valSpritz( &imgSpritz); 
 
-            Cv_Aid::Save( &valSpritz, dfaRepos);
-            //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
+            //Cv_Aid::Save( &valSpritz, dfaRepos);
+            Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
         }
-        if ( 0) {
+        if ( 1) {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());   
             auto                    ct = Cv_Cask< DistribRepos*>::Bloom( &memArr[ 0]);

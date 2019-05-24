@@ -63,7 +63,7 @@ struct  Action
 
 struct FsaState  : public Cv_CrateEntry
 { 
-    typedef void                Copiable;
+    typedef void                DynCopiable;
     typedef FsaCrate            Crate;
     typedef  Id                 FsaId;
     typedef FilterRepos::Id     FiltId;

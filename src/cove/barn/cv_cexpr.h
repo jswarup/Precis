@@ -164,6 +164,19 @@ struct Cv_TrivialCopy< T, typename T::Copiable>
     typedef void        Note;
 };
 
+//_____________________________________________________________________________________________________________________________
+
+template < typename T, typename = void>
+struct Cv_DynCopy
+{
+};
+
+
+template < typename T>
+struct Cv_DynCopy< T, typename T::DynCopiable> 
+{
+    typedef void        Note;
+};
 
 //_____________________________________________________________________________________________________________________________
 
