@@ -151,14 +151,15 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
 
     struct  ContentType
     {
-        uint32_t    m_Offset; 
+        uint32_t            m_Offset; 
 
-        typedef void Copiable;  
+        typedef void        Copiable; 
+ 
+        ContentType( void)
+            : m_Offset( 0)
+        {}
 
-        SubContent  *Value( void)
-        { 
-            return ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset);
-        }
+        SubContent  *Value( void) {   return m_Offset ? ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset) : NULL; }
     };  
 
     static uint32_t         Spread( ContentType *obj) 
@@ -169,12 +170,15 @@ struct Cv_Cask< T *> : public Cv_SerializeUtils
     }
     static ContentType      Encase( Cv_Spritz *spritz, const Type *obj)
     {
-        spritz->EnsureSize( sizeof( ContentType));
         uint64_t        off = spritz->Offset();
+        spritz->EnsureSize( sizeof( ContentType));
         spritz->SetOffsetAtEnd();
         ContentType    fileObj;
-        fileObj.m_Offset = uint32_t( spritz->Offset() -off);
-        Save( spritz, *obj);    
+        if ( obj) 
+        {
+            fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+            Save( spritz, *obj);    
+        }
         spritz->SetOffset( off); 
         return fileObj;
     } 

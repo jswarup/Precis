@@ -10,10 +10,11 @@
 
 class  Cv_CrateId 
 {
-public:	
-    typedef uint32_t	IPtrStor;	
-    typedef uint32_t	IndexStor;	
-    typedef uint32_t	TypeStor;	 
+public:	 
+    typedef uint32_t	    IPtrStor;	
+    typedef uint32_t	    IndexStor;	
+    typedef uint32_t	    TypeStor;	 
+
     enum {
         SzTypeBits	= 8,
         SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
@@ -157,15 +158,14 @@ public:
 
         struct  ContentType
         {
-            uint32_t    m_Size;
-            uint32_t    m_Offset;
+            uint32_t    m_Size; 
 
             typedef void Copiable;  
             
             uint32_t                 DataSize( void) { return   sizeof( ContentType) + m_Size * sizeof( SubContent); }
             Cv_CArr< SubContent>     Value( void)
             { 
-                return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
+                return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + sizeof( ContentType)), m_Size);
             }
         };  
 
@@ -187,14 +187,12 @@ public:
             fileObj.m_Size = repos.Size();
             spritz->EnsureSize( fileObj.DataSize());
 
-            spritz->SetOffsetAtEnd();
-            fileObj.m_Offset = uint32_t( spritz->Offset() -off);
+            spritz->SetOffsetAtEnd(); 
             spritz->SetOffset( off +sizeof( ContentType)); 
             for ( uint32_t i = 0; i < repos.Size(); ++i)
             {
                 Entry       *elem = repos.m_Elems[ i];
-                if ( !elem)
-                    continue;  
+                  
                 Var( elem, repos.m_Types[ i])( [ spritz]( auto x) { 
                     Cv_Aid::Save( spritz, x);    
                     return true; }
@@ -209,6 +207,8 @@ public:
             return ( ContentType *) arr;
         } 
     }; 
+
+ 
 
     Cv_CrateRepos( void) 
     {

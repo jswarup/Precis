@@ -28,6 +28,8 @@ struct  FsaDfaRepos  : public FsaRepos
         m_DistribRepos.DumpStats( ostr);
         return true;
     }
+
+    
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -223,7 +225,11 @@ public:
         typedef FsaDfaState        Type;
         typedef FsaDfaState        ContentType;  
 
-        static uint32_t             Spread( ContentType *obj) { return sizeof( *obj); }
+        static uint32_t             Spread( ContentType *obj) 
+        {   
+            return sizeof( *obj) + obj->DestSz() * sizeof( FsaId)  + obj->m_TokSz * sizeof( uint64_t); 
+        }
+
         static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) {  return obj; }  
 
     template < typename Spritz>
@@ -231,12 +237,8 @@ public:
         { 
             FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
             bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
-            Cv_CArr< FsaId>         dests = dfaState.Dests();
-            std::vector< uint32_t>  ids( dests.Size());
-            for ( uint32_t i = 0; i < dests.Size(); ++i)
-                ids[ i] = dests[ i].GetId();
-
-            res = spritz->Write( &ids[ 0], sizeof( uint32_t) *  dests.Size()); 
+            Cv_CArr< FsaId>         dests = dfaState.Dests();  
+            res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size()); 
             Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
             res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
             return;

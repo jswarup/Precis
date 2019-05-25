@@ -98,11 +98,26 @@ public:
 
 struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 {   
-    typedef  Id                 FsaId;
+    typedef  Id         FsaId;
 
     bool                WriteDot( Cv_DotStream &strm);
     bool                DumpDot( const char *path);
 
+     
+    struct Blossom
+    {
+        typedef typename Cask::ContentType    ContentType; 
+        typedef typename Cask::SubContent    SubContent; 
+
+        ContentType                         *m_Root;
+        Cv_CArr< SubContent>                m_Arr;
+        Blossom( uint8_t *arr)
+            : m_Root( ( ContentType *) arr), m_Arr( m_Root->Value())
+        {} 
+
+        uint32_t        Size( void) const { return m_Arr.Size(); }
+        auto            ElemAt( uint32_t k) { return m_Arr[ k].Value(); }
+    };
 };
 
 //_____________________________________________________________________________________________________________________________ 
