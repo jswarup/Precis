@@ -91,6 +91,7 @@ public:
     Cv_CArr< FsaId>     SubStates( void) { return Cv_CArr< FsaId>(); } 
 
     bool                WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
+    bool                DumpDot( Cv_DotStream &strm) { return false; }
 };
 
 
@@ -110,17 +111,19 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
         typedef typename Cask::SubContent    SubContent; 
 
         ContentType                         *m_Root;
-        Cv_CArr< SubContent>                m_Arr;
+        Cv_CArr< SubContent>                m_Elems;
+        Cv_CArr< TypeStor>                  m_Types;
+        
         Blossom( uint8_t *arr)
-            : m_Root( ( ContentType *) arr), m_Arr( m_Root->Value())
+            : m_Root( ( ContentType *) arr), m_Elems( m_Root->Elems()), m_Types( m_Root->Types())
         {} 
 
-        uint32_t        Size( void) const { return m_Arr.Size(); }
-        Var             VarAt( uint32_t k) { return Var( m_Arr[ k].Value(),  m_Arr[ k].m_Type) ; }
+        uint32_t        Size( void) const { return m_Elems.Size(); }
+        Var             VarAt( uint32_t k) { return Var( m_Elems[ k].Value(),  m_Types[ k]) ; }
 
-        auto     ToVar( const Id &id)  
+        Var     ToVar( const Id &id)  
         {          
-            return VarAt( id.GetId());
+            return Var(  m_Elems[ id.GetId()].Value(), id.GetType());
         } 
     };
 };

@@ -146,6 +146,35 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     }
     return false; 
 }
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaState::DumpDot( Cv_DotStream &strm) 
+{ 
+    strm << GetTypeChar() << GetId() << " [ shape=";
+
+    uint64_t        *toks = Tokens().Ptr();
+    if ( toks)
+        strm << "box";
+    else
+        strm << "ellipse";
+    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId() << "<BR />" <<   "<BR />" ;
+    for ( uint32_t i = 0; i < m_TokSz; ++i)
+        strm << " T" << toks[ i];
+    strm << " </FONT>>];\n ";  
+    //std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
+    Cv_CArr< FsaId>    dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
+    {
+   //     FsaClip         regex = fsaRepos->ToVar( dests[ k]);
+        if ( !dests[ k].GetId())
+            continue;
+        strm << GetTypeChar() << GetId() << " -> " <<  GetTypeChar() << dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+//        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
+        strm << "</FONT>>] ; \n" ;  
+    }
+ 
+    return false; 
+}
 
 //_____________________________________________________________________________________________________________________________
 

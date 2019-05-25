@@ -107,7 +107,7 @@ struct FsaSupState  : public FsaState
     } 
 
     FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
-    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm); 
 
     struct ElemIt
     {
@@ -278,6 +278,7 @@ public:
     Cv_CArr< uint64_t>      Tokens( void) { return m_TokSz ? Cv_CArr< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_CArr< uint64_t>(); } 
 
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    DumpDot( Cv_DotStream &strm);
 
 }; 
 

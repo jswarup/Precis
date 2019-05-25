@@ -153,22 +153,24 @@ public:
 
     struct Cask : public Cv_SerializeUtils 
     {     
-        typedef  Cv_Cask< Entry *>              SubCask;
-        struct SubContent : public SubCask::ContentType  
-        {
-            uint32_t        m_Type;
-        };
+        typedef  Cv_Cask< Entry *>                  SubCask;
+        typedef  typename SubCask::ContentType      SubContent; 
 
         struct  ContentType
         {
-            uint32_t    m_Size; 
+            uint32_t        m_Size; 
+            uint32_t        m_TypeOffset;
 
             typedef void Copiable;  
             
-            uint32_t                 DataSize( void) { return   sizeof( ContentType) + m_Size * sizeof( SubContent); }
-            Cv_CArr< SubContent>     Value( void)
+            uint32_t                 DataSize( void) { return   sizeof( ContentType) + m_Size * sizeof( SubContent) +sizeof( TypeStor) * m_Size; }
+            Cv_CArr< SubContent>     Elems( void)
             { 
                 return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + sizeof( ContentType)), m_Size);
+            }
+            Cv_CArr< TypeStor>       Types( void)
+            { 
+                return Cv_CArr< TypeStor>( ( TypeStor *) ( cv_pcast< uint8_t>( this) + m_TypeOffset), m_Size);
             }
         };  
 
@@ -189,7 +191,6 @@ public:
             ContentType    fileObj;
             fileObj.m_Size = repos.Size();
             spritz->EnsureSize( fileObj.DataSize());
-
             spritz->SetOffsetAtEnd(); 
             spritz->SetOffset( off +sizeof( ContentType)); 
             for ( uint32_t i = 0; i < repos.Size(); ++i)
@@ -198,11 +199,13 @@ public:
                 uint32_t    type = repos.m_Types[ i];  
                 Var( elem, repos.m_Types[ i])( [ spritz, type]( auto x) { 
                     Cv_Aid::Save( spritz, x);    
-                    Cv_Aid::Save( spritz, type);    
                     return true; }
                 );
-            }
-            spritz->SetOffset( off); 
+            }  
+            spritz->SetOffsetAtEnd();
+            fileObj.m_TypeOffset = uint32_t( spritz->Offset() -off);
+            bool    res = spritz->Write( &repos.m_Types[ 0], sizeof( TypeStor) * fileObj.m_Size); 
+            spritz->SetOffset( off);
             return fileObj;
         } 
 

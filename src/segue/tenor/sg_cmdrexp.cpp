@@ -249,10 +249,14 @@ int     Sg_RExpCmdProcessor::Test(void)
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
+            std::ofstream           fsaOStrm( "b.dot");
+            Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
             for ( uint32_t i = 0; i < blossom.Size(); ++i)
             {
                 auto        var = blossom.VarAt( i); 
                 bool t = true;
+                if (var)
+                    var( [&fsaDotStrm]( auto k) { k->DumpDot( fsaDotStrm); });
             }
             bool t = true;
         }
