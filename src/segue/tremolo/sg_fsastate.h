@@ -116,7 +116,12 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
         {} 
 
         uint32_t        Size( void) const { return m_Arr.Size(); }
-        auto            ElemAt( uint32_t k) { return m_Arr[ k].Value(); }
+        Var             VarAt( uint32_t k) { return Var( m_Arr[ k].Value(),  m_Arr[ k].m_Type) ; }
+
+        auto     ToVar( const Id &id)  
+        {          
+            return VarAt( id.GetId());
+        } 
     };
 };
 

@@ -154,7 +154,10 @@ public:
     struct Cask : public Cv_SerializeUtils 
     {     
         typedef  Cv_Cask< Entry *>              SubCask;
-        typedef typename SubCask::ContentType   SubContent;
+        struct SubContent : public SubCask::ContentType  
+        {
+            uint32_t        m_Type;
+        };
 
         struct  ContentType
         {
@@ -192,9 +195,10 @@ public:
             for ( uint32_t i = 0; i < repos.Size(); ++i)
             {
                 Entry       *elem = repos.m_Elems[ i];
-                  
-                Var( elem, repos.m_Types[ i])( [ spritz]( auto x) { 
+                uint32_t    type = repos.m_Types[ i];  
+                Var( elem, repos.m_Types[ i])( [ spritz, type]( auto x) { 
                     Cv_Aid::Save( spritz, x);    
+                    Cv_Aid::Save( spritz, type);    
                     return true; }
                 );
             }

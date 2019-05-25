@@ -251,7 +251,7 @@ int     Sg_RExpCmdProcessor::Test(void)
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
             for ( uint32_t i = 0; i < blossom.Size(); ++i)
             {
-                auto        val = blossom.ElemAt( i); 
+                auto        var = blossom.VarAt( i); 
                 bool t = true;
             }
             bool t = true;
