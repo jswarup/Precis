@@ -230,17 +230,20 @@ public:
             return sizeof( *obj) + obj->DestSz() * sizeof( FsaId)  + obj->m_TokSz * sizeof( uint64_t); 
         }
 
-        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) {  return obj; }  
-
-    template < typename Spritz>
-        static void   SaveContent( Spritz *spritz, const FsaDfaState &obj) 
-        { 
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) 
+        {  
             FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
             bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
             Cv_CArr< FsaId>         dests = dfaState.Dests();  
             res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size()); 
             Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
             res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
+            return obj; 
+        }  
+
+    template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaState &obj) 
+        { 
             return;
         }
     };
