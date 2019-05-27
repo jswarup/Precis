@@ -29,7 +29,30 @@ struct  FsaDfaRepos  : public FsaRepos
         return true;
     }
 
-    
+    struct Cask : public Cv_MemberCask< FsaRepos, FsaId, DistribRepos>
+    {  
+        typedef Cv_MemberCask< FsaRepos, FsaId, DistribRepos>   BaseCask; 
+        typedef typename BaseCask::ContentType                  BaseContent;
+
+        struct  ContentType : public BaseContent
+        {  
+            ContentType(  const BaseContent &t2)
+                : BaseContent( t2)
+            {}
+
+            auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
+        };
+
+        static ContentType      Encase( Cv_Spritz *spritz, const FsaDfaRepos &obj)
+        { 
+            return BaseCask::Encase( spritz, obj, obj.m_RootId, obj.m_DistribRepos);
+        }
+
+        static ContentType     *Bloom( uint8_t *arr)
+        {
+            return ( ContentType *) arr;
+        }
+    }; 
 };
 
 //_____________________________________________________________________________________________________________________________ 

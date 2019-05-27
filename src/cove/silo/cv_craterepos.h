@@ -77,6 +77,8 @@ class  Cv_CrateEntry : public Cv_CrateId
 public:   
     struct Id : public Cv_CrateId 
     { 
+        typedef void    Copiable;
+
         Id( void) {}
 
         Id( const Cv_CrateId &id) 
