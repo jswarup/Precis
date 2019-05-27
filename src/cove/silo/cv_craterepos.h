@@ -165,35 +165,35 @@ public:
 
             typedef void Copiable;  
             
-            uint32_t                 DataSize( void) { return   sizeof( ContentType) + m_Size * sizeof( SubContent) +sizeof( TypeStor) * m_Size; }
             Cv_CArr< SubContent>     Elems( void)
             { 
                 return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + sizeof( ContentType)), m_Size);
             }
+
             Cv_CArr< TypeStor>       Types( void)
             { 
                 return Cv_CArr< TypeStor>( ( TypeStor *) ( cv_pcast< uint8_t>( this) + m_TypeOffset), m_Size);
             }
         };  
 
+        static uint32_t         ContentSize( const Cv_CrateRepos &obj) { return   sizeof( ContentType) + obj.Size() * sizeof( SubContent) +sizeof( TypeStor) * obj.Size(); }
+
         static uint32_t         Spread( ContentType *obj) 
         {
-            uint32_t                sz = sizeof( *obj); 
-            Cv_CArr< SubContent>    subArr = obj->Value();
-            uint32_t                off = obj->m_Offset;
-            for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
+            uint32_t                sz = ContentSize( *obj); 
+            Cv_CArr< SubContent>    subArr = obj->Value(); 
+            for ( uint32_t i = 0; i < subArr.Size(); ++i)
                 sz += SubCask::Spread( &subArr[ i]);
             return sz;
         }
 
         static ContentType         Encase( Cv_Spritz *spritz, const Cv_CrateRepos &repos)
         {
-            uint64_t        off = spritz->Offset();
-            
+            uint64_t        off = spritz->Offset(); 
+            spritz->EnsureSize( ContentSize( repos));
+            spritz->SetOffsetAtEnd(); 
             ContentType    fileObj;
             fileObj.m_Size = repos.Size();
-            spritz->EnsureSize( fileObj.DataSize());
-            spritz->SetOffsetAtEnd(); 
             spritz->SetOffset( off +sizeof( ContentType)); 
             for ( uint32_t i = 0; i < repos.Size(); ++i)
             {
@@ -405,6 +405,8 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
             {} 
         };  
 
+        static uint32_t         ContentSize( const ContentType &obj) { return   sizeof( ContentType); }
+
         static uint32_t         Spread( ContentType *obj) 
         {
             return BaseCask().Spread( obj) +ItemCask().Spread( &obj->m_Value);
@@ -412,11 +414,12 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 
         static ContentType      Encase( Cv_Spritz *spritz, const Cv_CratePile &obj)
         {   
-            spritz->EnsureSize( sizeof( ContentType));   
+            ContentType     *fileObj = NULL;
+            spritz->EnsureSize( ContentSize( *fileObj));   
             uint64_t    off = spritz->Offset();
-            auto    bc = BaseCask::Encase( spritz,  obj); 
+            auto        bc = BaseCask::Encase( spritz,  obj); 
             spritz->SetOffset( off + uint64_t( &reinterpret_cast< ContentType *>( 0x8)->m_Value) - 0x8);
-            auto    ic = ItemCask::Encase( spritz, obj.m_Elems);
+            auto        ic = ItemCask::Encase( spritz, obj.m_Elems);
             spritz->SetOffset( off);
             return ContentType( bc, ic);
         }

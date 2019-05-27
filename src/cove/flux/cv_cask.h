@@ -61,6 +61,8 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
     typedef T           Type;
     typedef T           ContentType;   
 
+    static uint32_t         ContentSize( const T &obj) { return  sizeof( ContentType); }
+
     static uint32_t         Spread( ContentType *obj) { return sizeof( *obj); }
     
     static ContentType      Encase( Cv_Spritz *spritz, const T &obj)
@@ -212,7 +214,7 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
             : BaseContent( t2), m_Value( t1)
         {}
     };
-     
+        
     static uint32_t         Spread( ContentType *obj) 
     {
         return BaseCask::Spread( obj) +ItemCask::Spread( &obj->m_Value);

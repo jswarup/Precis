@@ -43,8 +43,12 @@ struct  FsaDfaRepos  : public FsaRepos
             auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
+        static uint32_t         ContentSize( const FsaDfaRepos &obj) { return  Cv_Cask< FsaRepos>::ContentSize( obj) 
+                                        +Cv_Cask< FsaId>::ContentSize( obj.m_RootId) +Cv_Cask< DistribRepos>::ContentSize( obj.m_DistribRepos); }
+
         static ContentType      Encase( Cv_Spritz *spritz, const FsaDfaRepos &obj)
         { 
+            spritz->EnsureSize( ContentSize( obj)); 
             return BaseCask::Encase( spritz, obj, obj.m_RootId, obj.m_DistribRepos);
         }
 
@@ -53,6 +57,20 @@ struct  FsaDfaRepos  : public FsaRepos
             return ( ContentType *) arr;
         }
     }; 
+
+    struct Blossom  
+    {
+        typedef typename Cask::ContentType    ContentType; 
+        typedef typename Cask::BaseContent    SubContent; 
+
+        ContentType                         *m_Root; 
+        FsaRepos::Blossom                   m_States;
+        Blossom( uint8_t *arr)
+            : m_Root( ( ContentType *) arr), m_States( ( uint8_t *) &m_Root->m_Value)
+        {} 
+
+         
+    };
 };
 
 //_____________________________________________________________________________________________________________________________ 

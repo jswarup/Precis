@@ -251,9 +251,9 @@ int     Sg_RExpCmdProcessor::Test(void)
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
             std::ofstream           fsaOStrm( "b.dot");
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-            for ( uint32_t i = 0; i < blossom.Size(); ++i)
+            for ( uint32_t i = 0; i < blossom.m_States.Size(); ++i)
             {
-                auto        var = blossom.VarAt( i); 
+                auto        var = blossom.m_States.VarAt( i); 
                 bool t = true;
                 if (var)
                     var( [&fsaDotStrm]( auto k) { k->DumpDot( fsaDotStrm); });
