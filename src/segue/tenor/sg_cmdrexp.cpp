@@ -251,24 +251,22 @@ int     Sg_RExpCmdProcessor::Test(void)
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
             std::ofstream           fsaOStrm( "b.dot");
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-            for ( uint32_t i = 0; i < blossom.m_States.Size(); ++i)
+            auto                    states = blossom.States();
+            FsaDfaRepos::Id         rootId = blossom.RootId();
+            for ( uint32_t i = 0; i < states.Size(); ++i)
             {
-                auto        var = blossom.m_States.VarAt( i); 
+                auto        var = states.VarAt( i); 
                 bool t = true;
                 if (var)
                     var( [&fsaDotStrm]( auto k) { k->DumpDot( fsaDotStrm); });
             }
             bool t = true;
-        }
-        if ( 0) {
-            std::vector< uint8_t>   memArr;
-            bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());   
-            auto                    ct = Cv_Cask< DistribRepos*>::Bloom( &memArr[ 0]);
-            DistribRepos::Blossom   blossom( ct->Value());
-            auto                    dVar = blossom.ToVar( DistribRepos::Id( 0, 5));  
+           
+            DistribRepos::Blossom   distribs = blossom.Distribs();
+            auto                    dVar = distribs.ToVar( DistribRepos::Id( 0, 5));  
             uint8_t                 chrId = 25;
             uint8_t                 img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-            bool t = true;
+            bool t1 = true;
         }
     }
     if ( m_DataFile.size())

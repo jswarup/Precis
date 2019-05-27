@@ -63,13 +63,14 @@ struct  FsaDfaRepos  : public FsaRepos
         typedef typename Cask::ContentType    ContentType; 
         typedef typename Cask::BaseContent    SubContent; 
 
-        ContentType                         *m_Root; 
-        FsaRepos::Blossom                   m_States;
+        ContentType                         *m_Root;   
         Blossom( uint8_t *arr)
-            : m_Root( ( ContentType *) arr), m_States( ( uint8_t *) &m_Root->m_Value)
+            : m_Root( ( ContentType *) arr)
         {} 
-
-         
+        
+        auto    States( void) { return FsaRepos::Blossom( ( uint8_t *) &m_Root->m_Value); }
+        auto    RootId( void) { return m_Root->Base()->m_Value; }
+        auto    Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); }  
     };
 };
 

@@ -213,6 +213,8 @@ struct Cv_MemberCask : public Cv_Cask< T>, public Cv_MemberCask< Rest...>
         ContentType(  const BaseContent &t2, const ItemContent &t1)
             : BaseContent( t2), m_Value( t1)
         {}
+
+        BaseContent     *Base( void) { return this; }
     };
         
     static uint32_t         Spread( ContentType *obj) 
