@@ -118,6 +118,20 @@ FsaDfaStateMap::~FsaDfaStateMap( void)
 
 //_____________________________________________________________________________________________________________________________
 
+bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
+{
+    Cv_CArr< FsaId>    dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
+    {
+        FsaClip         regex = dfaRepos->ToVar( dests[ k]);
+        if ( !regex)
+            dests[ k] = Id();
+    }
+    return true;
+}
+
+//_____________________________________________________________________________________________________________________________
+
 bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=";
@@ -213,6 +227,9 @@ void    FsaDfaCnstr::SubsetConstruction( void)
 
         FsaDfaState     *dfaState = supState->DoConstructTransisition( this);  
     }
+    m_DfaRepos->OperateAll( [ this]( auto k) {
+        return k->CleanupDestIds( m_DfaRepos);
+    });
     return;
 }
 

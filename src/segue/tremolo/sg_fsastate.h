@@ -90,6 +90,7 @@ public:
     Cv_CArr< FsaId>     Dests( void) { return Cv_CArr< FsaId>(); }
     Cv_CArr< FsaId>     SubStates( void) { return Cv_CArr< FsaId>(); } 
 
+    bool                CleanupDestIds( FsaRepos *dfaRepos) { return false; }
     bool                WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
     bool                DumpDot( Cv_DotStream &strm) { return false; }
 };
@@ -123,6 +124,8 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
         Var     ToVar( const Id &id)  
         {          
+            if ( !id.GetId())
+                return Var();
             return Var(  m_Elems[ id.GetId()].Value(), id.GetType());
         } 
     };
