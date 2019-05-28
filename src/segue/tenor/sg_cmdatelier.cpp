@@ -103,10 +103,11 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     typedef Sg_EaselVita::InPort            InPort;
     typedef typename InPort::Wharf          Wharf;
  
-    InPort          m_DataPort;
-    FsaDfaRepos     m_DfaRepos;
-    Sg_Bulwark      m_Bastion;
-    bool            m_CloseFlg;
+    InPort                  m_DataPort;
+    Sg_DfaReposAtelier      m_DfaReposAtelier;
+    FsaDfaRepos             m_DfaRepos;
+    Sg_Bulwark              m_Bulwark;
+    bool                    m_CloseFlg;
 
     Sg_AtelierEasel( void) 
         : m_CloseFlg( false)
@@ -132,8 +133,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         FsaElemRepos            elemRepos;
         FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
         automReposCnstr.Process();   
-        FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos);
-        m_Bastion.SetDfaRepos( &m_DfaRepos);
+        FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos); 
+        m_DfaReposAtelier = Sg_DfaReposAtelier( &m_DfaRepos);
         dfaCnstr.SubsetConstruction();
         m_DfaRepos.m_DistribRepos.Dump( std::cout);
         {
@@ -164,7 +165,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                 m_Bastion.Play( chr);
+                m_Bulwark.Play( m_DfaReposAtelier, chr);
             }
         }
         wharf.SetSize( dInd);
@@ -210,7 +211,9 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
     fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
     
-    reposEasel.DoInit( &vita);
+    bool    res = reposEasel.DoInit( &vita);
+    if  ( ! res)
+        return -1;
     reposEasel.DoLaunch();   
 
     //AC_API_BEGIN() 

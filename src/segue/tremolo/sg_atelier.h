@@ -13,12 +13,12 @@ using namespace Sg_RExp;
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_DfaAtelier
+struct Sg_DfaReposAtelier
 {
     FsaDfaRepos     *m_DfaRepos;
     
-    Sg_DfaAtelier( void)
-        : m_DfaRepos( NULL)
+    Sg_DfaReposAtelier( FsaDfaRepos *dfaRepos = NULL)
+        : m_DfaRepos( dfaRepos)
     {}
     
     uint8_t             ByteCode( uint8_t chr ) const { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
@@ -49,11 +49,12 @@ struct Sg_Parapet
 
     uint64_t    Start( void) const  { return m_Start; }
 
-    bool        Advance( Sg_DfaAtelier *dfaAtelier, uint8_t chrId)
+template < typename Atelier>
+    bool        Advance( const Atelier &dfaAtelier, uint8_t chrId)
     {
-        DistribCrate::Var   dVar = dfaAtelier->DistribVar( m_CurState->DistribId());
+        DistribCrate::Var   dVar = dfaAtelier.DistribVar( m_CurState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        m_CurState = dfaAtelier->Transition( m_CurState, img);
+        m_CurState = dfaAtelier.Transition( m_CurState, img);
         return !!m_CurState;
     }
 
@@ -64,7 +65,7 @@ struct Sg_Parapet
 
 struct Sg_Rampart
 { 
-    Sg_DfaAtelier       m_DfaAtelier;
+    Sg_DfaReposAtelier       m_DfaAtelier;
     Sg_Parapet          m_Parapet;   
     uint64_t            m_Curr;     
 
@@ -83,7 +84,7 @@ struct Sg_Rampart
             m_Parapet.Load( rootDfaState, m_Curr);
         }
         ++m_Curr;
-        if ( !m_Parapet.Advance( &m_DfaAtelier, chrId))
+        if ( !m_Parapet.Advance( m_DfaAtelier, chrId))
             return false;
         Cv_CArr< uint64_t>      tokens = m_Parapet.Tokens();
 
@@ -100,8 +101,7 @@ struct Sg_Bulwark
 { 
     enum    {
         Sz = 256
-    };
-    Sg_DfaAtelier                   m_DfaAtelier;  
+    }; 
     std::array< Sg_Parapet, 256>    m_Parapets;  
     Sg_Bitset< Sz>                  m_Allocbits;  
     uint64_t                        m_Curr;     
@@ -109,9 +109,7 @@ struct Sg_Bulwark
     Sg_Bulwark( void)
         : m_Curr( 0)
     {}
-    
-    void        SetDfaRepos( FsaDfaRepos *dfaRepos) { m_DfaAtelier.m_DfaRepos = dfaRepos; }
-    
+     
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
         Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
@@ -119,17 +117,17 @@ struct Sg_Bulwark
             std::cout << parapet->Start() << " " << ( m_Curr -parapet->Start()) << " " <<  tokens[ i] << "\n";
         return;
     }
- 
 
-    void    Play( uint8_t chr)
+template < typename Atelier>
+    void    Play( const Atelier &dfaAtelier, uint8_t chr)
     {
-        uint8_t                 chrId = m_DfaAtelier.ByteCode( chr);  
+        uint8_t                 chrId = dfaAtelier.ByteCode( chr);  
         Sg_Bitset< Sz>          allocbits;  
         
-        m_Allocbits.ForAllTrue( [this]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
+        m_Allocbits.ForAllTrue( [this,&dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
-                if ( !parapet->Advance( &m_DfaAtelier, chrId))
+                if ( !parapet->Advance( dfaAtelier, chrId))
                     return;
                 allocbits->Set( ind, true);
                 DumpTokens( &m_Parapets[ ind]);
@@ -142,8 +140,8 @@ struct Sg_Bulwark
 
         uint32_t        pickInd =  allocbits.Index( false) ;
         Sg_Parapet      *curent = &m_Parapets[ pickInd];  
-        curent->Load( m_DfaAtelier.RootState(), m_Curr); 
-        if ( curent->Advance( &m_DfaAtelier, chrId))
+        curent->Load( dfaAtelier.RootState(), m_Curr); 
+        if ( curent->Advance( dfaAtelier, chrId))
             allocbits.Set( pickInd, true);    
         ++m_Curr;
         m_Allocbits = allocbits;
