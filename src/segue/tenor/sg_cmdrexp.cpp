@@ -9,7 +9,7 @@
 #include    "segue/tremolo/sg_fsaelemcnstr.h"
 #include    "segue/tremolo/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
-#include    "segue/atelier/sg_atelier.h"
+#include    "segue/tremolo/sg_atelier.h"
 #include	"cove/flux/cv_cask.h"
 
 #include	<utility>
@@ -245,7 +245,7 @@ int     Sg_RExpCmdProcessor::Test(void)
             //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
         }
-        if ( 1) {
+        if ( 0) {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
@@ -312,9 +312,10 @@ int     Sg_RExpCmdProcessor::Execute( void)
     //prtn.ImpressCCL( ws);
     //prtn.ImpressCCL( digit);
     //std::cout << prtn.ToString() << '\n';
-    Sg_Bitset< 7> a;
-    Sg_Bitset< 64> b;
-    Sg_Bitset< 194> c;
+
+    Sg_Bitset< 7>       a;
+    Sg_Bitset< 64>      b;
+    Sg_Bitset< 194>     c;
 
     a.Set( 4, true);
     bool    a1 = a.Get( 4);

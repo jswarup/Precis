@@ -4,7 +4,7 @@
 #include    "trellis/tenor/tr_include.h" 
 #include    "cove/snip/cv_cmdexec.h"  
 #include    "cove/stalks/cv_easel.h"  
-#include    "segue/atelier/sg_atelier.h" 
+#include    "segue/tremolo/sg_atelier.h" 
 
 
 #include    "segue/grammar/sg_rexpgrammar.h"

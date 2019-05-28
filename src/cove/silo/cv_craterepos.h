@@ -295,7 +295,7 @@ template<  class Object>
         return id;
     }
 
-    template<  class Object>
+template<  class Object>
     Object  *Construct( void)
     {
         Object  *x = new Object();
