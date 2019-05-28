@@ -395,10 +395,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
             : m_Root( arr)
         {}
 
-        Sg_Partition   *Base( const Id &id)  
-        {  
-            return &m_Root->m_Value;
-        }
+        Sg_Partition   *Base( void) const {   return &m_Root->m_Value; }
 
         auto     ToVar( const Id &id)  
         {          

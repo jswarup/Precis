@@ -51,11 +51,7 @@ struct  FsaDfaRepos  : public FsaRepos
             spritz->EnsureSize( ContentSize( obj)); 
             return BaseCask::Encase( spritz, obj, obj.m_RootId, obj.m_DistribRepos);
         }
-
-        static ContentType     *Bloom( uint8_t *arr)
-        {
-            return ( ContentType *) arr;
-        }
+ 
     }; 
 
     struct Blossom  
@@ -64,7 +60,7 @@ struct  FsaDfaRepos  : public FsaRepos
         typedef typename Cask::BaseContent    SubContent; 
 
         ContentType                         *m_Root;   
-        Blossom( uint8_t *arr)
+        Blossom( void *arr)
             : m_Root( ( ContentType *) arr)
         {} 
         

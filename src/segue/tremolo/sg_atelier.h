@@ -21,11 +21,31 @@ struct Sg_DfaReposAtelier
         : m_DfaRepos( dfaRepos)
     {}
     
-    uint8_t             ByteCode( uint8_t chr ) const { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
-    FsaDfaState         *RootState( void) const {  return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()); }
-    DistribCrate::Var   DistribVar( const DistribRepos::Id &dId)const {  return  m_DfaRepos->m_DistribRepos.ToVar( dId); }
-    FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode) const { return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( state->Dests().At( byteCode)).GetEntry()); }
+    uint8_t             ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
+    FsaDfaState         *RootState( void) {  return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()); }
+    DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_DfaRepos->m_DistribRepos.ToVar( dId); }
+    FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode) { return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( state->Dests().At( byteCode)).GetEntry()); }
     
+};
+
+
+//_____________________________________________________________________________________________________________________________
+
+struct Sg_DfaBlossomAtelier
+{
+    FsaDfaRepos::Blossom    m_DfaBlossom;
+    DistribRepos::Blossom   m_Distribs;
+    FsaRepos::Blossom       m_States;
+
+    Sg_DfaBlossomAtelier( void *dfaImage)
+        : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs()), m_States( m_DfaBlossom.States())
+    {}
+
+    uint8_t             ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
+    FsaDfaState         *RootState( void)  {  return static_cast< FsaDfaState *>( m_States.ToVar( m_DfaBlossom.RootId()).GetEntry()); }
+    DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_Distribs.ToVar( dId); }
+    FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode)  { return static_cast< FsaDfaState *>( m_States.ToVar( state->Dests().At( byteCode)).GetEntry()); }
+
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -50,11 +70,11 @@ struct Sg_Parapet
     uint64_t    Start( void) const  { return m_Start; }
 
 template < typename Atelier>
-    bool        Advance( const Atelier &dfaAtelier, uint8_t chrId)
+    bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
     {
-        DistribCrate::Var   dVar = dfaAtelier.DistribVar( m_CurState->DistribId());
+        DistribCrate::Var   dVar = dfaAtelier->DistribVar( m_CurState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        m_CurState = dfaAtelier.Transition( m_CurState, img);
+        m_CurState = dfaAtelier->Transition( m_CurState, img);
         return !!m_CurState;
     }
 
@@ -84,7 +104,7 @@ struct Sg_Rampart
             m_Parapet.Load( rootDfaState, m_Curr);
         }
         ++m_Curr;
-        if ( !m_Parapet.Advance( m_DfaAtelier, chrId))
+        if ( !m_Parapet.Advance( &m_DfaAtelier, chrId))
             return false;
         Cv_CArr< uint64_t>      tokens = m_Parapet.Tokens();
 
@@ -119,12 +139,12 @@ struct Sg_Bulwark
     }
 
 template < typename Atelier>
-    void    Play( const Atelier &dfaAtelier, uint8_t chr)
+    void    Play( Atelier *dfaAtelier, uint8_t chr)
     {
-        uint8_t                 chrId = dfaAtelier.ByteCode( chr);  
+        uint8_t                 chrId = dfaAtelier->ByteCode( chr);  
         Sg_Bitset< Sz>          allocbits;  
         
-        m_Allocbits.ForAllTrue( [this,&dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
+        m_Allocbits.ForAllTrue( [this, dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
                 if ( !parapet->Advance( dfaAtelier, chrId))
@@ -140,7 +160,7 @@ template < typename Atelier>
 
         uint32_t        pickInd =  allocbits.Index( false) ;
         Sg_Parapet      *curent = &m_Parapets[ pickInd];  
-        curent->Load( dfaAtelier.RootState(), m_Curr); 
+        curent->Load( dfaAtelier->RootState(), m_Curr); 
         if ( curent->Advance( dfaAtelier, chrId))
             allocbits.Set( pickInd, true);    
         ++m_Curr;

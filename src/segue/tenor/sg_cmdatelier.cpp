@@ -30,6 +30,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
 class Sg_AtelierCmdProcessor : public Cv_CmdExecutor
 { 
     std::string     m_InputFile;
+    std::string     m_ImgFile;
     std::string     m_OutputFile;
     std::string     m_RuleFile;
 
@@ -48,6 +49,11 @@ public:
 
     bool    ParseArg( const std::string &key, const std::string &arg)
     {
+        if ( "-iimg" == key)
+        {
+            m_ImgFile = arg;
+            return true;
+        }
         if ( "-i" == key)
         {
             m_InputFile = arg;
@@ -80,6 +86,7 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSink< Datagram, 64, 4096>        OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
+    std::string             m_ImgFile;
     std::string             m_InputFile;
     std::string             m_OutputFile;
     std::string             m_RuleFile;
@@ -104,13 +111,15 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     typedef typename InPort::Wharf          Wharf;
  
     InPort                  m_DataPort;
-    Sg_DfaReposAtelier      m_DfaReposAtelier;
+    Sg_DfaReposAtelier      *m_DfaReposAtelier;
+    Sg_DfaBlossomAtelier    *m_DfaBlossomAtelier;
     FsaDfaRepos             m_DfaRepos;
     Sg_Bulwark              m_Bulwark;
     bool                    m_CloseFlg;
+    std::vector< uint8_t>   m_MemArr;
 
     Sg_AtelierEasel( void) 
-        : m_CloseFlg( false)
+        : m_DfaReposAtelier( NULL), m_DfaBlossomAtelier( NULL), m_CloseFlg( false)
     {}
 
     bool    DoInit( Sg_EaselVita *vita)
@@ -134,13 +143,26 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
         FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
         automReposCnstr.Process();   
         FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos); 
-        m_DfaReposAtelier = Sg_DfaReposAtelier( &m_DfaRepos);
         dfaCnstr.SubsetConstruction();
-        m_DfaRepos.m_DistribRepos.Dump( std::cout);
-        {
+        if ( 0) {
+            m_DfaReposAtelier = new Sg_DfaReposAtelier( &m_DfaRepos);
+            m_DfaRepos.m_DistribRepos.Dump( std::cout);
             std::ofstream           fsaOStrm( "a.dot");
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
             m_DfaRepos.WriteDot( fsaDotStrm);
+        }
+        {
+            Cv_FileSpritz           imgSpritz( vita->m_ImgFile, Cv_FileSpritz::WriteTrim); 
+            Cv_ValidationSpritz     valSpritz( &imgSpritz); 
+
+            Cv_Aid::Save( &valSpritz, m_DfaRepos);
+            //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
+            bool t = true;
+        }
+        {
+            
+            bool	                res = Cv_Aid::ReadVec( &m_MemArr, vita->m_ImgFile.c_str()); 
+            m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
         }
         return true;
     }
@@ -165,7 +187,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                m_Bulwark.Play( m_DfaReposAtelier, chr);
+                m_Bulwark.Play( m_DfaBlossomAtelier, chr);
             }
         }
         wharf.SetSize( dInd);
@@ -199,6 +221,7 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_
 int     Sg_AtelierCmdProcessor::Execute(void)
 {
     Sg_EaselVita            vita;
+    vita.m_ImgFile = m_ImgFile;
     vita.m_InputFile = m_InputFile;
     vita.m_OutputFile = m_OutputFile;
     vita.m_RuleFile = m_RuleFile;
