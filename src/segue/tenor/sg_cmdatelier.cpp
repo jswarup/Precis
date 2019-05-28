@@ -19,7 +19,8 @@
 
 static Cv_CmdOption     s_AtelierIfcOptions[] = 
 {
-    { "-i", "<input>", 0},
+    { "-idata", "<input>", 0},
+    { "-iimg", "<input>", 0},
     { "-o", "<output>", 0}, 
     { "-r", "<ruleset>", 0}, 
     { 0, 0,  0}
@@ -54,7 +55,7 @@ public:
             m_ImgFile = arg;
             return true;
         }
-        if ( "-i" == key)
+        if ( "-idata" == key)
         {
             m_InputFile = arg;
             return true;
@@ -126,42 +127,50 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel, Sg_EaselVita>
     {
         if ( !Sg_BaseEasel::DoInit( vita))
             return false; 
-        StrInStream			    memVector;
-        bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), vita->m_RuleFile.c_str()); 
-        if ( !res)
+        if ( vita->m_RuleFile.size())
         {
-            std::cerr << "Not Found : " << vita->m_RuleFile << '\n';
-            return false;
-        }
-        Parser< StrInStream>	parser( &memVector);   
-        RExpRepos				rexpRepos;
-        RExpDoc					rexpDoc; 
-        RExpDoc::XAct           xact( &rexpRepos); 
-        bool					apiErrCode = parser.Match( &rexpDoc, &xact); 
+            StrInStream			    memVector;
+            bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), vita->m_RuleFile.c_str()); 
+            if ( !res)
+            {
+                std::cerr << "Not Found : " << vita->m_RuleFile << '\n';
+                return false;
+            }
+            Parser< StrInStream>	parser( &memVector);   
+            RExpRepos				rexpRepos;
+            RExpDoc					rexpDoc; 
+            RExpDoc::XAct           xact( &rexpRepos); 
+            bool					apiErrCode = parser.Match( &rexpDoc, &xact); 
 
-        FsaElemRepos            elemRepos;
-        FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
-        automReposCnstr.Process();   
-        FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos); 
-        dfaCnstr.SubsetConstruction();
-        if ( 0) {
-            m_DfaReposAtelier = new Sg_DfaReposAtelier( &m_DfaRepos);
-            m_DfaRepos.m_DistribRepos.Dump( std::cout);
-            std::ofstream           fsaOStrm( "a.dot");
-            Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-            m_DfaRepos.WriteDot( fsaDotStrm);
-        }
-        {
-            Cv_FileSpritz           imgSpritz( vita->m_ImgFile, Cv_FileSpritz::WriteTrim); 
-            Cv_ValidationSpritz     valSpritz( &imgSpritz); 
+            FsaElemRepos            elemRepos;
+            FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
+            automReposCnstr.Process();   
+            FsaDfaCnstr             dfaCnstr( &elemRepos, &m_DfaRepos); 
+            dfaCnstr.SubsetConstruction();
+            if ( 0) {
+                m_DfaReposAtelier = new Sg_DfaReposAtelier( &m_DfaRepos);
+                m_DfaRepos.m_DistribRepos.Dump( std::cout);
+                std::ofstream           fsaOStrm( "a.dot");
+                Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+                m_DfaRepos.WriteDot( fsaDotStrm);
+            }
+            {
+                Cv_FileSpritz           imgSpritz( vita->m_ImgFile, Cv_FileSpritz::WriteTrim); 
+                Cv_ValidationSpritz     valSpritz( &imgSpritz); 
 
-            Cv_Aid::Save( &valSpritz, m_DfaRepos);
-            //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
-            bool t = true;
+                Cv_Aid::Save( &valSpritz, m_DfaRepos);
+                //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
+                bool t = true;
+            }
         }
-        {
-            
+        if ( vita->m_ImgFile.size()) 
+        { 
             bool	                res = Cv_Aid::ReadVec( &m_MemArr, vita->m_ImgFile.c_str()); 
+            if ( !res)
+            {
+                std::cerr << "Not Found : " << vita->m_ImgFile << '\n';
+                return false;
+            }
             m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
         }
         return true;
@@ -231,9 +240,11 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     Sg_AtelierEasel         *atelier = reposEasel.Construct< Sg_AtelierEasel>(); 
     atelier->m_DataPort.Connect( &fileRead->m_DataPort);
 
-    Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
-    fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
-    
+    if ( m_OutputFile.size())
+    {
+        Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
+        fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
+    }
     bool    res = reposEasel.DoInit( &vita);
     if  ( ! res)
         return -1;

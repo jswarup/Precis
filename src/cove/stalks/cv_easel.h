@@ -166,10 +166,10 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita>
 template < typename Vita>
 struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita>
 {
-    typedef Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita>    Base;
-    typedef typename Vita::Datagram          Datagram;
-    typedef typename Vita::InPort            InPort;
-    typedef typename InPort::Wharf          InWharf;
+    typedef Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita>   Base;
+    typedef typename Vita::Datagram                         Datagram;
+    typedef typename Vita::InPort                           InPort;
+    typedef typename InPort::Wharf                          InWharf;
 
     Cv_File         m_OutFile;
     InPort          m_DataPort;
@@ -180,8 +180,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita>
     bool    DoInit( Vita *vita)
     {
         if ( !Base::DoInit( vita))
-            return false;
-
+            return false; 
         if ( !m_OutFile.Open( vita->m_OutputFile.c_str(), false))
             return false;
         return true;

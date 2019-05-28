@@ -21,7 +21,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 {         
     { "-irex",      "<input>",  "input rule-file"},
     { "-ilex",      "<input>",  "input rule-file"},
-    { "-d",         0 ,         "debug"},
+    { "-d",         0,          "debug"},
     { "-oshard",    "<dot>",    0},
     { "-oelem",     "<dot>",    0},
     { "-odfa",      "<dot>",    0},
