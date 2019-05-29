@@ -31,6 +31,9 @@
 #include    <thread>
 #include    <cstring>
 #include    <stdarg.h> 
+#include    <chrono>
+#include    <ctime>
+#include    <cmath>
 
 #ifdef CV_WINDOWS
 #include    <io.h>
