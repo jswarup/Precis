@@ -5,6 +5,13 @@
 
 //_____________________________________________________________________________________________________________________________
 
+struct Cv_Time
+{
+    static  uint64_t    Now( void)  { return std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::system_clock::now() -std::chrono::time_point<std::chrono::system_clock>() ).count(); }
+};
+
+//_____________________________________________________________________________________________________________________________
+
 template < typename Keeper>
 class Cv_StopWatch
 {

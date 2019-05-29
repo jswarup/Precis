@@ -3,7 +3,8 @@
 
 #include    "trellis/tenor/tr_include.h" 
 #include    "cove/snip/cv_cmdexec.h"  
-#include    "cove/stalks/cv_easel.h"  
+#include    "cove/stalks/cv_workeasel.h"  
+#include    "cove/stalks/cv_fileeasel.h"
 #include    "segue/tremolo/sg_ateliereasel.h" 
 
 
@@ -14,26 +15,34 @@
 
 #include    <utility>
 #include    <tuple>
+//_____________________________________________________________________________________________________________________________
 
-///_____________________________________________________________________________________________________________________________ 
+struct Sg_EaselVita : public Sg_BaseVita
+{
+    typedef Cv_Array< uint8_t, 256>                 Datagram; 
+    typedef Sg_DataSink< Datagram, 64, 4096>        OutPort; 
+    typedef Sg_DataSource< OutPort>                 InPort;
+
+    std::string             m_ImgFile;
+    std::string             m_InputFile;
+    std::string             m_OutputFile; 
+};
+
+//_____________________________________________________________________________________________________________________________ 
 
 static Cv_CmdOption     s_AtelierIfcOptions[] = 
 {
     { "-idata", "<input>", 0},
     { "-iimg", "<input>", 0},
-    { "-o", "<output>", 0}, 
-    { "-r", "<ruleset>", 0}, 
+    { "-otok", "<output>", 0},  
     { 0, 0,  0}
 };
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Sg_AtelierCmdProcessor : public Cv_CmdExecutor
+class Sg_AtelierCmdProcessor : public Cv_CmdExecutor, public Sg_EaselVita
 { 
-    std::string     m_InputFile;
-    std::string     m_ImgFile;
-    std::string     m_OutputFile;
-    std::string     m_RuleFile;
+    
 
 public:
     Sg_AtelierCmdProcessor( void)  
@@ -60,16 +69,11 @@ public:
             m_InputFile = arg;
             return true;
         }
-        if ( "-o" == key)
+        if ( "-otok" == key)
         {
             m_OutputFile = arg;
             return true;
-        }
-        if ( "-r" == key)
-        {
-            m_RuleFile = arg;
-            return true;
-        }
+        } 
         return false;
     }
 };
@@ -79,10 +83,7 @@ public:
  
 CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions) 
 
-//_____________________________________________________________________________________________________________________________
 
-struct Sg_EaselVita : public Sg_BaseVita, public Sg_AtelierVita
-{};
 
 //_____________________________________________________________________________________________________________________________
   
@@ -93,9 +94,11 @@ typedef Cv_Crate<Sg_AtelierEasel<Sg_EaselVita>, Sg_FileWriteEasel<Sg_EaselVita>,
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_AtelierCrate>
+struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, Sg_EaselVita>
 {
-    typedef Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_AtelierCrate>     Base;
+    typedef Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, Sg_EaselVita>     Base;
+
+    typedef Cv_EaselStats   Stats; 
 
     Sg_ReposEasel( void) 
     {} 
@@ -116,12 +119,7 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_EaselVita, Sg_
 int     Sg_AtelierCmdProcessor::Execute(void)
 {
 
-    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now(); 
-    Sg_EaselVita            vita;
-    vita.m_ImgFile = m_ImgFile;
-    vita.m_InputFile = m_InputFile;
-    vita.m_OutputFile = m_OutputFile;
-    vita.m_RuleFile = m_RuleFile;
+    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();  
     
     Sg_ReposEasel                       reposEasel; 
     Sg_FileReadEasel< Sg_EaselVita>     *fileRead = reposEasel.Construct< Sg_FileReadEasel< Sg_EaselVita>>();
@@ -133,7 +131,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
         Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
         fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
     }
-    bool    res = reposEasel.DoInit( &vita);
+    bool    res = reposEasel.DoInit( this);
     if  ( ! res)
         return -1;
 

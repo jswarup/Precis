@@ -34,6 +34,13 @@ public:
     void            Incr( void)  { ++m_Value;  } 
 
     void            Decr( void)  { --m_Value;  }
+
+template < typename T>
+    Cv_Type     &operator+=( const T &t) 
+    {
+        m_Value += t;
+        return *this;
+    }
 };
  
  
@@ -61,6 +68,13 @@ public:
     void            Incr( void)  { ++m_Value;  } 
 
     void            Decr( void)  { --m_Value;  }
+
+ template < typename T>
+    Cv_Type     &operator+=( const T &t) 
+    {
+        m_Value += t;
+        return *this;
+    }
 
 };
 
