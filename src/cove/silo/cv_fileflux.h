@@ -37,6 +37,11 @@ public:
             return false;
         return true;
     }
+    
+    void    Rewind( void)
+    {
+        CV_LSEEK( m_FileNo, 0, SEEK_SET);
+    }
 
     bool    Shut( void)
     {

@@ -26,6 +26,12 @@ struct Sg_EaselVita : public Sg_BaseVita
     std::string             m_ImgFile;
     std::string             m_InputFile;
     std::string             m_OutputFile; 
+    bool                    m_InputLoopFlg;
+
+    Sg_EaselVita( void)
+        : m_InputLoopFlg( false)
+    {}
+
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -35,6 +41,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
     { "-idata", "<input>", 0},
     { "-iimg", "<input>", 0},
     { "-otok", "<output>", 0},  
+    { "-loop", 0, 0},
     { 0, 0,  0}
 };
 
@@ -74,6 +81,11 @@ public:
             m_OutputFile = arg;
             return true;
         } 
+        if ( "-loop" == key)
+        {
+            m_InputLoopFlg = true;
+            return true;
+        }
         return false;
     }
 };
@@ -108,10 +120,7 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, 
         return Base::IsRunable();
     }
     
-    void    DoRunStep( void)
-    {
-        std::this_thread::yield();;        
-    } 
+     
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -123,9 +132,11 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     
     Sg_ReposEasel                       reposEasel; 
     Sg_FileReadEasel< Sg_EaselVita>     *fileRead = reposEasel.Construct< Sg_FileReadEasel< Sg_EaselVita>>();
-    Sg_AtelierEasel< Sg_EaselVita>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita>>(); 
-    atelier->m_DataPort.Connect( &fileRead->m_DataPort);
-
+    if ( m_ImgFile.size())
+    {
+        Sg_AtelierEasel< Sg_EaselVita>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita>>(); 
+        atelier->m_DataPort.Connect( &fileRead->m_DataPort);
+    }
     if ( m_OutputFile.size())
     {
         Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();

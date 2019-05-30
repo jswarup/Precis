@@ -15,8 +15,11 @@ struct  Cv_EaselStats
         return;
     }
     
+    uint64_t    ActiveUS( Cv_EaselStats *prev) { return m_WorkTime.Diff( prev->m_WorkTime); }
+   
     void    LogStats( std::ostream &strm, Cv_EaselStats *prev)
     {
+        strm << "ActiveTime[ " << ActiveUS( prev) << "] ";
         return;
     }
 };

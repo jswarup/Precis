@@ -41,6 +41,11 @@ template < typename T>
         m_Value += t;
         return *this;
     }
+
+    Stor    Diff( const Cv_Type &t) 
+    {
+        return m_Value -t.m_Value;
+    }
 };
  
  
@@ -75,7 +80,11 @@ public:
         m_Value += t;
         return *this;
     }
-
+    
+    Stor    Diff( const Cv_Type &t) 
+    {
+        return m_Value -t.m_Value;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________

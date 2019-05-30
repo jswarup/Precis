@@ -17,10 +17,10 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita>
     Cv_File         m_InFile;
     OutPort         m_DataPort;
     bool            m_FileClosingFlg;
-    uint32_t        m_CharIndex;
+    uint32_t        m_CharIndex; 
 
-    Sg_FileReadEasel( void) 
-        : m_FileClosingFlg( false), m_CharIndex( 0)
+    Sg_FileReadEasel( const std::string &name = "FileRead") 
+        : Base( name), m_FileClosingFlg( false), m_CharIndex( 0)
     {}
 
 
@@ -42,8 +42,18 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita>
     void    DoRunStep( void)
     {  
         OutWharf        wharf( &m_DataPort);
-        if ( m_FileClosingFlg && m_InFile.Shut() && wharf.SetClose())
+        if ( m_FileClosingFlg)
+        {
+            if ( m_Vita->m_InputLoopFlg )
+            {
+                m_FileClosingFlg = false;
+                m_InFile.Rewind();
+            }
+            else if ( m_InFile.Shut())
+                wharf.SetClose();
+                
             return;
+        }
         uint32_t        szBurst = wharf.Size(); 
         szBurst = wharf.ProbeSzFree( szBurst);
         uint32_t        dInd = 0;
@@ -81,7 +91,8 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita>
     Cv_File         m_OutFile;
     InPort          m_DataPort;
 
-    Sg_FileWriteEasel( void) 
+    Sg_FileWriteEasel( const std::string &name = "FileWrite") 
+        : Base( name)
     {}
 
     bool    DoInit( Vita *vita)

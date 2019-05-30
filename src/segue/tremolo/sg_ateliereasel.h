@@ -21,10 +21,10 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>
     FsaDfaRepos                         m_DfaRepos;
     Sg_Bulwark                          m_Bulwark;
     bool                                m_CloseFlg;
-    std::vector< uint8_t>               m_MemArr;
+    std::vector< uint8_t>               m_MemArr; 
 
-    Sg_AtelierEasel( void) 
-        : m_DfaReposAtelier( NULL), m_DfaBlossomAtelier( NULL), m_CloseFlg( false)
+    Sg_AtelierEasel( const std::string &name = "Atelier") 
+        : Base( name), m_DfaReposAtelier( NULL), m_DfaBlossomAtelier( NULL), m_CloseFlg( false)
     {}
 
     //_____________________________________________________________________________________________________________________________

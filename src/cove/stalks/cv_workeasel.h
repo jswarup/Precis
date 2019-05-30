@@ -12,13 +12,13 @@
 template < typename Vita>
 struct Sg_BaseEasel :  public Cv_CrateEntry
 {
-
+    std::string             m_Name;
     Vita                    *m_Vita;
     Cv_Type< uint64_t>      m_Worktime;
     bool                    m_DoneFlg;
 
-    Sg_BaseEasel( void)
-        : m_Vita( NULL), m_DoneFlg( false)
+    Sg_BaseEasel( const std::string &name)
+        : m_Name( name), m_Vita( NULL), m_DoneFlg( false)
     {}
 
     bool    DoInit( Vita *vita)
@@ -63,6 +63,10 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
     typedef Cv_EaselStatsAgent< Easel, Stats>       StatsAgent;
 
     std::thread     m_Thread;
+
+    Sg_WorkEasel( const std::string &name)
+        : Base( name) 
+    {}
 
     Easel           *GetEasel( void) { return static_cast< Easel *>( this); } 
 
@@ -115,7 +119,11 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
 
     bool                SnapStats( void) {  return StatsAgent::SnapStats(); } 
     bool                ResetLastSnap( void) { return StatsAgent::ResetLastSnap(); }
-    bool                LogStats( std::ostream &strm) { return StatsAgent::LogStats( strm); }
+    bool                LogStats( std::ostream &strm) 
+    { 
+        strm << m_Name << ": ";
+        return StatsAgent::LogStats( strm); 
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -127,10 +135,10 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
 
     std::vector< std::thread>   m_Threads; 
     uint64_t		            m_PrevUpdateUSec;
-    uint64_t                    m_CurUSec;
+    uint64_t                    m_CurUSec; 
 
-    Sg_MonitorEasel( void) 
-        : m_PrevUpdateUSec( 0), m_CurUSec( 0)
+    Sg_MonitorEasel( const std::string &name = "Monitor") 
+        : Base( name), m_PrevUpdateUSec( 0), m_CurUSec( 0)
     {} 
 
     bool    DoInit( Vita *vita)
@@ -156,11 +164,12 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
         m_CurUSec = Cv_Time::Now();
 
         uint64_t    usecsSinceUpdate = ( m_CurUSec - m_PrevUpdateUSec);
-        bool        updateFLg = usecsSinceUpdate > ( vita->m_UpdateMSec * 1000);
+        bool        updateFLg = usecsSinceUpdate > ( m_Vita->m_UpdateMSec * 1000);
         if ( !updateFLg)
-            continue;
+            return;
         SnapStats();
         LogStats( std::cout);
+        m_PrevUpdateUSec = m_CurUSec;
         return;
               
     }
