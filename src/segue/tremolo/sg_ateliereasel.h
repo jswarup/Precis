@@ -71,6 +71,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>
                 uint8_t     chr = datagram->At( k);
                 m_Bulwark.Play( m_DfaBlossomAtelier, chr);
             }
+            wharf.Discard( datagram); 
         }
         wharf.SetSize( dInd);
         return;

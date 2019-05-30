@@ -207,7 +207,7 @@ bool    Cv_MemSpritz::CheckFill(  uint64_t sz)
     uint64_t    len = Size();
     if ( len > ( m_Offset + sz))
         len = m_Offset + sz;
-    for ( uint32_t i = m_Offset; i < len; ++i)
+    for ( uint64_t i = m_Offset; i < len; ++i)
        if ( m_Mem[ m_Offset])
             return false;
 

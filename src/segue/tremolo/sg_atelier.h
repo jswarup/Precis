@@ -132,6 +132,8 @@ struct Sg_Bulwark
      
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
+        return;
+
         Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             std::cout << parapet->Start() << " " << ( m_Curr -parapet->Start()) << " " <<  tokens[ i] << "\n";

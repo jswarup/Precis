@@ -157,7 +157,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
         for ( uint32_t i = 0; i < szBurst;  i++)
         {   
             Datagram    *datagram = wharf.Get( i); 
-            uint32_t    szWrite = m_OutFile.Write( datagram->PtrAt( 0), datagram->SzFill());  
+            uint32_t    szWrite = datagram->SzFill(); // m_OutFile.Write( datagram->PtrAt( 0), datagram->SzFill());  
 
             stats->m_Bytes.Incr( szWrite);
             wharf.Discard( datagram); 
