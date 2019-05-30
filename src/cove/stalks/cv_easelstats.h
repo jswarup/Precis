@@ -7,15 +7,9 @@ struct  Cv_EaselStats
 {   
     Cv_Type< uint64_t>      m_WorkTime;     
     Cv_Type< uint64_t>      m_ChokeSz;    
+     
     
-    void    CopyTo( Cv_EaselStats *inStats)
-    {      
-        inStats->m_WorkTime = m_WorkTime;
-        inStats->m_ChokeSz = m_ChokeSz;
-        return;
-    }
-    
-    uint64_t    ActiveUS( Cv_EaselStats *prev) { return m_WorkTime.Diff( prev->m_WorkTime); }
+    uint64_t    ActiveUS( Cv_EaselStats *prev) { return m_WorkTime.Get() - prev->m_WorkTime.Get(); }
    
     void    LogStats( std::ostream &strm, Cv_EaselStats *prev)
     {
@@ -29,41 +23,29 @@ struct  Cv_EaselStats
 template < typename Easel, typename Stats>
 struct  Cv_EaselStatsAgent
 {
-    Stats            *m_Curr;
-    Stats            *m_Prev; 
-    Stats            *m_Snap;
+    Stats            m_Curr;
+    Stats            m_Prev; 
+    Stats            m_Snap;
  
-    Cv_EaselStatsAgent( void)
-        : m_Curr( NULL), m_Prev( NULL), m_Snap( NULL)
+    Cv_EaselStatsAgent( void) 
     {}
-
-    void    InitStats( void)
-    {
-        m_Curr = new Stats();
-        m_Prev = new Stats();
-        m_Snap = new Stats();
-        return;
-    }    
-
+ 
     bool                SnapStats( void)
     { 
-        m_Snap->CopyTo( m_Prev);
-        m_Curr->CopyTo( m_Snap); 
+        m_Prev = m_Snap;
+        m_Snap = m_Curr; 
         return true;
     } 
 
     bool                ResetLastSnap( void)
-    {
-        if ( !m_Snap)
-            return false;
-        delete m_Snap;
-        m_Snap = new Stats(); 
+    { 
+        m_Snap = Stats(); 
         return true;
     }
 
     bool                LogStats( std::ostream &strm)
     {
-        m_Snap->LogStats( strm, m_Prev);
+        m_Snap.LogStats( strm, &m_Prev);
         return true;
     }
 };

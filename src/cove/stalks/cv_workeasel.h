@@ -56,11 +56,12 @@ struct Sg_BaseVita
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Easel, typename Vita, typename Stats = Cv_EaselStats>
-struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Stats>
+template < typename Easel, typename Vita, typename EaselStats = Cv_EaselStats>
+struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, EaselStats>
 { 
     typedef Sg_BaseEasel< Vita>                     Base;
-    typedef Cv_EaselStatsAgent< Easel, Stats>       StatsAgent;
+    typedef Cv_EaselStatsAgent< Easel, EaselStats>  StatsAgent;
+    typedef EaselStats                              Stats; 
 
     std::thread     m_Thread;
 
@@ -74,8 +75,7 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
     {
         if ( !Base::DoInit( vita))
             return false;
-
-        StatsAgent::InitStats();
+ 
         return true;
     }
 
@@ -105,6 +105,7 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
         while ( easel->IsRunable())
         {
             Cv_StopWatch< Cv_Type< uint64_t>>   stopWatch( &m_Worktime);
+            uint64_t    val = m_Worktime.Get();
             easel->DoRunStep();
         }
         easel->DoStop();
@@ -117,6 +118,7 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
         return true;
     }
 
+    Stats               *CurStats( void)  { return &m_Curr; }
     bool                SnapStats( void) {  return StatsAgent::SnapStats(); } 
     bool                ResetLastSnap( void) { return StatsAgent::ResetLastSnap(); }
     bool                LogStats( std::ostream &strm) 
@@ -128,8 +130,8 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Sta
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Monitor, typename Crate, typename Vita, typename Stats = Cv_EaselStats>
-struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Monitor, Vita, Stats>
+template < typename Monitor, typename Crate, typename Vita, typename EaselStats = Cv_EaselStats>
+struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Monitor, Vita, EaselStats>
 { 
     typedef Sg_WorkEasel< Monitor, Vita>    Base;
 

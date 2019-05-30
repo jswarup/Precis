@@ -32,8 +32,10 @@ public:
     }
     
     void            Incr( void)  { ++m_Value;  } 
+    void            Incr( Stor t)  { m_Value += t;  } 
 
     void            Decr( void)  { --m_Value;  }
+    void            Decr( Stor t)  { m_Value -= t;  } 
 
 template < typename T>
     Cv_Type     &operator+=( const T &t) 
@@ -71,8 +73,10 @@ public:
     }
     
     void            Incr( void)  { ++m_Value;  } 
+    void            Incr( Stor t)  { m_Value += t;  } 
 
     void            Decr( void)  { --m_Value;  }
+    void            Decr( Stor t)  { m_Value -= t;  } 
 
  template < typename T>
     Cv_Type     &operator+=( const T &t) 
