@@ -56,7 +56,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>
 
     void    DoRunStep( void)
     {   
-        InPort::Wharf   wharf( &m_DataPort);
+        Wharf           wharf( &m_DataPort);
         uint32_t        szBurst = wharf.Size(); 
 
         if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())

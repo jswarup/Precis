@@ -40,7 +40,8 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
 {
     { "-idata", "<input>", 0},
     { "-iimg", "<input>", 0},
-    { "-otok", "<output>", 0},  
+    { "-oout", "<output>", 0},  
+    { "-otok", "<token>", 0},  
     { "-loop", 0, 0},
     { 0, 0,  0}
 };
@@ -76,7 +77,7 @@ public:
             m_InputFile = arg;
             return true;
         }
-        if ( "-otok" == key)
+        if ( "-oout" == key)
         {
             m_OutputFile = arg;
             return true;
@@ -95,14 +96,12 @@ public:
  
 CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions) 
 
-
-
 //_____________________________________________________________________________________________________________________________
   
 struct Sg_ReposEasel;
 
-typedef Cv_Crate<Sg_AtelierEasel<Sg_EaselVita>, Sg_FileWriteEasel<Sg_EaselVita>, Sg_FileReadEasel< Sg_EaselVita>, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
-
+typedef Cv_Crate<Sg_AtelierEasel<Sg_EaselVita>, Sg_FileWriteEasel<Sg_EaselVita>, 
+                            Sg_FileReadEasel< Sg_EaselVita>, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 

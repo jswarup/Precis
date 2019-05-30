@@ -104,8 +104,8 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
         easel->DoStart();
         while ( easel->IsRunable())
         {
-            Cv_StopWatch< Cv_Type< uint64_t>>   stopWatch( &m_Worktime);
-            uint64_t    val = m_Worktime.Get();
+            Cv_StopWatch< Cv_Type< uint64_t>>   stopWatch( &this->m_Worktime);
+            uint64_t    val = this->m_Worktime.Get();
             easel->DoRunStep();
         }
         easel->DoStop();
@@ -118,12 +118,12 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
         return true;
     }
 
-    Stats               *CurStats( void)  { return &m_Curr; }
+    Stats               *CurStats( void)  { return &this->m_Curr; }
     bool                SnapStats( void) {  return StatsAgent::SnapStats(); } 
     bool                ResetLastSnap( void) { return StatsAgent::ResetLastSnap(); }
     bool                LogStats( std::ostream &strm) 
     { 
-        strm << m_Name << ": ";
+        strm << this->m_Name << ": ";
         return StatsAgent::LogStats( strm); 
     }
 };
@@ -166,7 +166,7 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
         m_CurUSec = Cv_Time::Now();
 
         uint64_t    usecsSinceUpdate = ( m_CurUSec - m_PrevUpdateUSec);
-        bool        updateFLg = usecsSinceUpdate > ( m_Vita->m_UpdateMSec * 1000);
+        bool        updateFLg = usecsSinceUpdate > ( this->m_Vita->m_UpdateMSec * 1000);
         if ( !updateFLg)
             return;
         SnapStats();

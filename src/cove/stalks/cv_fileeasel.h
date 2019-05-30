@@ -29,9 +29,10 @@ template < typename Vita>
 struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv_FileStats>
 {
     typedef Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv_FileStats>    Base;
-    typedef typename Vita::Datagram          Datagram;
-    typedef typename Vita::OutPort           OutPort;
+    typedef typename Vita::Datagram         Datagram;
+    typedef typename Vita::OutPort          OutPort;
     typedef typename OutPort::Wharf         OutWharf;
+    typedef typename Base::Stats            Stats;
 
     Cv_File         m_InFile;
     OutPort         m_DataPort;
@@ -60,27 +61,26 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv
 
     void    DoRunStep( void)
     {  
-        Stats           *stats = CurStats();
-        OutWharf        wharf( &m_DataPort);
-        if ( m_FileClosingFlg)
+        Stats           *stats = this->CurStats();
+        if ( m_FileClosingFlg && this->m_Vita->m_InputLoopFlg )
         {
-            if ( m_Vita->m_InputLoopFlg )
-            {
-                m_FileClosingFlg = false;
-                m_InFile.Rewind();
-            }
-            else if ( m_InFile.Shut())
-                wharf.SetClose();
-                
+            m_FileClosingFlg = false;
+            m_InFile.Rewind();
+            return;
+        }
+        
+        OutWharf        wharf( &m_DataPort);
+        
+        if ( m_FileClosingFlg && m_InFile.Shut())
+        {
+            wharf.SetClose();
             return;
         }
         uint32_t        szBurst = wharf.Size(); 
         szBurst = wharf.ProbeSzFree( szBurst);
-        if ( !szBurst)
-        {
-            stats->m_ChokeSz.Incr();
-            return;
-        }
+        if ( !szBurst) 
+            stats->m_ChokeSz.Incr(); 
+
         uint32_t        dInd = 0;
         for ( ; dInd < szBurst;  dInd++)
         {   
@@ -114,6 +114,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
     typedef typename Vita::Datagram                         Datagram;
     typedef typename Vita::InPort                           InPort;
     typedef typename InPort::Wharf                          InWharf;
+    typedef typename Base::Stats                            Stats;
 
     Cv_File         m_OutFile;
     InPort          m_DataPort;
@@ -138,19 +139,27 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
 
     void    DoRunStep( void)
     {   
+        Stats           *stats = this->CurStats();
         InWharf         wharf( &m_DataPort);
         uint32_t        szBurst = wharf.Size(); 
+        
         if ( !szBurst)
         {
-        }
-
-        if ( !szBurst && wharf.IsClose() && m_OutFile.Shut() && wharf.SetClose())
+            stats->m_ChokeSz.Incr();
+            if ( wharf.IsClose())
+            {
+                m_OutFile.Shut(); 
+                wharf.SetClose();
+            }
             return;
+        }
 
         for ( uint32_t i = 0; i < szBurst;  i++)
         {   
             Datagram    *datagram = wharf.Get( i); 
             uint32_t    szWrite = m_OutFile.Write( datagram->PtrAt( 0), datagram->SzFill());  
+
+            stats->m_Bytes.Incr( szWrite);
             wharf.Discard( datagram); 
         }
         return;
