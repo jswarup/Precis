@@ -120,15 +120,18 @@ struct Sg_Rampart
 struct Sg_Bulwark
 { 
     enum    {
-        Sz = 256
+        Sz = 64
     }; 
-    std::array< Sg_Parapet, 256>    m_Parapets;  
-    Sg_Bitset< Sz>                  m_Allocbits;  
-    uint64_t                        m_Curr;     
+    std::array< Sg_Parapet, Sz>     m_Parapets; 
+    Sg_Bitset< Sz>                  m_Allocbits; 
+    uint64_t                        m_Curr;   
+    uint32_t                        m_TokenCnt; 
+    uint32_t                        m_IndFree;  
     
     Sg_Bulwark( void)
-        : m_Curr( 0)
-    {}
+        : m_Curr( 0), m_TokenCnt( 0), m_IndFree( 0)
+    { 
+    }
      
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
@@ -141,9 +144,10 @@ struct Sg_Bulwark
     }
 
 template < typename Atelier>
-    void    Play( Atelier *dfaAtelier, uint8_t chr)
+    uint32_t    Play( Atelier *dfaAtelier, uint8_t chr)
     {
-        uint8_t                 chrId = dfaAtelier->ByteCode( chr);  
+        m_TokenCnt = 0;
+        uint8_t                     chrId = dfaAtelier->ByteCode( chr);  
         Sg_Bitset< Sz>          allocbits;  
         
         m_Allocbits.ForAllTrue( [this, dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
@@ -152,6 +156,8 @@ template < typename Atelier>
                 if ( !parapet->Advance( dfaAtelier, chrId))
                     return;
                 allocbits->Set( ind, true);
+                m_TokenCnt += parapet->Tokens().Size();
+
                 DumpTokens( &m_Parapets[ ind]);
                 return;
             }, chrId, &allocbits);  
@@ -167,7 +173,7 @@ template < typename Atelier>
             allocbits.Set( pickInd, true);    
         ++m_Curr;
         m_Allocbits = allocbits;
-        return; 
+        return m_TokenCnt; 
     }    
 };
 

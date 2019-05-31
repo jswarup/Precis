@@ -4,10 +4,15 @@
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename X, uint32_t Sz, typename SzType = uint32_t, uint32_t ObjSz = 0>
+template < typename X, uint32_t XSize, typename SzType = uint32_t, uint32_t ObjSz = 0>
 struct Cv_Array   
 {
     static constexpr uint32_t  ObjectSz( void) { return ObjSz ? ObjSz : sizeof( X); } 
+    
+    enum 
+    {
+        Sz = XSize
+    };
 
     SzType                  m_SzFill;                                                           // number of occupied entries
     uint8_t                 m_MemArr[ ObjectSz() * Sz];
@@ -159,5 +164,44 @@ struct Cv_LinArr
     };
 };
 
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename X, uint32_t  Sz>
+struct Cv_ArrSeq : public Cv_ArrSeq< typename X, Sz-1>
+{
+    typedef Cv_ArrSeq< typename X, Sz-1>    Base;
+
+    using   Base::m_Arr;
+
+    Cv_ArrSeq( X *x)
+        : Base( x)
+    {}
+
+template < typename Lambda, typename... Args>
+    void    ForAll( const Lambda &lambda,  const Args&... args)  
+    {
+        Base::ForAll( lambda, args...);
+        lambda( m_Arr[ Sz -1], Sz -1, args...); 
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
+template < typename X>
+struct Cv_ArrSeq< X, 1>
+{
+    X   *m_Arr;
+    
+    Cv_ArrSeq( X *x)
+        : m_Arr( x)
+    {}
+
+template < typename Lambda, typename... Args>
+    void    ForAll( const Lambda &lambda,  const Args&... args)  
+    {
+        lambda( m_Arr[ 0], 0, args...); 
+    }
+};
 //_____________________________________________________________________________________________________________________________
 

@@ -3,17 +3,36 @@
 
 #include    "segue/tremolo/sg_atelier.h" 
  
+//_____________________________________________________________________________________________________________________________
+
+
+struct  Cv_AtelierStats : public Cv_EaselStats
+{
+    typedef Cv_EaselStats       Base;
+
+    Cv_Type< uint64_t>          m_Matches;
+
+    uint64_t    Matches( Cv_AtelierStats *prev) { return m_Matches.Get() -prev->m_Matches.Get(); }
+
+    void    LogStats( std::ostream &strm, Cv_AtelierStats *prev)
+    {
+        Base::LogStats( strm, prev);
+        strm << "Matches[ " << Matches( prev) << "] ";
+        return;
+    }
+};
 
 //_____________________________________________________________________________________________________________________________
 
 template < typename Vita>
-struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>
+struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_AtelierStats>
 {
-    typedef Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>     Base;
+    typedef Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_AtelierStats>     Base;
 
     typedef typename Vita::Datagram     Datagram;
     typedef typename Vita::InPort       InPort;
     typedef typename InPort::Wharf      Wharf;
+    typedef typename Base::Stats        Stats;
 
     InPort                              m_DataPort;
     Sg_DfaReposAtelier                  *m_DfaReposAtelier;
@@ -56,24 +75,28 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita>
 
     void    DoRunStep( void)
     {   
+        Stats           *stats = this->CurStats();
         Wharf           wharf( &m_DataPort);
         uint32_t        szBurst = wharf.Size(); 
 
         if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
             return;
 
-        uint32_t        dInd = 0;
+        uint32_t    dInd = 0;
+        uint32_t    tokCnt = 0;
         for ( ; dInd < szBurst;  dInd++)
         {
             Datagram    *datagram = wharf.Get( dInd); 
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                m_Bulwark.Play( m_DfaBlossomAtelier, chr);
+                tokCnt += m_Bulwark.Play( m_DfaBlossomAtelier, chr);
             }
-            wharf.Discard( datagram); 
+            if ( wharf.IsTail()) 
+                wharf.Discard( datagram);
         }
         wharf.SetSize( dInd);
+        stats->m_Matches += tokCnt;
         return;
     }
 }; 

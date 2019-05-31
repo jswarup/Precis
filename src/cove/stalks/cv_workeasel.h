@@ -50,7 +50,7 @@ struct Sg_BaseVita
     uint32_t                m_UpdateMSec;
 
     Sg_BaseVita( void)
-        : m_CntActive( 0), m_CntEasel( 0), m_StopFlg( false), m_UpdateMSec( 2000)
+        : m_CntActive( 0), m_CntEasel( 0), m_StopFlg( false), m_UpdateMSec( 1000)
     {}
 };
 
