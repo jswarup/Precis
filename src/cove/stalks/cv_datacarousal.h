@@ -24,8 +24,8 @@ public:
     typedef typename Dock::Type     Type; 
 
 private:  
+    Cv_DLinkList< Dock, true>   m_Docks;                                                // docks for data-transfers
     Type                        m_Buffer[ CarousalSz] alignas( CV_CACHELINE_SIZE);      // circular buffer
-    Cv_DLinkList< Dock, true>   m_Docks;                                        // docks for data-transfers
   
 public: 
     Cv_DataCarousal( void) 
@@ -159,7 +159,7 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename DGram, uint32_t CacheSz = 128, uint32_t StoreSz = 4096, uint32_t CarousSz = 2048>
+template < typename DGram, uint32_t CacheSz, uint32_t StoreSz, uint32_t CarousSz >
 struct Sg_DataSink
 {
     enum {

@@ -33,12 +33,16 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
     typedef typename Vita::InPort       InPort;
     typedef typename InPort::Wharf      Wharf;
     typedef typename Base::Stats        Stats;
+    typedef typename Vita::OutTokPort   OutTokPort;
+    typedef typename OutTokPort::Wharf  OutTokWharf;
+    typedef typename Vita::TokenGram    TokenGram;    
 
     InPort                              m_DataPort;
+    OutTokPort                          m_TokOutPort;
     Sg_DfaReposAtelier                  *m_DfaReposAtelier;
     Sg_DfaBlossomAtelier                *m_DfaBlossomAtelier;
     FsaDfaRepos                         m_DfaRepos;
-    Sg_Bulwark                          m_Bulwark;
+    Sg_Bulwark< 64, TokenGram>          m_Bulwark;
     bool                                m_CloseFlg;
     std::vector< uint8_t>               m_MemArr; 
 
@@ -78,10 +82,21 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
         Stats           *stats = this->CurStats();
         Wharf           wharf( &m_DataPort);
         uint32_t        szBurst = wharf.Size(); 
+        OutTokWharf     tokWharf( &m_TokOutPort);
+
+        uint32_t        szTokBurst = tokWharf.Size(); 
+        szTokBurst = tokWharf.ProbeSzFree( szTokBurst);
 
         if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
             return;
-
+        
+        if ( !szBurst || !szTokBurst)
+        {
+            stats->m_ChokeSz.Incr(); 
+            wharf.SetSize( 0);
+            tokWharf.SetSize( 0);
+            return;
+        } 
         uint32_t    dInd = 0;
         uint32_t    tokCnt = 0;
         for ( ; dInd < szBurst;  dInd++)
@@ -90,7 +105,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                tokCnt += m_Bulwark.Play( m_DfaBlossomAtelier, chr);
+                bool        proceed = m_Bulwark.Play( m_DfaBlossomAtelier, chr);
             }
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);

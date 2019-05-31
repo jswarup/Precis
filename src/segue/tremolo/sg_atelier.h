@@ -48,6 +48,7 @@ struct Sg_DfaBlossomAtelier
 
 };
 
+
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_Parapet
@@ -85,7 +86,7 @@ template < typename Atelier>
 
 struct Sg_Rampart
 { 
-    Sg_DfaReposAtelier       m_DfaAtelier;
+    Sg_DfaReposAtelier  m_DfaAtelier;
     Sg_Parapet          m_Parapet;   
     uint64_t            m_Curr;     
 
@@ -114,66 +115,80 @@ struct Sg_Rampart
     }    
 };
 
+//_____________________________________________________________________________________________________________________________
+
+struct Sg_MatchData
+{
+    uint64_t                m_Start;
+    uint32_t                m_Len;
+    uint64_t                m_Token;
+
+    Sg_MatchData( void)
+        : m_Start( 0), m_Len( 0), m_Token( 0)
+    {}
+
+    Sg_MatchData( uint64_t start, uint32_t len, uint64_t token)
+        : m_Start( start), m_Len( len), m_Token( token)
+    {}
+
+    void    Dump( std::ostream &strm)
+    {
+        strm << m_Start << " " << m_Len << " " <<  m_Token << "\n";
+    }
+};
 
 //_____________________________________________________________________________________________________________________________
 
+template < uint32_t Sz, uint32_t TokSz>
 struct Sg_Bulwark
 { 
-    enum    {
-        Sz = 64
-    }; 
-    std::array< Sg_Parapet, Sz>     m_Parapets; 
-    Sg_Bitset< Sz>                  m_Allocbits; 
-    uint64_t                        m_Curr;   
-    uint32_t                        m_TokenCnt; 
-    uint32_t                        m_IndFree;  
-    
+     
+    uint64_t                                    m_Curr;    
+    std::array< Sg_Parapet, Sz>                 m_Parapets; 
+    Sg_Bitset< Sz>                              m_Allocbits;
+    Cv_Array< Sg_MatchData, TokSz>              m_TokenSet; 
+
     Sg_Bulwark( void)
-        : m_Curr( 0), m_TokenCnt( 0), m_IndFree( 0)
+        : m_Curr( 0) 
     { 
     }
      
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
-        return;
-
         Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            std::cout << parapet->Start() << " " << ( m_Curr -parapet->Start()) << " " <<  tokens[ i] << "\n";
+            m_TokenSet.Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
         return;
     }
 
 template < typename Atelier>
-    uint32_t    Play( Atelier *dfaAtelier, uint8_t chr)
-    {
-        m_TokenCnt = 0;
-        uint8_t                     chrId = dfaAtelier->ByteCode( chr);  
+    bool    Play( Atelier *dfaAtelier, uint8_t chr)
+    { 
+        uint8_t                 chrId = dfaAtelier->ByteCode( chr);  
         Sg_Bitset< Sz>          allocbits;  
-        
         m_Allocbits.ForAllTrue( [this, dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
                 if ( !parapet->Advance( dfaAtelier, chrId))
                     return;
-                allocbits->Set( ind, true);
-                m_TokenCnt += parapet->Tokens().Size();
-
+                allocbits->Set( ind, true); 
                 DumpTokens( &m_Parapets[ ind]);
                 return;
             }, chrId, &allocbits);  
         
-        if (allocbits.IsOnes())
+        uint32_t        pickInd =  allocbits.Index( false) ;
+        if ( pickInd != CV_UINT32_MAX)
         {
+            return false;
         }
 
-        uint32_t        pickInd =  allocbits.Index( false) ;
         Sg_Parapet      *curent = &m_Parapets[ pickInd];  
         curent->Load( dfaAtelier->RootState(), m_Curr); 
         if ( curent->Advance( dfaAtelier, chrId))
             allocbits.Set( pickInd, true);    
         ++m_Curr;
         m_Allocbits = allocbits;
-        return m_TokenCnt; 
+        return true; 
     }    
 };
 

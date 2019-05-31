@@ -15,13 +15,19 @@
 
 #include    <utility>
 #include    <tuple>
+
+
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
     typedef Cv_Array< uint8_t, 256>                 Datagram; 
-    typedef Sg_DataSink< Datagram, 64, 4096>        OutPort; 
+    typedef Sg_DataSink< Datagram, 64, 8192, 2048>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
+    
+    typedef Cv_Array< Sg_MatchData, 256>            TokenGram;
+    typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
+    typedef Sg_DataSource< OutPort>                 InTokPort;
 
     std::string             m_ImgFile;
     std::string             m_InputFile;
@@ -126,7 +132,6 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, 
 
 int     Sg_AtelierCmdProcessor::Execute(void)
 {
-
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();  
     
     Sg_ReposEasel                       reposEasel; 

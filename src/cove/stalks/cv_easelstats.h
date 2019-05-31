@@ -32,7 +32,6 @@ struct  Cv_EaselStatsAgent
  
     bool                SnapStats( void)
     { 
-        m_Prev = m_Snap;
         m_Snap = m_Curr; 
         return true;
     } 
@@ -46,6 +45,7 @@ struct  Cv_EaselStatsAgent
     bool                LogStats( std::ostream &strm)
     {
         m_Snap.LogStats( strm, &m_Prev);
+        m_Prev = m_Snap;
         return true;
     }
 };

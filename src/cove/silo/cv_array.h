@@ -168,9 +168,9 @@ struct Cv_LinArr
 //_____________________________________________________________________________________________________________________________
 
 template < typename X, uint32_t  Sz>
-struct Cv_ArrSeq : public Cv_ArrSeq< typename X, Sz-1>
+struct Cv_ArrSeq : public Cv_ArrSeq<  X, Sz-1>
 {
-    typedef Cv_ArrSeq< typename X, Sz-1>    Base;
+    typedef Cv_ArrSeq< X, Sz-1>    Base;
 
     using   Base::m_Arr;
 
