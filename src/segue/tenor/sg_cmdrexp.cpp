@@ -245,7 +245,7 @@ int     Sg_RExpCmdProcessor::Test(void)
             //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
         }
-        if ( 0) {
+        if ( 1) {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  

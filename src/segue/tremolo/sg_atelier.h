@@ -26,6 +26,13 @@ struct Sg_DfaReposAtelier
     DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_DfaRepos->m_DistribRepos.ToVar( dId); }
     FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode) { return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( state->Dests().At( byteCode)).GetEntry()); }
     
+
+    FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
+    {  
+        DistribCrate::Var   dVar = m_DfaRepos->m_DistribRepos.ToVar( state->DistribId());
+        uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
+        return m_DfaRepos->ToVar( state->Dests().At( img));
+    }
 };
 
 
@@ -46,6 +53,12 @@ struct Sg_DfaBlossomAtelier
     DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_Distribs.ToVar( dId); }
     FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode)  { return static_cast< FsaDfaState *>( m_States.ToVar( state->Dests().At( byteCode)).GetEntry()); }
 
+    FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
+    {  
+        DistribCrate::Var   dVar = m_Distribs.ToVar( state->DistribId());
+        uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
+        return  m_States.ToVar( state->Dests().At( img));
+    }
 };
 
 

@@ -321,8 +321,7 @@ public:
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
-    bool                    DumpDot( Cv_DotStream &strm);
-
+    bool                    DumpDot( Cv_DotStream &strm); 
 }; 
 
 //_____________________________________________________________________________________________________________________________ 
