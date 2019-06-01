@@ -131,33 +131,34 @@ struct Sg_MatchData
         : m_Start( start), m_Len( len), m_Token( token)
     {}
 
-    void    Dump( std::ostream &strm)
+    friend std::ostream &operator<<( std::ostream &strm, const Sg_MatchData &md)
     {
-        strm << m_Start << " " << m_Len << " " <<  m_Token << "\n";
+        strm << md.m_Start << " " << md.m_Len << " " <<  md.m_Token << "\n";
+        return strm;
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
-template < uint32_t Sz, uint32_t TokSz>
+template < uint32_t Sz, typename TokenGram>
 struct Sg_Bulwark
 { 
      
     uint64_t                                    m_Curr;    
     std::array< Sg_Parapet, Sz>                 m_Parapets; 
     Sg_Bitset< Sz>                              m_Allocbits;
-    Cv_Array< Sg_MatchData, TokSz>              m_TokenSet; 
+    TokenGram                                   *m_TokenSet; 
 
     Sg_Bulwark( void)
-        : m_Curr( 0) 
-    { 
-    }
+        : m_Curr( 0), m_TokenSet( NULL)
+    {}
      
+    
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
         Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            m_TokenSet.Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
+            m_TokenSet->Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
         return;
     }
 
@@ -172,12 +173,13 @@ template < typename Atelier>
                 if ( !parapet->Advance( dfaAtelier, chrId))
                     return;
                 allocbits->Set( ind, true); 
-                DumpTokens( &m_Parapets[ ind]);
+                if ( m_TokenSet)
+                    DumpTokens( &m_Parapets[ ind]);
                 return;
             }, chrId, &allocbits);  
         
         uint32_t        pickInd =  allocbits.Index( false) ;
-        if ( pickInd != CV_UINT32_MAX)
+        if ( pickInd == CV_UINT32_MAX)
         {
             return false;
         }
@@ -191,100 +193,5 @@ template < typename Atelier>
         return true; 
     }    
 };
-
-/*
-//_____________________________________________________________________________________________________________________________
-
-template < typename Wharf>
-struct Sg_Bastion
-{
-    enum   {
-        CSz = Wharf::Dock::DataCarousal::CarousalSz,
-        BSz = 256,
-    };
-
-    struct  DataTrack
-    {
-        uint16_t    m_UseCount;
-        uint16_t    m_ScanStart;
-
-        DataTrack( void)
-            : m_UseCount( 0), m_ScanStart( 0)
-        {}
-    };
-    struct  Bulwark : public Sg_Parapet
-    {
-        uint16_t        m_TrackIndex;
-        uint16_t        m_TrackStart;
-
-        Bulwark( void)  
-            : m_TrackIndex( 0), m_TrackStart( 0)
-        {}
-        
-        void    Load( FsaDfaState *rootDfaState, uint64_t curr, uint16_t trackIndex, uint16_t trackStart)
-        {
-            m_TrackIndex = trackIndex;
-            m_TrackStart = trackStart;
-            Sg_Parapet::Load( rootDfaState, curr);
-        }
  
-        bool    Advance( FsaDfaRepos *dfaRepos, Wharf *wharf)
-        {
-            DistribCrate::Var   dVar = dfaRepos->m_DistribRepos.ToVar( m_CurState->DistribId());
-            uint8_t             img = dVar( [ chr]( auto k) { return k->Image( chr); }); 
-            m_CurState = static_cast< FsaDfaState *>( dfaRepos->ToVar( m_CurState->Dests().At( img)).GetEntry());
-            return !!m_CurState;
-                    }
-    };
-
-    DataTrack                   m_Track[ CSz];
-    Cv_Array< Bulwark, BSz>     m_Bulwarks;
-    FsaDfaRepos                 *m_DfaRepos; 
-    uint32_t                    m_LastDGInd;    // just for datagram conversion
-    uint16_t                    m_TrackIndex;
-    uint16_t                    m_TrackStart;
-    uint64_t                    m_Curr;
-    
-    Sg_Bastion( void)
-        : m_DfaRepos( NULL), m_LastDGInd( 0), m_TrackIndex( 0), m_TrackStart( 0), m_Curr( 0)
-    {}
-
-    void        SetDfaRepos( FsaDfaRepos *dfaRepos) { m_DfaRepos = dfaRepos; }
-
-
-    uint32_t    Play( Wharf *wharf)
-    {
-        FsaDfaState     *rootDfaState = static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry());
-        uint32_t        szBurst = wharf->Size(); 
-        Sg_Partition    *m_Base = &m_DfaRepos->m_DistribRepos.m_Base;
-        for ( uint32_t dInd = m_LastDGInd -wharf->Begin(); dInd < szBurst;  dInd++, m_LastDGInd++)
-        {
-            auto    *datagram = wharf->Get( dInd); 
-            for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
-            {
-                uint8_t     &chr = datagram->At( k);
-                chr = m_Base->Image( chr);
-            }
-        }
-        Cv_Array< Bulwark, BSz>     bulwarks;
-        for ( uint32_t i = 0; i < m_Bulwarks.SzFill(); ++i)
-        {
-            Bulwark     *bulwark = m_Bulwarks.PtrAt( i);
-            bulwark->Advance( m_DfaRepos, wharf);
-        }
-
-        uint32_t        dInd = 0;
-        for ( ; dInd < szBurst;  dInd++)
-        {
-            auto    *datagram = wharf->Get( dInd); 
-            for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
-            {
-                uint8_t     chr = datagram->At( k);
-                //m_Ramparts.Play( chr);
-            }
-        }
-        return dInd;
-    }
-};
-*/
 //_____________________________________________________________________________________________________________________________

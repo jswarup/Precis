@@ -21,17 +21,18 @@
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Cv_Array< uint8_t, 256>                 Datagram; 
+    typedef Cv_Array< uint8_t, 2048>                 Datagram; 
     typedef Sg_DataSink< Datagram, 64, 8192, 2048>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
     typedef Cv_Array< Sg_MatchData, 256>            TokenGram;
     typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
-    typedef Sg_DataSource< OutPort>                 InTokPort;
+    typedef Sg_DataSource< OutTokPort>              InTokPort;
 
     std::string             m_ImgFile;
     std::string             m_InputFile;
     std::string             m_OutputFile; 
+    std::string             m_TokenLogFile;
     bool                    m_InputLoopFlg;
 
     Sg_EaselVita( void)
@@ -88,6 +89,11 @@ public:
             m_OutputFile = arg;
             return true;
         } 
+        if ( "-otok" == key)
+        {
+            m_TokenLogFile = arg;
+            return true;
+        } 
         if ( "-loop" == key)
         {
             m_InputLoopFlg = true;
@@ -106,8 +112,8 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
   
 struct Sg_ReposEasel;
 
-typedef Cv_Crate<Sg_AtelierEasel<Sg_EaselVita>, Sg_FileWriteEasel<Sg_EaselVita>, 
-                            Sg_FileReadEasel< Sg_EaselVita>, Sg_ReposEasel, Sg_BaseEasel<Sg_EaselVita> >         Sg_AtelierCrate;
+typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
+                            Sg_FileReadEasel< Sg_EaselVita>, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita> >         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -139,7 +145,13 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     if ( m_ImgFile.size())
     {
         Sg_AtelierEasel< Sg_EaselVita>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita>>(); 
-        atelier->m_DataPort.Connect( &fileRead->m_DataPort);
+        atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
+        if ( m_TokenLogFile.size())
+        {
+            Sg_TokenLogEasel< Sg_EaselVita>      *tokenLog = reposEasel.Construct< Sg_TokenLogEasel<Sg_EaselVita>>(); 
+            tokenLog->m_InTokPort.Connect( &atelier->m_TokOutPort);
+
+        }
     }
     if ( m_OutputFile.size())
     {
