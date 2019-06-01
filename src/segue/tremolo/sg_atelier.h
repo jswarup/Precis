@@ -22,10 +22,7 @@ struct Sg_DfaReposAtelier
     {}
     
     uint8_t             ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
-    FsaDfaState         *RootState( void) {  return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()); }
-    DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_DfaRepos->m_DistribRepos.ToVar( dId); }
-    FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode) { return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( state->Dests().At( byteCode)).GetEntry()); }
-    
+    FsaDfaState         *RootState( void) {  return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()); } 
 
     FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
     {  
@@ -49,10 +46,7 @@ struct Sg_DfaBlossomAtelier
     {}
 
     uint8_t             ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
-    FsaDfaState         *RootState( void)  {  return static_cast< FsaDfaState *>( m_States.ToVar( m_DfaBlossom.RootId()).GetEntry()); }
-    DistribCrate::Var   DistribVar( const DistribRepos::Id &dId) {  return  m_Distribs.ToVar( dId); }
-    FsaDfaState         *Transition( FsaDfaState *state, uint8_t byteCode)  { return static_cast< FsaDfaState *>( m_States.ToVar( state->Dests().At( byteCode)).GetEntry()); }
-
+    FsaDfaState         *RootState( void)  {  return static_cast< FsaDfaState *>( m_States.ToVar( m_DfaBlossom.RootId()).GetEntry()); } 
     FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
     {  
         DistribCrate::Var   dVar = m_Distribs.ToVar( state->DistribId());
@@ -83,14 +77,13 @@ struct Sg_Parapet
 
     uint64_t    Start( void) const  { return m_Start; }
 
+
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
     {
-        DistribCrate::Var   dVar = dfaAtelier->DistribVar( m_CurState->DistribId());
-        uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        m_CurState = dfaAtelier->Transition( m_CurState, img);
+        m_CurState = static_cast< FsaDfaState *>( dfaAtelier->DfaTransition( m_CurState, chrId).GetEntry());
         return !!m_CurState;
-    }
+    } 
 
     Cv_CArr< uint64_t>      Tokens( void) { return m_CurState->Tokens(); }
 };
