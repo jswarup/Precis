@@ -144,7 +144,7 @@ struct FsaSupState  : public FsaState
         return act;
     } 
 
-    FsaDfaState             *DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+    void                    DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm); 
 
     struct ElemIt
@@ -351,7 +351,7 @@ struct FsaClip  : public FsaCrate::Var
 
 struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
 {   
-    typedef std::map< FsaSupState*, FsaDfaState *, Cv_TPtrLess< void> >     SupDfaMap;
+    typedef std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >     SupDfaMap;
 
     FsaDfaStateMapCltn      *m_Cltn; 
     std::set< uint32_t>     m_Ruleset;
@@ -373,17 +373,17 @@ struct  FsaDfaStateMap : public Cv_ReposEntry, public Cv_Shared
         return 0;
     }   
 
-    void                    Insert(  FsaSupState *supState, FsaDfaState *dfaState)
+    void                    Insert(  FsaSupState *supState, uint32_t stateId)
     {
-        m_SupDfaMap.insert( std::make_pair( supState, dfaState));
+        m_SupDfaMap.insert( std::make_pair( supState, stateId));
     }
 
-    FsaDfaState *Find( FsaSupState *supState)
+    uint32_t    Find( FsaSupState *supState)
     {
         auto            it = m_SupDfaMap.find( supState);
         if ( it != m_SupDfaMap.end())
             return it->second;
-        return NULL;
+        return CV_UINT32_MAX;
     }
 };
 
