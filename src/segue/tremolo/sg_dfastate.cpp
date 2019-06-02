@@ -82,11 +82,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
-    FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action);
-    for ( uint32_t k = 0; k < discr.SzDescend(); ++k) 
-        dfaState->SetDest( k, Id( destArr[ k], 0)); 
-
-    dfaRepos->StoreAt( GetId(), dfaState); 
+    dfaCnstr->ConstructDfaStateAt( GetId(), discr, action, destArr);   
     //m_DfaStateMap.Purge();
     return;
 }
@@ -243,6 +239,15 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     m_DfaRepos->OperateAll( [ this]( auto k) {
         return k->CleanupDestIds( m_DfaRepos);
     });
+    return;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
+{
+    FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action, destArr);  
+    m_DfaRepos->StoreAt( index, dfaState); 
     return;
 }
 

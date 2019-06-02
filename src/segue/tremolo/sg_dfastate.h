@@ -298,17 +298,21 @@ public:
     }
      
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
-    static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action)
+
+    static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
     {
         uint32_t            sz = discr.SzDescend();
         uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;
         auto                memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
         FsaDfaState         *dfaState = new ( new uint8_t[ memSz]) FsaDfaState( discr, szTok); 
+        for ( uint32_t k = 0; k < sz; ++k) 
+            dfaState->SetDest( k, Id( destArr[ k], 0)); 
         uint64_t            *toks = dfaState->Tokens().Ptr();
         for ( uint32_t i = 0; i < szTok; ++i)
             toks[ i] = action->m_Values[ i];
         return dfaState;
     }
+
     uint32_t                DestSz( void) const { return m_Discr.SzDescend(); }
     
     DistribRepos::Id        DistribId( void) const { return m_Discr.m_DId; }
@@ -438,6 +442,8 @@ struct  FsaDfaCnstr
 
     void        SubsetConstruction( void);
     bool        DumpDot( const char *path);
+
+    void        ConstructDfaStateAt( uint32_t index, const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr);
 };
 
 
