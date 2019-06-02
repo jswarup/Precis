@@ -63,7 +63,12 @@ FsaDfaState    *FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     {
         FsaSupState                 *subSupState = descIt.m_SubSupStates[ k];
         subSupState->Freeze();
-
+        if ( ! subSupState->SubStates().Size())
+        {
+            dfaState->SetDest( k, Id()); 
+            delete subSupState;
+            continue;
+        }
         Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
         FsaDfaState                 *subDfaState = dfaStateMap->Find( subSupState);
         if ( subDfaState)

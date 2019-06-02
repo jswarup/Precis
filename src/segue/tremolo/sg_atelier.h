@@ -99,36 +99,6 @@ template < typename Atelier>
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_Rampart
-{ 
-    Sg_DfaReposAtelier  m_DfaAtelier;
-    Sg_Parapet          m_Parapet;   
-    uint64_t            m_Curr;     
-
-    Sg_Rampart( void)
-        : m_Curr( 0)
-    {}
-
-    void        SetDfaRepos( FsaDfaRepos *dfaRepos) { m_DfaAtelier.m_DfaRepos = dfaRepos; }
-
-    bool        Play( uint8_t chr)
-    {
-        uint8_t     chrId = m_DfaAtelier.ByteCode( chr);
-        if ( !m_Parapet.IsLoaded()) 
-            m_Parapet.Load( m_DfaAtelier.RootState(), m_Curr); 
-        ++m_Curr;
-        if ( !m_Parapet.Advance( &m_DfaAtelier, chrId))
-            return false;
-        Cv_CArr< uint64_t>      tokens = m_Parapet.Tokens();
-
-        for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            std::cout << m_Parapet.Start() << " " << ( m_Curr -m_Parapet.Start()) << " " <<  tokens[ i] << "\n";
-        return true; 
-    }    
-};
-
-//_____________________________________________________________________________________________________________________________
-
 struct Sg_MatchData
 {
     uint64_t                m_Start;

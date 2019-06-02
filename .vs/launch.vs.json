@@ -9,7 +9,7 @@
       "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "args": [
-        "rexp -ilex ip1.lex  -idata data.txt -odfa a.dot",
+        "rexp -ilex ip1.lex  -idata data.txt -odfa a.dot  -oimg ip1.img"
         //"atelier -idata d1.txt -iimg b.img -loop -otok a.tok  "
         //"serial"
       ]

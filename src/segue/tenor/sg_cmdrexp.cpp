@@ -278,12 +278,17 @@ int     Sg_RExpCmdProcessor::Test(void)
             std::cerr << "Not Found : " << m_DataFile << '\n';
             return -1;
         }
-    
-        Sg_Rampart               rampart;
-        rampart.SetDfaRepos( &dfaRepos);
+        typedef Cv_Array< Sg_MatchData, 256>        MatchArr;
+        Sg_DfaReposAtelier                          atelier( &dfaRepos);  
+        MatchArr                                    matches;
+        Sg_Bulwark< 256, MatchArr>                  bulwarck;  
+        bulwarck.m_TokenSet = &matches;
         for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
         {
-            rampart.Play( dataMemVector.CharVec()->at( i));
+            bulwarck.Play( &atelier, dataMemVector.CharVec()->at( i));
+            for ( uint32_t k = 0; k < matches.SzFill(); ++k)
+                std::cout << matches[ k];
+            matches = MatchArr();
         }
     }
 /*
