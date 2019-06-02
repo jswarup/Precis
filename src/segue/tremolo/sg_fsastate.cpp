@@ -47,7 +47,7 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     Cv_CArr< FsaId>     dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        FsaElem      *regex = ( FsaElem *) fsaRepos->ToVar( dests[ k]);
+        FsaElem      *regex =  fsaRepos->ToVar( dests[ k]).Elem< FsaElem>();
         strm << GetTypeChar() << GetId() << " -> " << regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
         FilterRepos::Var     chVar = elemRepos->m_FilterRepos.ToVar( m_ChSets[ k]);
         strm << Cv_Aid::XmlEncode( elemRepos->m_FilterRepos.ToString( chVar));

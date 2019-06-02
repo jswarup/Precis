@@ -126,6 +126,8 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
         FsaClip         regex = dfaRepos->ToVar( dests[ k]);
         if ( !regex)
             dests[ k] = Id();
+        else
+            dests[ k] = *regex.GetEntry();    
     }
     return true;
 }
@@ -216,7 +218,7 @@ bool        FsaDfaRepos::DumpDot( const char *path)
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
-    m_DfaRepos->m_RootId = *supRootState;
+    uint32_t        rootId = supRootState->GetId();
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
     m_FsaStk.push_back( supRootState);
@@ -227,6 +229,8 @@ void    FsaDfaCnstr::SubsetConstruction( void)
 
         FsaDfaState     *dfaState = supState->DoConstructTransisition( this);  
     }
+
+    m_DfaRepos->m_RootId = m_DfaRepos->GetId( rootId);;
     m_DfaRepos->OperateAll( [ this]( auto k) {
         return k->CleanupDestIds( m_DfaRepos);
     });

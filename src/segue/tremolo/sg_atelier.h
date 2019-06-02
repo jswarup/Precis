@@ -21,17 +21,18 @@ struct Sg_DfaReposAtelier
         : m_DfaRepos( dfaRepos)
     {}
     
-    uint8_t             ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
-    FsaDfaState         *RootState( void) {  return static_cast< FsaDfaState *>( m_DfaRepos->ToVar( m_DfaRepos->m_RootId).GetEntry()); } 
+    uint8_t                 ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
+     
+    FsaCrate::Var           RootState( void) {  return m_DfaRepos->ToVar( m_DfaRepos->m_RootId); } 
 
-    FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
+    FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
     {  
-        DistribCrate::Var   dVar = m_DfaRepos->m_DistribRepos.ToVar( state->DistribId());
+        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
+        DistribCrate::Var   dVar = m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        return m_DfaRepos->ToVar( state->Dests().At( img));
+        return m_DfaRepos->ToVar( dfaState->Dests().At( img));
     }
-};
-
+}; 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -44,14 +45,16 @@ struct Sg_DfaBlossomAtelier
     Sg_DfaBlossomAtelier( void *dfaImage)
         : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs()), m_States( m_DfaBlossom.States())
     {}
+ 
+    uint8_t                 ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
 
-    uint8_t             ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
-    FsaDfaState         *RootState( void)  {  return static_cast< FsaDfaState *>( m_States.ToVar( m_DfaBlossom.RootId()).GetEntry()); } 
-    FsaCrate::Var           DfaTransition( FsaDfaState *state, uint8_t chrId) 
+    FsaCrate::Var           RootState( void)  {  return m_States.ToVar( m_DfaBlossom.RootId()); } 
+    FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
     {  
-        DistribCrate::Var   dVar = m_Distribs.ToVar( state->DistribId());
+        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
+        DistribCrate::Var   dVar = m_Distribs.ToVar( dfaState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        return  m_States.ToVar( state->Dests().At( img));
+        return  m_States.ToVar( dfaState->Dests().At( img));
     }
 };
 
@@ -60,14 +63,14 @@ struct Sg_DfaBlossomAtelier
 
 struct Sg_Parapet
 {
-    FsaDfaState     *m_CurState;
+    FsaClip         m_CurState;
     uint64_t        m_Start; 
     
     Sg_Parapet( void)
-        :  m_CurState( NULL), m_Start( 0)
+        :  m_Start( 0)
     {}
 
-    void        Load( FsaDfaState *rootState, uint64_t start)
+    void        Load( const FsaCrate::Var &rootState, uint64_t start)
     {
         m_CurState = rootState;
         m_Start = start; 
@@ -75,17 +78,23 @@ struct Sg_Parapet
     
     bool        IsLoaded( void) const  { return !!m_CurState; }
 
-    uint64_t    Start( void) const  { return m_Start; }
-
+    uint64_t    Start( void) const  { return m_Start; } 
 
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
     {
-        m_CurState = static_cast< FsaDfaState *>( dfaAtelier->DfaTransition( m_CurState, chrId).GetEntry());
+        m_CurState( [ this, dfaAtelier, chrId]( auto k) { 
+                switch ( k->GetType())
+                { 
+                    case FsaCrate::template TypeOf< FsaDfaState>() : m_CurState =  dfaAtelier->DfaTransition( k, chrId); break;
+                    default : m_CurState = FsaCrate::Var(); break;
+                }
+                return true;
+            });
         return !!m_CurState;
     } 
 
-    Cv_CArr< uint64_t>      Tokens( void) { return m_CurState->Tokens(); }
+    Cv_CArr< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -105,11 +114,8 @@ struct Sg_Rampart
     bool        Play( uint8_t chr)
     {
         uint8_t     chrId = m_DfaAtelier.ByteCode( chr);
-        if ( !m_Parapet.IsLoaded())
-        {        
-            FsaDfaState     *rootDfaState = static_cast< FsaDfaState *>( m_DfaAtelier.RootState());
-            m_Parapet.Load( rootDfaState, m_Curr);
-        }
+        if ( !m_Parapet.IsLoaded()) 
+            m_Parapet.Load( m_DfaAtelier.RootState(), m_Curr); 
         ++m_Curr;
         if ( !m_Parapet.Advance( &m_DfaAtelier, chrId))
             return false;

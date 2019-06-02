@@ -332,6 +332,9 @@ struct FsaClip  : public FsaCrate::Var
     typedef FsaRepos::Id        FsaId;
     typedef FilterCrate::Var    FiltVar;
     typedef FilterRepos::Id     FiltId;
+    
+    FsaClip( void)
+    {}
 
     FsaClip( const FsaVar &v)
         : FsaVar( v)

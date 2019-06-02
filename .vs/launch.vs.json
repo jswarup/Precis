@@ -9,12 +9,8 @@
       "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "args": [
-        //"rexp -irex ip3.rex  -oelem a.dot"
-        //"rexp -ilex ip.lex  -oelem a.dot"
-        // "trellis -i ip_1m.rules -o out.txt",
-        //"atelier -i d1.txt -o out.txt -r ip3.rex -iimg b.img ",
-        "atelier -idata d1.txt -iimg b.img -loop -otok a.tok  "
-        // "rexp -ilex ip1.lex -oimg b.txt -odfa a.dot"
+        "rexp -ilex ip1.lex  -idata data.txt -odfa a.dot",
+        //"atelier -idata d1.txt -iimg b.img -loop -otok a.tok  "
         //"serial"
       ]
     }

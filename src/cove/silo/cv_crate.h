@@ -33,7 +33,7 @@ template < typename Element>
  
 
 template < typename Element>    
-    operator Element *( void) { return m_Type == Crate::template TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
+    Element         *Elem( void) { return m_Type == Crate::template TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
 
     operator        bool( void) const { return !!m_Entry; }
     auto            operator->( void) { return m_Entry; }

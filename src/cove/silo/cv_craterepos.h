@@ -258,6 +258,7 @@ template < typename Element>
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
     Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
+    Id			GetId( uint32_t k) { return Id( k, m_Types[ k]); }
 
     void        Destroy( uint32_t k)
     { 
