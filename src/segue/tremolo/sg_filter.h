@@ -558,15 +558,73 @@ template < typename Elem>
             typedef decltype(dist)  Distrib;
             auto                    distDomain = dist->Domain();
             std::vector< Sg_ChSet>  dom( distDomain.size());
-            for ( uint32_t  i = 0; i < distDomain.size(); ++i)
-            {
-                dom[ i] = m_Base.XForm( distDomain[ i]);
-            }
+            for ( uint32_t  i = 0; i < distDomain.size(); ++i) 
+                dom[ i] = m_Base.XForm( distDomain[ i]); 
             return dom; } );
         return domain;
     }
-    
+   
+    auto    SingleChars( Id dId)
+    {
+        DistribCrate::Var           dVar = ToVar( dId);
+        return   dVar( [this]( auto dist) { 
+                uint32_t                szSingle = 0;
+                auto                    distDomain = dist->Domain(); 
+                std::vector< uint32_t>  uniList( distDomain.size(), CV_UINT32_MAX);
+                for ( uint32_t  i = 0; i < distDomain.size(); ++i)
+                {
+                    uint8_t  pcnt = distDomain[ i].PopCount();
+                    if ( pcnt != 1)
+                        continue;
+                    uniList[ i] =  distDomain[ i].Index( true);
+                    szSingle++;
+                }
+                return std::make_tuple( szSingle, uniList); 
+            } ); 
+    } 
      
+    Sg_ChSet        ChSet( uint8_t byteCode)
+    {
+        
+        uint32_t    szImg = m_Base.SzImage();
+        if ( szImg <= 8) 
+        { 
+            Sg_Bitset< 8>   bits;
+            bits.Set( byteCode, true);
+            return m_Base.XForm( bits);                                  
+        }
+        if ( szImg <= 16)  
+        { 
+            Sg_Bitset< 16>   bits;
+            bits.Set( byteCode, true);
+            return m_Base.XForm( bits);                                  
+        }                               
+
+        if ( szImg <= 32)                                      
+        { 
+            Sg_Bitset< 32>   bits;
+            bits.Set( byteCode, true);
+            return m_Base.XForm( bits);                                  
+        }                                
+
+        if ( szImg <= 64)  
+        { 
+            Sg_Bitset< 64>   bits;
+            bits.Set( byteCode, true);
+            return m_Base.XForm( bits);                                  
+        }                                  
+
+        if ( szImg <= 128)                                     
+        { 
+            Sg_Bitset< 128>   bits;
+            bits.Set( byteCode, true);
+            return m_Base.XForm( bits);                                  
+        }                                  
+        Sg_Bitset< 256>   bits;
+        bits.Set( byteCode, true);
+        return m_Base.XForm( bits);                                 
+    }
+
     bool            Dump( std::ostream &ostr) 
     { 
         return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  this, ostr); });

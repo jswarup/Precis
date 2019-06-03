@@ -32,6 +32,14 @@ struct Sg_DfaReposAtelier
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return m_DfaRepos->ToVar( dfaState->Dests().At( img));
     }
+
+    FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId) 
+    {  
+        FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state); 
+        if ( chrId == dfaState->m_Byte)
+            return m_DfaRepos->ToVar(  dfaState->m_Dest);
+        return FsaCrate::Var();
+    }
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -55,6 +63,14 @@ struct Sg_DfaBlossomAtelier
         DistribCrate::Var   dVar = m_Distribs.ToVar( dfaState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return  m_States.ToVar( dfaState->Dests().At( img));
+    }
+    
+    FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId) 
+    {  
+        FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state); 
+        if ( chrId == dfaState->m_Byte)
+            return m_States.ToVar(  dfaState->m_Dest);
+        return FsaCrate::Var();
     }
 };
 
@@ -87,6 +103,7 @@ template < typename Atelier>
                 switch ( k->GetType())
                 { 
                     case FsaCrate::template TypeOf< FsaDfaState>() : m_CurState =  dfaAtelier->DfaTransition( k, chrId); break;
+                    case FsaCrate::template TypeOf< FsaDfaUniXState>() : m_CurState =  dfaAtelier->DfaUniXTransition( k, chrId); break;
                     default : m_CurState = FsaCrate::Var(); break;
                 }
                 return true;

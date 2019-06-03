@@ -330,6 +330,44 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
+struct FsaDfaUniXState  : public FsaState
+{
+    Id                  m_Dest;  
+    uint8_t             m_Byte;
+
+    Cv_CArr< uint8_t>       Bytes( void) { return Cv_CArr< uint8_t>( &m_Byte, 1); } 
+    Cv_CArr< FsaId>         Dests( void) { return Cv_CArr< FsaId>( &m_Dest, 1); } 
+
+    bool                    CleanupDestIds( FsaRepos *dfaRepos);
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+     
+    struct Cask : public Cv_SerializeUtils 
+    {      
+        typedef FsaDfaUniXState        Type;
+        typedef FsaDfaUniXState        ContentType;  
+
+        static uint32_t             Spread( ContentType *obj) 
+        {   
+            return sizeof( *obj); 
+        }
+
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaUniXState &obj) 
+        {  
+            FsaDfaUniXState             &dfaState = const_cast< FsaDfaUniXState &>( obj);
+            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            return obj; 
+        }  
+
+        template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaUniXState &obj) 
+        { 
+            return;
+        }
+    };
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
 struct FsaClip  : public FsaCrate::Var
 {
     typedef FsaCrate::Var       FsaVar;

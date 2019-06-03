@@ -37,6 +37,7 @@
 
 #ifdef CV_WINDOWS
 #include    <io.h>
+#include    <intrin.h>
 #else
 #include    <unistd.h> 
 #endif
@@ -83,6 +84,9 @@ struct  Cv_Couple : public std::tuple< X, X>
 
 #define Cv_CONCAT(s,t)      Cv_MAKESTR(s##t)
 
+template < typename T>
+uint8_t cv_PopCount( T t);
+
 #ifdef CV_WINDOWS
 
 #pragma warning( disable :4355)
@@ -94,6 +98,12 @@ struct  Cv_Couple : public std::tuple< X, X>
 #define CV_FTELL            _ftelli64 
 #define CV_STRCASECMP       stricmp
 #define CV_STRNCASECMP      strnicmp 
+
+template <>
+inline uint8_t cv_PopCount< uint8_t>( uint8_t t) { return uint8_t( __popcnt16( t)); } 
+
+template <>
+inline uint8_t cv_PopCount< uint64_t>( uint64_t t) { return uint8_t( __popcnt64( t)); }
 
 #else
 

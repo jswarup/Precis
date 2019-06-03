@@ -98,6 +98,14 @@ template < typename Lambda, typename... Args>
         }
         return CV_UINT32_MAX;
     }
+
+    uint8_t         PopCount( void)
+    {
+        uint8_t     cnt = 0;
+        for ( uint32_t i = 0; i < Sz; i++) 
+            cnt +=  cv_PopCount( m_ChSet[ i]);
+        return cnt;
+    }
 };
 
 template <>
@@ -120,6 +128,7 @@ template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
 
     uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
+    uint8_t         PopCount( void) { return 0; }
 };
 
 template < uint32_t Sz>
@@ -217,6 +226,14 @@ template < typename Lambda, typename... Args>
         }
         return CV_UINT32_MAX;
     }
+
+    uint8_t         PopCount( void)
+    {
+        uint8_t     cnt = 0;
+        for ( uint32_t i = 0; i < Sz; i++) 
+            cnt += cv_PopCount( m_ChSet[ i]);
+        return cnt;
+    }
 };
 
 template <>
@@ -239,6 +256,7 @@ struct Sg_Bit8< 0>
  template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
     uint32_t        Index( bool t) const { return CV_UINT32_MAX; }
+    uint8_t         PopCount( void) { return 0; }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -331,6 +349,11 @@ template < typename Lambda, typename... Args>
             if ( Get( i))
                 return i;
         return CV_UINT32_MAX;
+    }
+
+    uint8_t         PopCount( void) 
+    { 
+        return m_Bits64.PopCount() +m_Bits8.PopCount();        
     }
 
     std::string     ToString( void) const

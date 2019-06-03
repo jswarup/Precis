@@ -165,7 +165,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
         strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
         strm << "</FONT>>] ; \n" ;  
     }
-    return false; 
+    return true; 
 }
 //_____________________________________________________________________________________________________________________________
 
@@ -195,6 +195,37 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
     }
  
     return false; 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool FsaDfaUniXState::CleanupDestIds( FsaRepos *dfaRepos)
+{ 
+    FsaClip         regex = dfaRepos->ToVar( m_Dest);
+    if ( !regex)
+        m_Dest = Id();
+    else
+        m_Dest = *regex.GetEntry();    
+    return true;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaUniXState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+{ 
+    strm << GetTypeChar() << GetId() << " [ shape=";
+
+    uint64_t        *toks = Tokens().Ptr(); 
+    strm << "diamond"; 
+    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
+    strm << " </FONT>>];\n"; 
+
+    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+    FsaClip                     regex = fsaRepos->ToVar( m_Dest); 
+    strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+    strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
+    strm << "</FONT>>] ; \n" ;   
+    return true; 
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -246,8 +277,42 @@ void    FsaDfaCnstr::SubsetConstruction( void)
 
 void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
 {
-    FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action, destArr);  
-    m_DfaRepos->StoreAt( index, dfaState); 
+    uint32_t            sz = discr.SzDescend();
+    uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;    
+    bool                doneFlg = false;
+    if ( !doneFlg && !szTok && ( discr.m_Inv != CV_UINT32_MAX))
+    {
+        uint32_t                szSingles = 0;
+        std::vector< uint32_t>  byteValues;
+        std::tie( szSingles, byteValues) = m_DfaRepos->m_DistribRepos.SingleChars( discr.m_DId);
+        if (( szSingles + ( discr.m_Inv != CV_UINT32_MAX)) == sz)
+            CV_ERROR_ASSERT( destArr[ discr.m_Inv] == 0)
+        
+        Cv_CArr< uint8_t>       bytes;
+        Cv_CArr< FsaId>         dests;
+        if ( szSingles == 1)
+        {
+            FsaDfaUniXState             *dfaState = new FsaDfaUniXState();              
+            m_DfaRepos->StoreAt( index, dfaState); 
+            bytes = dfaState->Bytes();
+            dests = dfaState->Dests();
+            doneFlg = true;
+        }
+        for ( uint32_t i = 0, k = 0; doneFlg && ( i < sz); ++i)
+        {
+            if ( i == discr.m_Inv)
+                continue;
+            
+            bytes[ k] = byteValues[ i];
+            dests[ k] = FsaId( destArr[ i], 0);
+            ++k;
+        }
+    }
+    if ( !doneFlg)
+    {
+        FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action, destArr);  
+        m_DfaRepos->StoreAt( index, dfaState); 
+    }
     return;
 }
 
