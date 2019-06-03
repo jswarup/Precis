@@ -27,11 +27,11 @@ struct Sg_BaseEasel :  public Cv_CrateEntry
         return true;
     } 
 
-    bool    DoLaunch( void) { return false; }
+    bool                DoLaunch( void) { return false; }
 
-    bool    IsRunnable( void) { return true; }
+    bool                IsRunnable( void) { return true; }
 
-    bool    DoJoin( void) { return true; }
+    bool                DoJoin( void) { return true; }
   
 
     bool                SnapStats( void) {  return false; } 

@@ -13,7 +13,7 @@ struct  Cv_EaselStats
    
     void    LogStats( std::ostream &strm, Cv_EaselStats *prev)
     {
-        strm << "ActiveTime[ " << ActiveUS( prev) << "] ";
+        strm << "Choke[ " << m_ChokeSz.Get() << "] ActiveTime[ " << ActiveUS( prev) << "] ";
         return;
     }
 };

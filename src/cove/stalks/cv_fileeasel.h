@@ -18,29 +18,29 @@ struct  Cv_FileStats : public Cv_EaselStats
     void    LogStats( std::ostream &strm, Cv_FileStats *prev)
     {
         Base::LogStats( strm, prev);
-        strm << "Bytes[ " << Bytes( prev) << "] ";
+        strm << "MBytes[ " << double( Bytes( prev))/( 1024*1024) << "] ";
         return;
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Vita>
-struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv_FileStats>
+template < typename Easel, typename Vita>
+struct Sg_FileReadEasel : public Sg_WorkEasel< Easel, Vita, Cv_FileStats>
 {
-    typedef Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv_FileStats>    Base;
+    typedef Sg_WorkEasel< Easel, Vita, Cv_FileStats>    Base;
     typedef typename Vita::Datagram         Datagram;
     typedef typename Vita::OutPort          OutPort;
     typedef typename OutPort::Wharf         OutWharf;
     typedef typename Base::Stats            Stats;
 
-    Cv_File         m_InFile;
-    OutPort         m_DataPort;
-    bool            m_FileClosingFlg;
-    uint32_t        m_CharIndex; 
+    Cv_File                     m_InFile;
+    OutPort                     m_DataPort;
+    bool                        m_FileClosingFlg;
+    uint32_t                    m_CharIndex;  
 
     Sg_FileReadEasel( const std::string &name = "FileRead") 
-        : Base( name), m_FileClosingFlg( false), m_CharIndex( 0)
+        : Base( name), m_FileClosingFlg( false), m_CharIndex( 0) 
     {}
 
 
@@ -54,6 +54,10 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv
         return true;
     }
 
+    void  ProcessDatagram( Datagram *dgram)
+    {
+    }
+ 
     bool    IsRunable( void)
     {
         return m_InFile.IsActive();
@@ -68,7 +72,6 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv
             m_InFile.Rewind();
             return;
         }
-        
         OutWharf        wharf( &m_DataPort);
         
         if ( m_FileClosingFlg && m_InFile.Shut())
@@ -81,12 +84,14 @@ struct Sg_FileReadEasel : public Sg_WorkEasel< Sg_FileReadEasel< Vita>, Vita, Cv
         if ( !szBurst) 
             stats->m_ChokeSz.Incr(); 
 
+        Easel           *thisEasel = ( Easel *) this;
         uint32_t        dInd = 0;
         for ( ; dInd < szBurst;  dInd++)
         {   
             Datagram    *datagram = wharf.AllocFree();
             uint32_t    szFill = m_InFile.Read( datagram->PtrAt( 0), datagram->SzVoid());
             datagram->MarkFill( szFill);
+            thisEasel->ProcessDatagram( datagram);
             stats->m_Bytes.Incr( szFill);
 
             if ( !szFill || wharf.IsTail()) 

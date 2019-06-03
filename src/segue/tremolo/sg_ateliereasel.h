@@ -40,11 +40,9 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
     InPort                              m_InDataPort;
     OutTokPort                          m_TokOutPort;
     Sg_DfaReposAtelier                  *m_DfaReposAtelier;
-    Sg_DfaBlossomAtelier                *m_DfaBlossomAtelier;
-    FsaDfaRepos                         m_DfaRepos;
+    Sg_DfaBlossomAtelier                *m_DfaBlossomAtelier; 
     Sg_Bulwark< 64, TokenGram>          m_Bulwark;
     bool                                m_CloseFlg;
-    std::vector< uint8_t>               m_MemArr; 
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
         : Base( name), m_DfaReposAtelier( NULL), m_DfaBlossomAtelier( NULL), m_CloseFlg( false)
@@ -57,16 +55,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
         if ( !Base::DoInit( vita))
             return false;  
 
-        if ( vita->m_ImgFile.size()) 
-        { 
-            bool	                res = Cv_Aid::ReadVec( &m_MemArr, vita->m_ImgFile.c_str()); 
-            if ( !res)
-            {
-                std::cerr << "Not Found : " << vita->m_ImgFile << '\n';
-                return false;
-            }
-            m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
-        }
+        if ( vita->m_ImgFile.size())  
+            m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &vita->m_MemArr[ 0]);  
         return true;
     }
 

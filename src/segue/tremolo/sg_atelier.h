@@ -146,10 +146,11 @@ struct Sg_Bulwark
     uint64_t                                    m_Curr;    
     std::array< Sg_Parapet, Sz>                 m_Parapets; 
     Sg_Bitset< Sz>                              m_Allocbits;
-    TokenGram                                   *m_TokenSet; 
+    TokenGram                                   *m_TokenSet;
+    uint32_t                                    m_PickInd; 
 
     Sg_Bulwark( void)
-        : m_Curr( 0), m_TokenSet( NULL)
+        : m_Curr( 0), m_TokenSet( NULL), m_PickInd( 0)
     {}
      
     
@@ -162,31 +163,29 @@ struct Sg_Bulwark
     }
 
 template < typename Atelier>
-    bool    Play( Atelier *dfaAtelier, uint8_t chr)
-    { 
-        uint8_t                 chrId = dfaAtelier->ByteCode( chr);  
-        Sg_Bitset< Sz>          allocbits;  
+    bool    Play( Atelier *dfaAtelier, uint8_t chrId)
+    {   
+        Sg_Parapet      *curent = &m_Parapets[ m_PickInd];  
+        curent->Load( dfaAtelier->RootState(), m_Curr); 
+        m_Allocbits.Set( m_PickInd, true);   
+ 
+        Sg_Bitset< Sz>          allocbits; 
+        m_PickInd = CV_UINT32_MAX;
         m_Allocbits.ForAllTrue( [this, dfaAtelier]( uint32_t ind, uint8_t chrId, Sg_Bitset< Sz> *allocbits)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
                 if ( !parapet->Advance( dfaAtelier, chrId))
+                {   
+                    m_PickInd = ind;
                     return;
+                }
                 allocbits->Set( ind, true); 
                 if ( m_TokenSet)
                     DumpTokens( &m_Parapets[ ind]);
                 return;
             }, chrId, &allocbits);  
-        
-        uint32_t        pickInd =  allocbits.Index( false) ;
-        if ( pickInd == CV_UINT32_MAX)
-        {
-            return false;
-        }
-
-        Sg_Parapet      *curent = &m_Parapets[ pickInd];  
-        curent->Load( dfaAtelier->RootState(), m_Curr); 
-        if ( curent->Advance( dfaAtelier, chrId))
-            allocbits.Set( pickInd, true);    
+        if ( m_PickInd == CV_UINT32_MAX)
+            m_PickInd = allocbits.Index( false);
         ++m_Curr;
         m_Allocbits = allocbits;
         return true; 
