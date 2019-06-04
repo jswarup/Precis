@@ -11,24 +11,26 @@
 class  Cv_CrateId 
 {
 public:	 
-    typedef uint32_t	    IPtrStor;	
-    typedef uint32_t	    IndexStor;	
-    typedef uint32_t	    TypeStor;	 
+    typedef uint64_t	    IPtrStor;	
+    typedef uint64_t	    IndexStor;	
+    typedef uint8_t	        TypeStor;	 
 
     enum {
         SzTypeBits	= 8,
-        SzIPtrBits	= sizeof( IPtrStor) * 8 -SzTypeBits,
-        MaskIPtr	= Cv_CExpr::LowMask( SzIPtrBits)
+        SzIPtrBits	= ( sizeof( IPtrStor) * 8) -SzTypeBits,
     };
-
+    
+    static constexpr uint64_t IPtrMask( void) {	return Cv_CExpr::LowMask( SzIPtrBits); }
+    
     IPtrStor			m_IPtr; 
 
 public:
     Cv_CrateId( void)
         : m_IPtr( 0)
     {}
+
     Cv_CrateId( IndexStor id, TypeStor type)
-        :  m_IPtr( ( MaskIPtr & id) | ( type << SzIPtrBits))
+        :  m_IPtr( ( IPtrMask() & id) | ( IPtrStor( type) << SzIPtrBits))
     {} 
 
     Cv_CrateId( const Cv_CrateId &id)
@@ -41,11 +43,11 @@ public:
 
     bool            IsValid( void) const { return !!m_IPtr; }
 
-    IndexStor		GetId( void) const { return IndexStor( MaskIPtr & m_IPtr); } 
-    void            SetId( IndexStor k) { m_IPtr = ( MaskIPtr & k) | ( m_IPtr & ~MaskIPtr); }
+    uint32_t 		GetId( void) const { return uint32_t( IndexStor( IPtrMask() & m_IPtr)); } 
+    void            SetId( IndexStor k) { m_IPtr = ( IPtrMask() & k) | ( m_IPtr & ~IPtrMask()); }
 
     TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
-    TypeStor		SetType( TypeStor k) {   m_IPtr = (( MaskIPtr & m_IPtr) | ( k << SzIPtrBits)); return k; }
+    TypeStor		SetType( TypeStor k) {   m_IPtr = (( IPtrMask() & m_IPtr) | ( IPtrStor( k) << SzIPtrBits)); return k; }
     char            GetTypeChar( void) const
     {
         TypeStor    type = GetType();

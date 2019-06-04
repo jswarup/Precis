@@ -369,7 +369,7 @@ template < typename Cnstr>
 			{
 				lSeq->m_SeqList.reserve( lSeq->m_SeqList.size() + rSeq->m_SeqList.size() ); 
 				lSeq->m_SeqList.insert( lSeq->m_SeqList.end(), rSeq->m_SeqList.begin(), rSeq->m_SeqList.end() );
-				cnstr->Repos()->Destroy( rightId.GetId());
+				cnstr->Repos()->Destroy( uint32_t( rightId.GetId()));
 				return leftId;
 			}
 		}
@@ -495,7 +495,7 @@ template < typename Cnstr>
 			{
 				lSeq->m_AltList.reserve( lSeq->m_AltList.size() + rSeq->m_AltList.size() ); 
 				lSeq->m_AltList.insert( lSeq->m_AltList.end(), rSeq->m_AltList.begin(), rSeq->m_AltList.end() );
-				cnstr->Repos()->Destroy( rightId.GetId());
+				cnstr->Repos()->Destroy( uint32_t( rightId.GetId()));
 				return leftId;
 			}
 		}
