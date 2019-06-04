@@ -14,8 +14,7 @@ struct Sg_Bit64
 
     void            Init(  void) 
     {
-        for ( uint32_t i = 0;  i < Sz; ++i)
-            m_ChSet[ i] = 0;
+        std::fill_n( &m_ChSet[ 0], Sz, 0); 
     }
 
     bool            GetChar( uint32_t c) const  { return ( m_ChSet[ c / SzBits] & (uint64_t( 1) << (c % SzBits))) != 0; }

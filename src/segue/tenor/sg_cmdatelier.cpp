@@ -34,11 +34,11 @@ struct Sg_EaselVita : public Sg_BaseVita
     std::string             m_OutputFile; 
     std::string             m_TokenLogFile;
     bool                    m_InputLoopFlg;
-
-    std::vector< uint8_t>               m_MemArr; 
+    Sg_DfaBlossomAtelier    *m_Atelier;
+    std::vector< uint8_t>   m_MemArr; 
 
     Sg_EaselVita( void)
-        : m_InputLoopFlg( false)
+        : m_InputLoopFlg( false), m_Atelier( NULL)
     {}
 
 
@@ -52,6 +52,7 @@ struct Sg_EaselVita : public Sg_BaseVita
                 std::cerr << "Not Found : " << m_ImgFile << '\n';
                 return false;
             }
+            m_Atelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
         }
         return true;
     }
@@ -129,7 +130,7 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 struct Sg_ReposEasel;
 struct Sg_FileReadAtelierEasel;
 
-typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
+typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
                                                 Sg_FileReadAtelierEasel, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita> >         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
@@ -203,7 +204,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     Sg_FileReadAtelierEasel             *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel>();
     if ( m_ImgFile.size())
     {
-        Sg_AtelierEasel< Sg_EaselVita>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita>>(); 
+        Sg_AtelierEasel< Sg_EaselVita, Sg_DfaBlossomAtelier>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>>(); 
         atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
         if ( m_TokenLogFile.size())
         {

@@ -24,28 +24,29 @@ struct  Cv_AtelierStats : public Cv_EaselStats
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename Vita>
-struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_AtelierStats>
+template < typename Vita, typename Atelier>
+struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, Vita, Cv_AtelierStats>
 {
-    typedef Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_AtelierStats>     Base;
-
-    typedef typename Vita::Datagram     Datagram;
-    typedef typename Vita::InPort       InPort;
-    typedef typename InPort::Wharf      Wharf;
-    typedef typename Base::Stats        Stats;
-    typedef typename Vita::OutTokPort   OutTokPort;
-    typedef typename OutTokPort::Wharf  OutTokWharf;
-    typedef typename Vita::TokenGram    TokenGram;    
+    typedef Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, Vita, Cv_AtelierStats>     Base;
+    
+    typedef typename Vita::Datagram             Datagram;
+    typedef typename Vita::InPort               InPort;
+    typedef typename InPort::Wharf              Wharf;
+    typedef typename Base::Stats                Stats;
+    typedef typename Vita::OutTokPort           OutTokPort;
+    typedef typename OutTokPort::Wharf          OutTokWharf;
+    typedef typename Vita::TokenGram            TokenGram;    
+    
+    typedef Sg_Bulwark< Atelier, 64, TokenGram> Bulwark;
 
     InPort                              m_InDataPort;
     OutTokPort                          m_TokOutPort;
-    Sg_DfaReposAtelier                  *m_DfaReposAtelier;
-    Sg_DfaBlossomAtelier                *m_DfaBlossomAtelier; 
-    Sg_Bulwark< 64, TokenGram>          m_Bulwark;
+    Atelier                             *m_Atelier; 
+    Bulwark                             m_Bulwark;
     bool                                m_CloseFlg;
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
-        : Base( name), m_DfaReposAtelier( NULL), m_DfaBlossomAtelier( NULL), m_CloseFlg( false)
+        : Base( name), m_CloseFlg( false)
     {}
 
     //_____________________________________________________________________________________________________________________________
@@ -56,7 +57,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
             return false;  
 
         if ( vita->m_ImgFile.size())  
-            m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &vita->m_MemArr[ 0]);  
+            m_Bulwark.Setup( vita->m_Atelier);  
         return true;
     }
 
@@ -111,7 +112,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita>, Vita, Cv_A
             {
                 uint8_t     chr = datagram->At( k);
                 
-                bool        proceed = m_Bulwark.Play( m_DfaBlossomAtelier, chr);
+                bool        proceed = m_Bulwark.Play( chr);
             }
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);

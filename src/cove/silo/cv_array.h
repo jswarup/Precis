@@ -167,14 +167,14 @@ struct Cv_LinArr
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename X, uint32_t  Sz>
-struct Cv_ArrSeq : public Cv_ArrSeq<  X, Sz-1>
+template < typename Arr, uint32_t  Sz>
+struct Cv_ArrSeq : public Cv_ArrSeq<  Arr, Sz-1>
 {
-    typedef Cv_ArrSeq< X, Sz-1>    Base;
+    typedef Cv_ArrSeq< Arr, Sz-1>    Base;
 
     using   Base::m_Arr;
 
-    Cv_ArrSeq( X *x)
+    Cv_ArrSeq( Arr *x)
         : Base( x)
     {}
 
@@ -182,25 +182,25 @@ template < typename Lambda, typename... Args>
     void    ForAll( const Lambda &lambda,  const Args&... args)  
     {
         Base::ForAll( lambda, args...);
-        lambda( m_Arr[ Sz -1], Sz -1, args...); 
+        lambda( (*m_Arr)[ Sz -1], Sz -1, args...); 
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename X>
-struct Cv_ArrSeq< X, 1>
+template < typename Arr>
+struct Cv_ArrSeq< Arr, 1>
 {
-    X   *m_Arr;
+    Arr   *m_Arr;
     
-    Cv_ArrSeq( X *x)
+    Cv_ArrSeq( Arr *x)
         : m_Arr( x)
     {}
 
 template < typename Lambda, typename... Args>
     void    ForAll( const Lambda &lambda,  const Args&... args)  
     {
-        lambda( m_Arr[ 0], 0, args...); 
+        lambda( (*m_Arr)[ 0], 0, args...); 
     }
 };
 //_____________________________________________________________________________________________________________________________
