@@ -114,6 +114,13 @@ inline uint8_t cv_PopCount< uint64_t>( uint64_t t) { return uint8_t( __popcnt64(
 #define CV_STRCASECMP       strcasecmp 
 #define CV_STRNCASECMP      strncasecmp
 
+template <>
+inline uint8_t cv_PopCount< uint8_t>( uint8_t t) { return uint8_t( __builtin_popcount ( t)); } 
+
+template <>
+inline uint8_t cv_PopCount< uint64_t>( uint64_t t) 
+            { static_assert( sizeof( long) == sizeof( uint64_t), "long is not 64-bit"); return uint8_t( __builtin_popcountl( t)); }
+
 #endif
 
 

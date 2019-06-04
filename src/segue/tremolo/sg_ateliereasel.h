@@ -111,7 +111,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             for ( uint32_t k = 0; k < datagram->SzFill(); ++k)
             {
                 uint8_t     chr = datagram->At( k);
-                
+                if ( !m_Bulwark.LoadRoot())
+                    CV_ERROR_ASSERT( false)
                 bool        proceed = m_Bulwark.Play( chr);
             }
             if ( wharf.IsTail()) 

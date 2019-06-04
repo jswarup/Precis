@@ -166,15 +166,21 @@ struct Sg_Bulwark
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             m_TokenSet->Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
     }
+    
+    bool    LoadRoot( void)
+    {
+        if ( m_PickInd == CV_UINT32_MAX)
+            return false;
 
-    bool    Play( uint8_t chrId)
-    {   
         Sg_Parapet      *curent = &m_Parapets[ m_PickInd];  
         curent->Load( m_Root, m_Curr); 
         m_Allocbits.Set( m_PickInd, true);   
-  
         m_PickInd = CV_UINT32_MAX;
-        
+        return true;
+    }
+
+    bool    Play( uint8_t chrId)
+    {   
         m_Allocbits.ForAllTrue( [this]( uint32_t ind, uint8_t chrId)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
@@ -192,7 +198,8 @@ struct Sg_Bulwark
             m_PickInd = m_Allocbits.Index( false);
         ++m_Curr; 
         return true; 
-    }    
+    }  
+ 
 };
  
 //_____________________________________________________________________________________________________________________________
