@@ -46,7 +46,7 @@ public:
     uint32_t 		GetId( void) const { return uint32_t( IndexStor( IPtrMask() & m_IPtr)); } 
     void            SetId( IndexStor k) { m_IPtr = ( IPtrMask() & k) | ( m_IPtr & ~IPtrMask()); }
 
-    TypeStor        GetType( void) const { return TypeStor(  m_IPtr >> SzIPtrBits ); }
+    TypeStor        GetType( void) const { return TypeStor( m_IPtr >> SzIPtrBits ); }
     TypeStor		SetType( TypeStor k) {   m_IPtr = (( IPtrMask() & m_IPtr) | ( IPtrStor( k) << SzIPtrBits)); return k; }
     char            GetTypeChar( void) const
     {

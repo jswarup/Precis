@@ -74,6 +74,7 @@ struct Sg_DfaBlossomAtelier
             return m_States.VarId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
+
 };
 
 
@@ -113,6 +114,20 @@ template < typename Atelier>
         return !!m_CurState;
     } 
 
+
+    uint16_t        SzTokens( void)
+    {
+        return m_CurState( [ this]( auto k) { 
+                switch ( k->GetType())
+                { 
+                    case FsaCrate::template TypeOf< FsaDfaState>() : return static_cast< FsaDfaState*>( static_cast< FsaState *>( k))->SzTokens();
+                    case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
+                    default : return uint16_t( 0);
+                }
+            });
+        
+    } 
+
     Cv_CArr< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 };
 
@@ -149,11 +164,11 @@ struct Sg_Bulwark
     FsaCrate::Var                               m_Root;
     uint32_t                                    m_PickInd; 
     std::array< Sg_Parapet, Sz>                 m_Parapets; 
-    Sg_Bitset< Sz>                              m_Allocbits;
+    uint64_t                                    m_Allocbits;
     TokenGram                                   *m_TokenSet;
     
     Sg_Bulwark( void)
-        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_PickInd( 0)
+        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_PickInd( 0), m_Allocbits( 0)
     {} 
 
     void    Setup( Atelier *dfaAtelier)
@@ -176,29 +191,39 @@ struct Sg_Bulwark
 
         Sg_Parapet      *curent = &m_Parapets[ m_PickInd];  
         curent->Load( m_Root, m_Curr); 
-        m_Allocbits.Set( m_PickInd, true);   
+        m_Allocbits = ( m_Allocbits | ( uint64_t( 1) << m_PickInd));   
         m_PickInd = CV_UINT32_MAX;
         return true;
     }
 
     bool    Play( uint8_t chrId)
-    {   
-        m_Allocbits.ForAllTrue( [this]( uint32_t ind, uint8_t chrId)
+    {    
+        uint64_t    allocbits = 0;
+        for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
+            if ( m_Allocbits & 1)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
-                if ( !parapet->Advance( m_DfaAtelier, chrId))
-                {   
-                    m_PickInd = ind;
-                    m_Allocbits.Set( ind, false); 
-                    return;
-                } 
-                if ( m_TokenSet)
-                    DumpTokens( &m_Parapets[ ind]);
-                return;
-            }, chrId);  
-        if ( m_PickInd == CV_UINT32_MAX)
-            m_PickInd = m_Allocbits.Index( false);
+                if ( !parapet->Advance( m_DfaAtelier, chrId)) 
+                    m_PickInd = ind;   
+                else
+                {
+                    allocbits = ( uint64_t( 1) << ind) | allocbits;
+                    if ( m_TokenSet && parapet->SzTokens())
+                        DumpTokens( parapet); 
+                }
+            } 
+        m_Allocbits = allocbits;
         ++m_Curr; 
+        if ( m_PickInd != CV_UINT32_MAX)
+            return true;
+    
+        uint64_t    freeBits = ~allocbits;
+        for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
+            if ( freeBits & 1)
+            {
+                m_PickInd = j; 
+                freeBits = 0;
+            }
         return true; 
     }  
  
