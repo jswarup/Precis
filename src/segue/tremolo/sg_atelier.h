@@ -64,14 +64,14 @@ struct Sg_DfaBlossomAtelier
         FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
         DistribCrate::Var   dVar = m_Distribs.VarId( dfaState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-        return  m_States.ToVar( dfaState->Dests().At( img));
+        return  m_States.VarId( dfaState->Dests().At( img));
     }
     
     FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId) 
     {  
         FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state); 
         if ( chrId == dfaState->m_Byte)
-            return m_States.ToVar(  dfaState->m_Dest);
+            return m_States.VarId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
 };

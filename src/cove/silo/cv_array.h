@@ -104,6 +104,7 @@ public:
     const X     &operator[]( uint32_t i) const { return m_CStr[ i]; } 
     X           &operator[]( uint32_t i) { return m_CStr[ i]; }
     const X     &At( uint32_t i) const { return m_CStr[ i]; }  
+    X           *PtrAt( uint32_t i) { return &m_CStr[ i]; }  
 
     void        Advance( uint32_t k)
     {

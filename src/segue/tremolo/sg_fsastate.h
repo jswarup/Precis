@@ -128,10 +128,30 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
         Var     ToVar( const Id &id)  
         {          
-            if ( !id.GetId())
+            if ( !id.IsValid())
                 return Var();
             return Var(  m_Elems[ id.GetId()].Value(), id.GetType());
-        } 
+        }
+ 
+        void    ConvertIdToVarId( Id *pId)
+        {
+            if ( !pId->IsValid())
+                return;
+            Var         var =     ToVar( *pId);
+            uint64_t    ptrDist = uint64_t( (( uint8_t *) var.GetEntry()) - (( uint8_t *) m_Root));
+            pId->SetId( ptrDist);
+            Var         var1 = VarId( *pId);
+            CV_ERROR_ASSERT( var.GetEntry() == var1.GetEntry())
+            CV_ERROR_ASSERT( var.GetType() == var1.GetType())
+            return;
+        }
+        Var    VarId( const Id &id)
+        {
+            if ( ! id.IsValid())
+                return Var();
+            Entry   *entry = ( Entry *) ((( uint8_t *) m_Root) + id.GetId());
+            return Var( entry, id.GetType());
+        }
     };
 };
 

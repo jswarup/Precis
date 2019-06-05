@@ -67,7 +67,7 @@ struct  FsaDfaRepos  : public FsaRepos
         auto    States( void) { return FsaRepos::Blossom( ( uint8_t *) &m_Root->m_Value); }
         auto    RootId( void) { return m_Root->Base()->m_Value; }
         auto    Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); } 
-
+    
         void    SauteStates( void); 
     };
 };
@@ -260,34 +260,6 @@ private:
     {}
 
 public:
-    struct Cask : public Cv_SerializeUtils 
-    {      
-        typedef FsaDfaState        Type;
-        typedef FsaDfaState        ContentType;  
-
-        static uint32_t             Spread( ContentType *obj) 
-        {   
-            return sizeof( *obj) + obj->DestSz() * sizeof( FsaId)  + obj->m_TokSz * sizeof( uint64_t); 
-        }
-
-        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) 
-        {  
-            FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
-            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
-            Cv_CArr< FsaId>         dests = dfaState.Dests();  
-            res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size()); 
-            Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
-            res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
-            return obj; 
-        }  
-
-    template < typename Spritz>
-        static void   SaveContent( Spritz *spritz, const FsaDfaState &obj) 
-        { 
-            return;
-        }
-    };
-
     typedef FsaDfaRepos     Repos;
 
     ~FsaDfaState( void)
@@ -329,6 +301,34 @@ public:
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
     bool                    DumpDot( Cv_DotStream &strm); 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
+
+    struct Cask : public Cv_SerializeUtils 
+    {      
+        typedef FsaDfaState        Type;
+        typedef FsaDfaState        ContentType;  
+
+        static uint32_t             Spread( ContentType *obj) 
+        {   
+            return sizeof( *obj) + obj->DestSz() * sizeof( FsaId)  + obj->m_TokSz * sizeof( uint64_t); 
+        }
+
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaState &obj) 
+        {  
+            FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
+            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            Cv_CArr< FsaId>         dests = dfaState.Dests();  
+            res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size()); 
+            Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
+            res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
+            return obj; 
+        }  
+
+        template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaState &obj) 
+        { 
+            return;
+        }
+    };
 }; 
 
 //_____________________________________________________________________________________________________________________________ 
@@ -344,6 +344,9 @@ struct FsaDfaUniXState  : public FsaState
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
      
+
+    bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
+
     struct Cask : public Cv_SerializeUtils 
     {      
         typedef FsaDfaUniXState        Type;

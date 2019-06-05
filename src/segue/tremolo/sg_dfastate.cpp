@@ -202,6 +202,9 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
 bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 {
     bRepos->Distribs().ConvertIdToVarId( &m_Discr.m_DId);
+    Cv_CArr< FsaId>         dests = Dests(); 
+    for ( uint32_t i = 0; i < dests.Size(); ++i)
+        bRepos->States().ConvertIdToVarId( dests.PtrAt( i));
     return true;
 }
 
@@ -234,6 +237,14 @@ bool    FsaDfaUniXState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
     strm << "</FONT>>] ; \n" ;   
     return true; 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool  FsaDfaUniXState::DoSaute( FsaDfaRepos::Blossom *bRepos)
+{
+    bRepos->States().ConvertIdToVarId( &m_Dest);
+    return true;
 }
 
 //_____________________________________________________________________________________________________________________________
