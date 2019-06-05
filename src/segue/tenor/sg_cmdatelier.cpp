@@ -172,7 +172,7 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileReadEasel< Sg_FileReadAtelierEas
             return false;  
 
         if ( vita->m_ImgFile.size())  
-            m_DfaBlossomAtelier = new Sg_DfaBlossomAtelier(  &vita->m_MemArr[ 0]);  
+            m_DfaBlossomAtelier = vita->m_Atelier;  
         return true;
     }
  

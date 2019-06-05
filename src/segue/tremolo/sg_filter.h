@@ -356,55 +356,6 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base; 
 
-    struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
-    {  
-        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>     BaseCask; 
-        typedef typename BaseCask::ContentType                              BaseContent;
-
-        struct  ContentType : public BaseContent
-        {  
-            ContentType(  const BaseContent &t2)
-                : BaseContent( t2)
-            {}
-  
-            auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
-        };
-
-        static uint32_t         ContentSize( const DistribRepos &obj) { return  sizeof( ContentType); }
-
-        static ContentType      Encase( Cv_Spritz *spritz, const DistribRepos &obj)
-        { 
-            return BaseCask::Encase( spritz, obj.m_Base, obj);
-        }
-
-        static ContentType     *Bloom( uint8_t *arr)
-        {
-            return ( ContentType *) arr;
-        }
-    }; 
-    
-    struct Blossom
-    {
-        typedef typename Cask::ContentType                                  ContentType;
-        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask;  
-        typedef typename Cv_CratePile< DistribCrate>::Blossom               BaseBlossom;
-
-        ContentType     *m_Root;
-        
-        Blossom( ContentType *arr)
-            : m_Root( arr)
-        {}
-
-        Sg_Partition   *Base( void) const {   return &m_Root->m_Value; }
-
-        auto     ToVar( const Id &id)  
-        {          
-            BaseCask::BaseContent     *base = m_Root; 
-            BaseBlossom     pileBlsm( &base->m_Value);   
-            return pileBlsm.ToVar( id);
-        }
-    };
-
     DistribRepos( void) 
         : m_IdTbl( LessOp( this))
     {}
@@ -629,6 +580,72 @@ template < typename Elem>
     { 
         return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  this, ostr); });
     }
+
+    struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>
+    {  
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>     BaseCask; 
+        typedef typename BaseCask::ContentType                              BaseContent;
+
+        struct  ContentType : public BaseContent
+        {  
+            ContentType(  const BaseContent &t2)
+                : BaseContent( t2)
+            {}
+
+            auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
+        };
+
+        static uint32_t         ContentSize( const DistribRepos &obj) { return  sizeof( ContentType); }
+
+        static ContentType      Encase( Cv_Spritz *spritz, const DistribRepos &obj)
+        { 
+            return BaseCask::Encase( spritz, obj.m_Base, obj);
+        }
+
+        static ContentType     *Bloom( uint8_t *arr)
+        {
+            return ( ContentType *) arr;
+        }
+    }; 
+
+    struct Blossom
+    {
+        typedef typename Cask::ContentType                                  ContentType;
+        typedef Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>   BaseCask;  
+        typedef typename Cv_CratePile< DistribCrate>::Blossom               BaseBlossom;
+
+        ContentType     *m_Root;
+
+        Blossom( ContentType *arr)
+            : m_Root( arr)
+        {}
+
+        Sg_Partition   *Base( void) const {   return &m_Root->m_Value; }
+
+        auto     ToVar( const Id &id)  
+        {          
+            BaseCask::BaseContent     *base = m_Root; 
+            BaseBlossom     pileBlsm( &base->m_Value);   
+            return pileBlsm.ToVar( id);
+        }
+        void    ConvertIdToVarId( Id *id)
+        {
+            BaseCask::BaseContent       *base = m_Root; 
+            BaseBlossom                 pileBlsm( &base->m_Value);   
+            DistribRepos::Var           var = pileBlsm.ToVar( *id);
+            uint64_t                    ptrDist = uint64_t( (( uint8_t *) var.GetEntry()) - (( uint8_t *) m_Root));
+            id->SetId( ptrDist);
+            DistribRepos::Var           var1 = VarId( *id);
+            CV_ERROR_ASSERT( var.GetEntry() == var1.GetEntry())
+            CV_ERROR_ASSERT( var.GetType() == var1.GetType())
+            return;
+        }
+        DistribRepos::Var    VarId( const Id &id)
+        {
+            DistribRepos::Entry   *entry = ( DistribRepos::Entry *) ((( uint8_t *) m_Root) + id.GetId());
+            return DistribRepos::Var( entry, id.GetType());
+        }
+    };
 }; 
 
 //_____________________________________________________________________________________________________________________________ 

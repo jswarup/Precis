@@ -133,7 +133,7 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
             dests[ k] = Id();
         else
             dests[ k] = *regex.GetEntry();    
-    }
+    } 
     return true;
 }
 
@@ -199,6 +199,14 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
+bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
+{
+    bRepos->Distribs().ConvertIdToVarId( &m_Discr.m_DId);
+    return true;
+}
+
+//_____________________________________________________________________________________________________________________________
+
 bool FsaDfaUniXState::CleanupDestIds( FsaRepos *dfaRepos)
 { 
     FsaClip         regex = dfaRepos->ToVar( m_Dest);
@@ -247,8 +255,24 @@ bool        FsaDfaRepos::DumpDot( const char *path)
 {
     std::ofstream           fsaOStrm( path);
     Cv_DotStream			fsaDotStrm( &fsaOStrm, true); 
-    return WriteDot( fsaDotStrm);;
+    return WriteDot( fsaDotStrm);
 }
+
+//_____________________________________________________________________________________________________________________________
+
+void    FsaDfaRepos::Blossom::SauteStates( void)
+{
+    auto states = States();
+        
+    for ( uint32_t i = 1; i < states.Size(); ++i)
+    {
+        Var     si = states.VarAt( i);
+        if (si)
+            si( [this]( auto k) { k->DoSaute( this); });
+    }
+    return; 
+}
+
 //_____________________________________________________________________________________________________________________________
 
 void    FsaDfaCnstr::SubsetConstruction( void)

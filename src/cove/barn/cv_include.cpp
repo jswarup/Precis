@@ -5,8 +5,9 @@
 
 //_____________________________________________________________________________________________________________________________
 
-bool Cv_ErrorMgr::ErrorTrap( const char *, uint32_t l)
+bool Cv_ErrorMgr::ErrorTrap( const char *file, uint32_t line)
 {
+    std::cerr << " Assertion failed [ " << file << " : " << line << " ]\n";
     return true;
 }
 

@@ -52,7 +52,9 @@ struct Sg_DfaBlossomAtelier
 
     Sg_DfaBlossomAtelier( void *dfaImage)
         : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs()), m_States( m_DfaBlossom.States())
-    {}
+    {
+        m_DfaBlossom.SauteStates();
+    }
  
     uint8_t                 ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
 
@@ -60,7 +62,7 @@ struct Sg_DfaBlossomAtelier
     FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
     {  
         FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
-        DistribCrate::Var   dVar = m_Distribs.ToVar( dfaState->DistribId());
+        DistribCrate::Var   dVar = m_Distribs.VarId( dfaState->DistribId());
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return  m_States.ToVar( dfaState->Dests().At( img));
     }

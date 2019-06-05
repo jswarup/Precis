@@ -110,7 +110,6 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-
 template < typename ValType>
 struct Cv_CrateLambdaAccum
 {
@@ -153,8 +152,7 @@ protected:
     std::vector< Entry *>					m_Elems;
     std::vector< TypeStor>					m_Types;
 
-public: 
-
+public:  
     struct Cask : public Cv_SerializeUtils 
     {     
         typedef  Cv_Cask< Entry *>                  SubCask;
@@ -217,9 +215,7 @@ public:
         {
             return ( ContentType *) arr;
         } 
-    }; 
-
- 
+    };  
 
     Cv_CrateRepos( void) 
     {
@@ -230,20 +226,20 @@ public:
     ~Cv_CrateRepos( void)  { Clear(); }
 
 template < typename X>
-    auto Delete( X *obj, int k) ->   decltype( X().Delete( nullptr) )
+    auto        Delete( X *obj, int k) ->   decltype( X().Delete( nullptr) )
         { obj->Delete( static_cast< typename X::Repos *>( this));   }
 
 template<typename X> 
-    void Delete( X *obj, ...)  
+    void    Delete( X *obj, ...)  
         { delete obj; }
 
-    auto    Deleter( void)
+    auto        Deleter( void)
     {
         return [ this]( auto x) { 
             Delete( x, 0); 
             return true; };
     }
-    void Clear( void)
+    void        Clear( void)
     {
         OperateAll( Deleter()); 
         m_Elems.clear();
@@ -260,6 +256,7 @@ template < typename Element>
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
     Var			Get( uint32_t k) { return Var( m_Elems[ k], m_Types[ k]); }
+
     Id			GetId( uint32_t k) { return Id( k, m_Types[ k]); }
 
     void        Destroy( uint32_t k)
@@ -331,7 +328,7 @@ template < typename Lambda, typename... Args>
         return accum;
     }
 
-    bool                DumpStats( std::ostream &ostr)
+    bool    DumpStats( std::ostream &ostr)
     {
         ostr << typeid(Entry).name() <<  "Count: " << m_Elems.size() << "\n"; 
         return true;
@@ -341,7 +338,7 @@ template < typename Lambda, typename... Args>
 //_____________________________________________________________________________________________________________________________
 
 template < typename CrateT>
-struct   Cv_CrateConstructor 
+struct      Cv_CrateConstructor 
 {  
     typedef CrateT 						                Crate; 	
     typedef typename Crate::Entry		                Entry; 
@@ -355,13 +352,13 @@ struct   Cv_CrateConstructor
         : m_Crate( crate)
     {}
 
-    auto			Repos( void) { return m_Crate; }
+    auto    Repos( void) { return m_Crate; }
 
-    template<  class Object>
-    Id		        Store( Object *x) { return m_Crate->Store( x); }
+template<  class Object>
+    Id	    Store( Object *x) { return m_Crate->Store( x); }
 
-    template < typename Node>    
-    Id	            FetchElemId( Node *node)
+template < typename Node>    
+    Id	    FetchElemId( Node *node)
     { 
 
         auto            res  = m_CnstrMap.emplace( node, Id()); 

@@ -66,7 +66,9 @@ struct  FsaDfaRepos  : public FsaRepos
         
         auto    States( void) { return FsaRepos::Blossom( ( uint8_t *) &m_Root->m_Value); }
         auto    RootId( void) { return m_Root->Base()->m_Value; }
-        auto    Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); }  
+        auto    Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); } 
+
+        void    SauteStates( void); 
     };
 };
 
@@ -326,6 +328,7 @@ public:
 
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
     bool                    DumpDot( Cv_DotStream &strm); 
+    bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 }; 
 
 //_____________________________________________________________________________________________________________________________ 
