@@ -37,7 +37,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     typedef typename OutTokPort::Wharf          OutTokWharf;
     typedef typename Vita::TokenGram            TokenGram;    
     
-    typedef Sg_Bulwark< Atelier, 64, TokenGram> Bulwark;
+    typedef Sg_Bulwark< Atelier, TokenGram> Bulwark;
 
     InPort                              m_InDataPort;
     OutTokPort                          m_TokOutPort;

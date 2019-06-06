@@ -281,7 +281,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         typedef Cv_Array< Sg_MatchData, 256>            MatchArr;
         Sg_DfaReposAtelier                              atelier( &dfaRepos);  
         MatchArr                                        matches;
-        Sg_Bulwark< Sg_DfaReposAtelier, 256, MatchArr>  bulwark;  
+        Sg_Bulwark< Sg_DfaReposAtelier, MatchArr>  bulwark;  
         bulwark.Setup( &atelier);
         bulwark.m_TokenSet = &matches;
         for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
