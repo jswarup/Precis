@@ -21,7 +21,7 @@
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Cv_Array< uint8_t, 32768>               Datagram; 
+    typedef Cv_Array< uint8_t, 4096>               Datagram; 
     typedef Sg_DataSink< Datagram, 64, 2048, 2048>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     

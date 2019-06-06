@@ -40,6 +40,12 @@ struct Sg_DfaReposAtelier
             return m_DfaRepos->ToVar(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
+
+    void                    PrefetchDfa( FsaState *state) 
+    {  
+        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state); 
+        dfaState->SetType( FsaCrate::template TypeOf< FsaDfaState>());         
+    }
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -74,7 +80,7 @@ struct Sg_DfaBlossomAtelier
             return m_States.VarId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
-
+ 
 };
 
 
@@ -87,44 +93,31 @@ struct Sg_Parapet
     Sg_Parapet( void) 
     {}
 
-    void        Load( const FsaCrate::Var &rootState )
-    {
-        m_CurState = rootState; 
-    }
+    void        Load( const FsaCrate::Var &rootState ) { m_CurState = rootState;  }
     
     bool        IsLoaded( void) const  { return !!m_CurState; }
- 
 
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
-    {
-        m_CurState( [ this, dfaAtelier, chrId]( auto k) { 
-                switch ( k->GetType())
-                { 
-                    case FsaCrate::template TypeOf< FsaDfaState>() : m_CurState =  dfaAtelier->DfaTransition( k, chrId); break;
-                    case FsaCrate::template TypeOf< FsaDfaUniXState>() : m_CurState =  dfaAtelier->DfaUniXTransition( k, chrId); break;
-                    default : m_CurState = FsaCrate::Var(); break;
-                }
-                return true;
-            });
+    { 
+        switch ( m_CurState.GetType())
+        { 
+            case FsaCrate::template TypeOf< FsaDfaState>() : m_CurState =  dfaAtelier->DfaTransition( m_CurState.GetEntry(), chrId); break;
+            case FsaCrate::template TypeOf< FsaDfaUniXState>() : m_CurState =  dfaAtelier->DfaUniXTransition( m_CurState.GetEntry(), chrId); break;
+            default : m_CurState = FsaCrate::Var(); break;
+        }  
         return !!m_CurState;
-    } 
-
+    }  
 
     uint16_t        SzTokens( void)
-    {
-        return m_CurState( [ this]( auto k) { 
-                switch ( k->GetType())
-                { 
-                    case FsaCrate::template TypeOf< FsaDfaState>() : return static_cast< FsaDfaState*>( static_cast< FsaState *>( k))->SzTokens();
-                    case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
-                    default : return uint16_t( 0);
-                }
-            });
-        
+    { 
+        if ( m_CurState.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
+            return static_cast< FsaDfaState*>( m_CurState.GetEntry())->SzTokens(); 
+        return 0;        
     } 
 
     Cv_CArr< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
+ 
 };
 
 //_____________________________________________________________________________________________________________________________
