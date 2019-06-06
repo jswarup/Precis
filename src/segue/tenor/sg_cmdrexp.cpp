@@ -286,8 +286,7 @@ int     Sg_RExpCmdProcessor::Test(void)
         bulwark.m_TokenSet = &matches;
         for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
         {
-            uint8_t     chrId = atelier.ByteCode(  dataMemVector.CharVec()->at( i));
-            bulwark.LoadRoot();
+            uint8_t     chrId = atelier.ByteCode(  dataMemVector.CharVec()->at( i)); 
             bulwark.Play( chrId);
             for ( uint32_t k = 0; k < matches.SzFill(); ++k)
                 std::cout << matches[ k];

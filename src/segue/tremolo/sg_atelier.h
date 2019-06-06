@@ -82,22 +82,18 @@ struct Sg_DfaBlossomAtelier
 
 struct Sg_Parapet
 {
-    FsaClip         m_CurState;
-    uint64_t        m_Start; 
+    FsaClip         m_CurState; 
     
-    Sg_Parapet( void)
-        :  m_Start( 0)
+    Sg_Parapet( void) 
     {}
 
-    void        Load( const FsaCrate::Var &rootState, uint64_t start)
+    void        Load( const FsaCrate::Var &rootState )
     {
-        m_CurState = rootState;
-        m_Start = start; 
+        m_CurState = rootState; 
     }
     
     bool        IsLoaded( void) const  { return !!m_CurState; }
-
-    uint64_t    Start( void) const  { return m_Start; } 
+ 
 
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
@@ -160,71 +156,68 @@ template < typename Atelier, typename TokenGram>
 struct Sg_Bulwark
 {  
     Atelier                                     *m_DfaAtelier;
-    uint64_t                                    m_Curr;    
     FsaCrate::Var                               m_Root;
-    uint32_t                                    m_PickInd; 
+    uint64_t                                    m_Curr; 
     std::array< Sg_Parapet, 64>                 m_Parapets; 
+    std::array< uint64_t, 64>                   m_Starts; 
     uint64_t                                    m_Allocbits;
-    TokenGram                                   *m_TokenSet;
+    TokenGram                                   *m_TokenSet;   
     
     Sg_Bulwark( void)
-        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_PickInd( 0), m_Allocbits( 0)
+        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_Allocbits( 0) 
     {} 
 
     void    Setup( Atelier *dfaAtelier)
     {
         m_DfaAtelier = dfaAtelier;
         m_Root = dfaAtelier->RootState();
+        LoadRootAt( 0);
+        m_Starts.fill( 0);
     }
         
-    void            DumpTokens( Sg_Parapet  *parapet)
+    void            DumpTokens( Sg_Parapet  *parapet, uint64_t start)
     { 
         Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            m_TokenSet->Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
+            m_TokenSet->Append( Sg_MatchData( start, uint32_t( m_Curr -start), tokens[ i]));
     }
     
-    bool    LoadRoot( void)
-    {
-        if ( m_PickInd == CV_UINT32_MAX)
-            return false;
-
-        Sg_Parapet      *curent = &m_Parapets[ m_PickInd];  
-        curent->Load( m_Root, m_Curr); 
-        m_Allocbits = ( m_Allocbits | ( uint64_t( 1) << m_PickInd));   
-        m_PickInd = CV_UINT32_MAX;
+    bool    LoadRootAt( uint32_t pickInd)
+    { 
+        Sg_Parapet      *curent = &m_Parapets[ pickInd];  
+        curent->Load( m_Root); 
+        m_Starts[ pickInd] = m_Curr;
+        m_Allocbits = ( m_Allocbits | ( uint64_t( 1) << pickInd));  
         return true;
     }
 
     bool    Play( uint8_t chrId)
     {    
+        uint32_t    pickInd = CV_UINT32_MAX;
         uint64_t    allocbits = 0;
         for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
             if ( m_Allocbits & 1)
             {
                 Sg_Parapet      *parapet = &m_Parapets[ ind];
                 if ( !parapet->Advance( m_DfaAtelier, chrId)) 
-                    m_PickInd = ind;   
+                    pickInd = ind;   
                 else
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
                     if ( m_TokenSet && parapet->SzTokens())
-                        DumpTokens( parapet); 
+                        DumpTokens( parapet, m_Starts[ ind]); 
                 }
             } 
         m_Allocbits = allocbits;
         ++m_Curr; 
-        if ( m_PickInd != CV_UINT32_MAX)
-            return true;
+        if ( pickInd != CV_UINT32_MAX)
+            return LoadRootAt( pickInd);
     
         uint64_t    freeBits = ~allocbits;
         for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
-            if ( freeBits & 1)
-            {
-                m_PickInd = j; 
-                freeBits = 0;
-            }
-        return true; 
+            if ( freeBits & 1) 
+                return LoadRootAt( j);   
+        return false; 
     }  
  
 };
