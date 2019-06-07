@@ -25,6 +25,9 @@ struct Sg_DfaReposAtelier
      
     FsaCrate::Var           RootState( void) {  return m_DfaRepos->ToVar( m_DfaRepos->m_RootId); } 
 
+
+    DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId()); }
+
     FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
     {  
         FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
@@ -41,11 +44,7 @@ struct Sg_DfaReposAtelier
         return FsaCrate::Var();
     }
 
-    void                    PrefetchDfa( FsaState *state) 
-    {  
-        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state); 
-        dfaState->SetType( FsaCrate::template TypeOf< FsaDfaState>());         
-    }
+     
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -65,6 +64,9 @@ struct Sg_DfaBlossomAtelier
     uint8_t                 ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
 
     FsaCrate::Var           RootState( void)  {  return m_States.ToVar( m_DfaBlossom.RootId()); } 
+
+    DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
+
     FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
     {  
         FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
@@ -109,11 +111,9 @@ template < typename Atelier>
         return !!m_CurState;
     }  
 
-    uint16_t        SzTokens( void)
+    bool    HasTokens( void)
     { 
-        if ( m_CurState.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
-            return static_cast< FsaDfaState*>( m_CurState.GetEntry())->SzTokens(); 
-        return 0;        
+        return ( m_CurState.GetType() == FsaCrate::template TypeOf< FsaDfaState>()) && static_cast< FsaDfaState*>( m_CurState.GetEntry())->SzTokens();  
     } 
 
     Cv_CArr< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
@@ -197,7 +197,7 @@ struct Sg_Bulwark
                 else
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
-                    if ( m_TokenSet && parapet->SzTokens())
+                    if ( m_TokenSet && parapet->HasTokens())
                         DumpTokens( parapet, m_Starts[ ind]); 
                 }
             } 

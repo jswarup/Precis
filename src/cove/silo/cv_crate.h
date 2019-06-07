@@ -21,16 +21,10 @@ struct	Cv_Var
  
     Cv_Var( Entry *entry, TypeStor typeStor)
 		: m_Entry( entry), m_Type( typeStor)
-	{} 
-	
-template < typename Element>	 
-    Cv_Var( Element *elm)
-        : m_Entry( elm), m_Type( Crate::template TypeOf<Element>())
-    {} 
-  
+	{}  
+
     TypeStor        GetType( void) const { return m_Type; } 
-	Entry			*GetEntry( void) const { return m_Entry; } 
- 
+	Entry			*GetEntry( void) const { return m_Entry; }  
 
 template < typename Element>    
     Element         *Elem( void) { return m_Type == Crate::template TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
@@ -39,7 +33,7 @@ template < typename Element>
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( Lambda &&lambda,  Args&&... args)     {
+	auto    operator()( Lambda &&lambda,  Args&&... args)  const   {
 		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
@@ -115,8 +109,6 @@ struct Cv_CrateT
     typedef T								Elem;
 	typedef typename Entry::TypeStor		TypeStor;  
     typedef  Cv_Var< Crate>			        Var; 
-    
-
 
 template < typename X = void>    
 	TypeStor	TypeOf( X *obj)

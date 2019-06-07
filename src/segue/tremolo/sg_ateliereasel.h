@@ -199,7 +199,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
         for ( uint32_t i = 0; i < szBurst;  i++)
         {   
             TokenGram   *tokengram = wharf.Get( i); 
-            uint32_t    szWrite = tokengram->SzFill(); // m_OutFile.Write( datagram->PtrAt( 0), datagram->SzFill());  
+            uint32_t    szWrite = tokengram->SzFill();   
             for ( uint32_t k = 0; k < szWrite; ++k)
                 sstrm << tokengram->At( k);
             wharf.Discard( tokengram); 
