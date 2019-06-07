@@ -28,10 +28,8 @@ struct Sg_DfaReposAtelier
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId()); }
 
-    FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
-    {  
-        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
-        DistribCrate::Var   dVar = m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId());
+    FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId) 
+    {   
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return m_DfaRepos->ToVar( dfaState->DestAt( img));
     }
@@ -67,10 +65,8 @@ struct Sg_DfaBlossomAtelier
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
 
-    FsaCrate::Var           DfaTransition( FsaState *state, uint8_t chrId) 
-    {  
-        FsaDfaState         *dfaState = static_cast< FsaDfaState *>( state);
-        DistribCrate::Var   dVar = m_Distribs.VarId( dfaState->DistribId());
+    FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId) 
+    {   
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return  m_States.VarId( dfaState->DestAt( img));
     }
@@ -104,7 +100,12 @@ template < typename Atelier>
     { 
         switch ( m_CurState.GetType())
         { 
-            case FsaCrate::template TypeOf< FsaDfaState>() : m_CurState =  dfaAtelier->DfaTransition( m_CurState.GetEntry(), chrId); break;
+            case FsaCrate::template TypeOf< FsaDfaState>() : 
+            {
+                FsaDfaState             *dfaState = static_cast< FsaDfaState *>( m_CurState.GetEntry());;
+                m_CurState =  dfaAtelier->DfaTransition( dfaState, dfaAtelier->FetchDistib( dfaState), chrId); 
+                break;
+            }
             case FsaCrate::template TypeOf< FsaDfaUniXState>() : m_CurState =  dfaAtelier->DfaUniXTransition( m_CurState.GetEntry(), chrId); break;
             default : m_CurState = FsaCrate::Var(); break;
         }  
