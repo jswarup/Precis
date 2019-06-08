@@ -76,48 +76,48 @@ struct Cv_Array
 //_____________________________________________________________________________________________________________________________
 
 template < typename X>
-class Cv_CArr
+class Cv_Seq
 {
 protected:
-    X                   *m_CStr;
+    X                   *m_Arr;
     uint32_t            m_Len;
 
 public:  
-    Cv_CArr( void)
-        : m_CStr( NULL), m_Len( 0)
+    Cv_Seq( void)
+        : m_Arr( NULL), m_Len( 0)
     {}
     
-    Cv_CArr( X *ptr, uint32_t len)
-        : m_CStr( ptr), m_Len( len)
+    Cv_Seq( X *ptr, uint32_t len)
+        : m_Arr( ptr), m_Len( len)
     {}
 
-    Cv_CArr( const X *ptr, const X *end)
-        : m_CStr( ptr), m_Len( uint32_t( end -ptr))
+    Cv_Seq( const X *ptr, const X *end)
+        : m_Arr( ptr), m_Len( uint32_t( end -ptr))
     {}
 
-    X           *Ptr( void) const { return m_CStr; }
+    X           *Ptr( void) const { return m_Arr; }
     uint32_t    Size( void) const { return m_Len; }
 
     X           *Begin( void) const { return Ptr(); }
     X           *End( void) const { return Ptr() +m_Len; }
 
-    const X     &operator[]( uint32_t i) const { return m_CStr[ i]; } 
-    X           &operator[]( uint32_t i) { return m_CStr[ i]; }
-    const X     &At( uint32_t i) const { return m_CStr[ i]; }  
-    X           *PtrAt( uint32_t i) { return &m_CStr[ i]; }  
+    const X     &operator[]( uint32_t i) const { return m_Arr[ i]; } 
+    X           &operator[]( uint32_t i) { return m_Arr[ i]; }
+    const X     &At( uint32_t i) const { return m_Arr[ i]; }  
+    X           *PtrAt( uint32_t i) { return &m_Arr[ i]; }  
 
     void        Advance( uint32_t k)
     {
         if ( k > m_Len)
             k = m_Len;
         m_Len -= k;
-        m_CStr = m_Len ? ( m_CStr + k) : NULL;
+        m_Arr = m_Len ? ( m_Arr + k) : NULL;
         return;
     } 
     
-    Cv_CArr     Ahead( uint32_t k) const
+    Cv_Seq     Ahead( uint32_t k) const
     {
-        Cv_CArr     arr = SELF;
+        Cv_Seq     arr = SELF;
         arr.Advance( k);
         return arr;
     }
@@ -125,84 +125,6 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename X, typename TypeSZ = uint32_t>
-struct Cv_LinArr
-{
-    TypeSZ      m_Sz;
 
-    TypeSZ      Size( void) const { return m_Sz; }
-
-    const X     *Ptr( void) const { return ( &m_Sz +1); }
-    X           *Ptr( void) { return ( &m_Sz +1); }
-
-    X           *Begin( void) const { return Ptr(); }
-    X           *End( void) const { return Ptr() +m_Sz; }
-
-    const X     &operator[]( uint32_t i) const { return Ptr()[ i]; } 
-    X           &operator[]( uint32_t i) { return Ptr()[ i]; } 
-    
-    static Cv_LinArr   *Construct( TypeSZ sz)
-    {
-        Cv_LinArr   *arr = ::new ( new char[ sizeof( Cv_LinArr) + sz * sizeof( X)]) Cv_LinArr();
-        arr->m_Sz = sz;
-        for ( uint32_t i = 0; i < Size(); ++i) 
-            ::new (Ptr() +i) X(); 
-    }
-
-    struct LessOp
-    {
-        bool operator()( const X *x1,  const X *x2) const 
-        {
-            if ( x1->Size() != x2->Size())
-                return x1->Size() < x2->Size();
-            const X       *arr1 = x1->Ptr();
-            const X       *arr2 = x2->Ptr();
-            for ( uint32_t i = 0; i < x1->Size(); ++i)
-                if ( arr1[ i] != arr2[ i])
-                    return arr1[ i] < arr2[ i];
-            return false;
-        }
-    };
-};
-
-
-//_____________________________________________________________________________________________________________________________
-
-template < typename Arr, uint32_t  Sz>
-struct Cv_ArrSeq : public Cv_ArrSeq<  Arr, Sz-1>
-{
-    typedef Cv_ArrSeq< Arr, Sz-1>    Base;
-
-    using   Base::m_Arr;
-
-    Cv_ArrSeq( Arr *x)
-        : Base( x)
-    {}
-
-template < typename Lambda, typename... Args>
-    void    ForAll( const Lambda &lambda,  const Args&... args)  
-    {
-        Base::ForAll( lambda, args...);
-        lambda( (*m_Arr)[ Sz -1], Sz -1, args...); 
-    }
-};
-
-//_____________________________________________________________________________________________________________________________
-
-template < typename Arr>
-struct Cv_ArrSeq< Arr, 1>
-{
-    Arr   *m_Arr;
-    
-    Cv_ArrSeq( Arr *x)
-        : m_Arr( x)
-    {}
-
-template < typename Lambda, typename... Args>
-    void    ForAll( const Lambda &lambda,  const Args&... args)  
-    {
-        lambda( (*m_Arr)[ 0], 0, args...); 
-    }
-};
 //_____________________________________________________________________________________________________________________________
 

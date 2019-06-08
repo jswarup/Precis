@@ -4,8 +4,7 @@
 
 #include    "segue/timbre/sg_bitset.h"
 #include    "segue/timbre/sg_partition.h"
-#include    "segue/tremolo/sg_dfastate.h"
-#include    <array>
+#include    "segue/tremolo/sg_dfastate.h" 
  
 //_____________________________________________________________________________________________________________________________
 
@@ -118,7 +117,7 @@ template < typename Atelier>
         return ( m_CurState.GetType() == FsaCrate::template TypeOf< FsaDfaState>()) && static_cast< FsaDfaState*>( m_CurState.GetEntry())->SzTokens();  
     } 
 
-    Cv_CArr< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
+    Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
  
 };
 
@@ -172,7 +171,7 @@ struct Sg_Bulwark
         
     void            DumpTokens( Sg_Parapet  *parapet, uint64_t start)
     { 
-        Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
+        Cv_Seq< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             m_TokenSet->Append( Sg_MatchData( start, uint32_t( m_Curr -start), tokens[ i]));
     }
@@ -216,10 +215,38 @@ struct Sg_Bulwark
         return false; 
     }  
  
+    bool    Play( uint64_t chrIds)
+    {     
+        uint32_t    pickInd = CV_UINT32_MAX;
+        uint64_t    allocbits = 0;
+        for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
+            if ( m_Allocbits & 1)
+            {
+                Sg_Parapet      *parapet = &m_Parapets[ ind];
+                if ( !parapet->Advance( m_DfaAtelier, chrId)) 
+                    pickInd = ind;   
+                else
+                {
+                    allocbits = ( uint64_t( 1) << ind) | allocbits;
+                    if ( m_TokenSet && parapet->HasTokens())
+                        DumpTokens( parapet, m_Starts[ ind]); 
+                }
+            } 
+        m_Allocbits = allocbits;
+        ++m_Curr; 
+        if ( pickInd != CV_UINT32_MAX)
+            return LoadRootAt( pickInd);
+
+        uint64_t    freeBits = ~allocbits;
+        for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
+            if ( freeBits & 1) 
+                return LoadRootAt( j);   
+        return false; 
+    }  
 };
  
 //_____________________________________________________________________________________________________________________________
-/*
+ /*
 template < typename Atelier, typename TokenGram>
 struct Sg_Bastion
 {  
@@ -248,7 +275,7 @@ struct Sg_Bastion
 
     void            DumpTokens( Sg_Parapet  *parapet)
     { 
-        Cv_CArr< uint64_t>      tokens = parapet->Tokens(); 
+        Cv_Seq< uint64_t>      tokens = parapet->Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             m_TokenSet->Append( Sg_MatchData( parapet->Start(), uint32_t( m_Curr -parapet->Start()), tokens[ i]));
     }

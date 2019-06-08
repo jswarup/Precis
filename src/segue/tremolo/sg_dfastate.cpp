@@ -40,7 +40,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 { 
     FsaDfaRepos                     *dfaRepos = dfaCnstr->m_DfaRepos;
     FsaElemRepos                    *elemRepos = dfaCnstr->m_ElemRepos;
-    Cv_CArr< FsaId>                 subStates = SubStates();
+    Cv_Seq< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
         dfaRepos->Destroy( GetId());
@@ -97,7 +97,7 @@ bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
     FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
     
-    Cv_CArr< FsaId>     subStates = SubStates(); 
+    Cv_Seq< FsaId>     subStates = SubStates(); 
     for ( uint32_t k = 0; k < subStates.Size(); ++k)
     {
         FsaClip         regex = dfaRepos->m_ElemRepos->ToVar( subStates[ k]);
@@ -125,7 +125,7 @@ FsaDfaStateMap::~FsaDfaStateMap( void)
 
 bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
 {
-    Cv_CArr< FsaId>    dests = Dests(); 
+    Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaClip         regex = dfaRepos->ToVar( dests[ k]);
@@ -155,7 +155,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
     FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos);
     std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
-    Cv_CArr< FsaId>    dests = Dests(); 
+    Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaClip         regex = fsaRepos->ToVar( dests[ k]);
@@ -183,7 +183,7 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n ";  
     //std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
-    Cv_CArr< FsaId>    dests = Dests(); 
+    Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
    //     FsaClip         regex = fsaRepos->ToVar( dests[ k]);
@@ -202,7 +202,7 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
 bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 {
     bRepos->Distribs().ConvertIdToVarId( &m_Discr.m_DId);
-    Cv_CArr< FsaId>         dests = Dests(); 
+    Cv_Seq< FsaId>         dests = Dests(); 
     for ( uint32_t i = 0; i < dests.Size(); ++i)
         bRepos->States().ConvertIdToVarId( dests.PtrAt( i));
     return true;
@@ -323,8 +323,8 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
         if (( szSingles + ( discr.m_Inv != CV_UINT32_MAX)) == sz)
             CV_ERROR_ASSERT( destArr[ discr.m_Inv] == 0)
         
-        Cv_CArr< uint8_t>       bytes;
-        Cv_CArr< FsaId>         dests;
+        Cv_Seq< uint8_t>       bytes;
+        Cv_Seq< FsaId>         dests;
         if ( szSingles == 1)
         {
             FsaDfaUniXState             *dfaState = new FsaDfaUniXState();              

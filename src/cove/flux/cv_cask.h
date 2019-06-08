@@ -80,7 +80,7 @@ struct Cv_Cask< T, typename Cv_TrivialCopy< T>::Note> : public Cv_SerializeUtils
 //_____________________________________________________________________________________________________________________________
 
 template < typename T> 
-struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils 
+struct Cv_Cask< Cv_Seq< T> > : public Cv_SerializeUtils 
 {
     typedef T                               Type; 
     typedef  Cv_Cask< Type>                 SubCask;
@@ -93,22 +93,22 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 
         typedef void Copiable;  
  
-        Cv_CArr< SubContent>     Value( void)
+        Cv_Seq< SubContent>     Value( void)
         { 
-            return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
+            return Cv_Seq< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + m_Offset), m_Size);
         }
     }; 
  
     static uint32_t         Spread( ContentType *obj) 
     {
         uint32_t                sz = sizeof( *obj); 
-        Cv_CArr< SubContent>    subArr = obj->Value();
+        Cv_Seq< SubContent>    subArr = obj->Value();
         uint32_t                off = obj->m_Offset;
         for ( uint32_t i = 0; i < subArr.Size(); ++i, off += sizeof( SubContent))
             sz += SubCask::Spread( &subArr[ i]);
         return sz;
     }
-    static ContentType         Encase( Cv_Spritz *spritz, const Cv_CArr< Type> &obj)
+    static ContentType         Encase( Cv_Spritz *spritz, const Cv_Seq< Type> &obj)
     {
         spritz->EnsureSize( sizeof( ContentType));
         uint64_t        off = spritz->Offset();
@@ -131,14 +131,14 @@ struct Cv_Cask< Cv_CArr< T> > : public Cv_SerializeUtils
 //_____________________________________________________________________________________________________________________________
 
 template < typename T> 
-struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_CArr< T> > 
+struct Cv_Cask< std::vector< T> > : public Cv_Cask< Cv_Seq< T> > 
 {  
-    typedef Cv_Cask< Cv_CArr< T>>       BaseCask;
+    typedef Cv_Cask< Cv_Seq< T>>       BaseCask;
  
 
     static auto             Encase( Cv_Spritz *spritz, const std::vector< T> &obj)
     {
-        return BaseCask::Encase( spritz, Cv_CArr< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
+        return BaseCask::Encase( spritz, Cv_Seq< T>( obj.size() ? ( T *) &obj[ 0] : NULL, uint32_t( obj.size())));
     }
 }; 
 

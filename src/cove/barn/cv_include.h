@@ -34,6 +34,7 @@
 #include    <chrono>
 #include    <ctime>
 #include    <cmath>
+#include    <array>
 
 #ifdef CV_WINDOWS
 #include    <io.h>

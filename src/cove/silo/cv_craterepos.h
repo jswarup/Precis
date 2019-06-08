@@ -165,14 +165,14 @@ public:
 
             typedef void Copiable;  
             
-            Cv_CArr< SubContent>     Elems( void)
+            Cv_Seq< SubContent>     Elems( void)
             { 
-                return Cv_CArr< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + sizeof( ContentType)), m_Size);
+                return Cv_Seq< SubContent>( ( SubContent *) ( cv_pcast< uint8_t>( this) + sizeof( ContentType)), m_Size);
             }
 
-            Cv_CArr< TypeStor>       Types( void)
+            Cv_Seq< TypeStor>       Types( void)
             { 
-                return Cv_CArr< TypeStor>( ( TypeStor *) ( cv_pcast< uint8_t>( this) + m_TypeOffset), m_Size);
+                return Cv_Seq< TypeStor>( ( TypeStor *) ( cv_pcast< uint8_t>( this) + m_TypeOffset), m_Size);
             }
         };  
 
@@ -181,7 +181,7 @@ public:
         static uint32_t         Spread( ContentType *obj) 
         {
             uint32_t                sz = ContentSize( *obj); 
-            Cv_CArr< SubContent>    subArr = obj->Value(); 
+            Cv_Seq< SubContent>    subArr = obj->Value(); 
             for ( uint32_t i = 0; i < subArr.Size(); ++i)
                 sz += SubCask::Spread( &subArr[ i]);
             return sz;
@@ -532,7 +532,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
             {} 
         };  
 
-        static uint32_t        Spread( ContentType *obj, const Cv_CArr< uint8_t> &arr) 
+        static uint32_t        Spread( ContentType *obj, const Cv_Seq< uint8_t> &arr) 
         {
             return ItemCask().Spread( &obj->m_Value, arr);
         }

@@ -37,10 +37,10 @@ struct  Action
     {}
     
 
-    Cv_CArr< uint64_t>      Tokens( void) { return m_Values.size() ? Cv_CArr< uint64_t>( &m_Values[ 0], uint32_t( m_Values.size())) : Cv_CArr< uint64_t>(); } 
+    Cv_Seq< uint64_t>      Tokens( void) { return m_Values.size() ? Cv_Seq< uint64_t>( &m_Values[ 0], uint32_t( m_Values.size())) : Cv_Seq< uint64_t>(); } 
 
     void         Push( uint64_t v) { m_Values.push_back( v); }
-    void         Push( const Cv_CArr< uint64_t> &tokens)
+    void         Push( const Cv_Seq< uint64_t> &tokens)
     {   
         uint32_t        oldSz = uint32_t( m_Values.size());
         m_Values.resize( oldSz + tokens.Size());
@@ -85,11 +85,11 @@ struct FsaState  : public Cv_CrateEntry
 public:
     ~FsaState( void) {}
 
-    Cv_CArr< uint64_t>  Tokens( void) { return Cv_CArr< uint64_t>(); } 
+    Cv_Seq< uint64_t>  Tokens( void) { return Cv_Seq< uint64_t>(); } 
 
-    Cv_CArr< FiltId>    Filters( void) { return Cv_CArr< FiltId>(); }
-    Cv_CArr< FsaId>     Dests( void) { return Cv_CArr< FsaId>(); }
-    Cv_CArr< FsaId>     SubStates( void) { return Cv_CArr< FsaId>(); } 
+    Cv_Seq< FiltId>    Filters( void) { return Cv_Seq< FiltId>(); }
+    Cv_Seq< FsaId>     Dests( void) { return Cv_Seq< FsaId>(); }
+    Cv_Seq< FsaId>     SubStates( void) { return Cv_Seq< FsaId>(); } 
 
     bool                CleanupDestIds( FsaRepos *dfaRepos) { return false; }
     bool                WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
@@ -116,8 +116,8 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
         typedef typename Cask::SubContent    SubContent; 
 
         ContentType                         *m_Root;
-        Cv_CArr< SubContent>                m_Elems;
-        Cv_CArr< TypeStor>                  m_Types;
+        Cv_Seq< SubContent>                m_Elems;
+        Cv_Seq< TypeStor>                  m_Types;
         
         Blossom( uint8_t *arr)
             : m_Root( ( ContentType *) arr), m_Elems( m_Root->Elems()), m_Types( m_Root->Types())
@@ -209,9 +209,9 @@ struct  FsaElem   : public FsaState, public Cv_Shared
         m_Dests.push_back( dest);
     } 
 
-    Cv_CArr< uint64_t>          Tokens( void) { return m_Action ?  Cv_CArr< uint64_t>( &m_Action->m_Values[ 0], uint32_t( m_Action->m_Values.size())) : Cv_CArr< uint64_t>(); } 
-    Cv_CArr< FsaId>             Dests( void) { return m_Dests.size() ? Cv_CArr< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_CArr< FsaId>(); }  
-    Cv_CArr< FiltId>            Filters( void) { return m_ChSets.size() ? Cv_CArr< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_CArr< FiltId>(); } 
+    Cv_Seq< uint64_t>          Tokens( void) { return m_Action ?  Cv_Seq< uint64_t>( &m_Action->m_Values[ 0], uint32_t( m_Action->m_Values.size())) : Cv_Seq< uint64_t>(); } 
+    Cv_Seq< FsaId>             Dests( void) { return m_Dests.size() ? Cv_Seq< FsaId>( &m_Dests[ 0], uint32_t( m_Dests.size())) : Cv_Seq< FsaId>(); }  
+    Cv_Seq< FiltId>            Filters( void) { return m_ChSets.size() ? Cv_Seq< FiltId>( &m_ChSets[ 0], uint32_t( m_ChSets.size())) : Cv_Seq< FiltId>(); } 
  
 
     bool                        WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);

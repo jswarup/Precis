@@ -106,7 +106,7 @@ struct FsaSupState  : public FsaState
         return m_Action->Compare( *x2.m_Action);
     } 
 
-    Cv_CArr< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_CArr< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_CArr< FsaId>(); }
+    Cv_Seq< FsaId>         SubStates( void) { return m_SubStates.size() ? Cv_Seq< FsaId>( &m_SubStates[ 0], uint32_t( m_SubStates.size())) : Cv_Seq< FsaId>(); }
 
     std::set< uint32_t>     RuleIds( FsaElemRepos *fsaElemRepos) const
     {  
@@ -116,7 +116,7 @@ struct FsaSupState  : public FsaState
         return ruleIds;
     }
 
-    void                    PushAction( const Cv_CArr< uint64_t>  &tokens)
+    void                    PushAction( const Cv_Seq< uint64_t>  &tokens)
     { 
         if ( !tokens.Size())
             return;
@@ -152,7 +152,7 @@ struct FsaSupState  : public FsaState
     struct ElemIt
     {
         FsaElemRepos        *m_ElemRepos;
-        Cv_CArr< FsaId>     m_SubStates;
+        Cv_Seq< FsaId>     m_SubStates;
         uint32_t            m_StateCursor;
 
         ElemIt( FsaElemRepos *elemRepos,  FsaSupState *supState)
@@ -173,8 +173,8 @@ struct FsaSupState  : public FsaState
 
     struct DescendIt : public ElemIt
     { 
-        Cv_CArr< FiltId>                m_Filters;
-        Cv_CArr< FsaId>                 m_DestStateIds;
+        Cv_Seq< FiltId>                m_Filters;
+        Cv_Seq< FsaId>                 m_DestStateIds;
         uint32_t                        m_FilterCursor; 
         FsaDfaRepos                     *m_DfaRepos;
         std::vector< FsaSupState *>     m_SubSupStates; 
@@ -291,12 +291,12 @@ public:
     
     DistribRepos::Id        DistribId( void) const { return m_Discr.m_DId; }
 
-    Cv_CArr< FsaId>         Dests( void) { return DestSz() ? Cv_CArr< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_CArr< FsaId>(); } 
+    Cv_Seq< FsaId>         Dests( void) { return DestSz() ? Cv_Seq< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_Seq< FsaId>(); } 
     void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }
     FsaId                   DestAt( uint64_t k) { return (( FsaId *) PastPtr())[ k]; } 
 
     uint16_t                SzTokens( void) { return m_TokSz; }
-    Cv_CArr< uint64_t>      Tokens( void) { return m_TokSz ? Cv_CArr< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_CArr< uint64_t>(); } 
+    Cv_Seq< uint64_t>      Tokens( void) { return m_TokSz ? Cv_Seq< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_Seq< uint64_t>(); } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
@@ -318,9 +318,9 @@ public:
         {  
             FsaDfaState             &dfaState = const_cast< FsaDfaState &>( obj);
             bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
-            Cv_CArr< FsaId>         dests = dfaState.Dests();  
+            Cv_Seq< FsaId>         dests = dfaState.Dests();  
             res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size()); 
-            Cv_CArr< uint64_t>      toks =  dfaState.Tokens();   
+            Cv_Seq< uint64_t>      toks =  dfaState.Tokens();   
             res = spritz->Write( &toks[ 0], sizeof( uint64_t) *  toks.Size()); 
             return obj; 
         }  
@@ -340,8 +340,8 @@ struct FsaDfaUniXState  : public FsaState
     Id                  m_Dest;  
     uint8_t             m_Byte;
 
-    Cv_CArr< uint8_t>       Bytes( void) { return Cv_CArr< uint8_t>( &m_Byte, 1); } 
-    Cv_CArr< FsaId>         Dests( void) { return Cv_CArr< FsaId>( &m_Dest, 1); } 
+    Cv_Seq< uint8_t>       Bytes( void) { return Cv_Seq< uint8_t>( &m_Byte, 1); } 
+    Cv_Seq< FsaId>         Dests( void) { return Cv_Seq< FsaId>( &m_Dest, 1); } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
@@ -390,11 +390,11 @@ struct FsaClip  : public FsaCrate::Var
         : FsaVar( v)
     {} 
 
-    Cv_CArr< uint64_t>          Tokens( void) { return SELF( [this]( auto k) { return k->Tokens(); }); }
+    Cv_Seq< uint64_t>          Tokens( void) { return SELF( [this]( auto k) { return k->Tokens(); }); }
 
-    Cv_CArr< FsaId>             Dests( void) { return SELF( [this]( auto k) { return k->Dests(); }); }
-    Cv_CArr< FiltId>            Filters( void) { return SELF( [this]( auto k) { return k->Filters(); }); } 
-    Cv_CArr< FsaId>             SubStates( void) { return SELF( [this]( auto k) { return k->SubStates(); }); }
+    Cv_Seq< FsaId>             Dests( void) { return SELF( [this]( auto k) { return k->Dests(); }); }
+    Cv_Seq< FiltId>            Filters( void) { return SELF( [this]( auto k) { return k->Filters(); }); } 
+    Cv_Seq< FsaId>             SubStates( void) { return SELF( [this]( auto k) { return k->SubStates(); }); }
 };
 
 //_____________________________________________________________________________________________________________________________ 

@@ -121,7 +121,7 @@ int     Sg_SerializeCmdProcessor::Test(void)
     {
         std::vector< char>  charVec;
         bool	            res = Cv_Aid::ReadVec( &charVec, "a.txt"); 
-        Cv_CArr< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
+        Cv_Seq< uint8_t>   memArr( ( uint8_t *) &charVec.at( 0), uint32_t( charVec.size()));
  
         auto                ct = Cv_Cask< Sg_CharPartition< 64>>::Bloom( memArr.Ptr());
         ct->Dump( std::cout);
@@ -136,12 +136,12 @@ int     Sg_SerializeCmdProcessor::Test(void)
         std::cout  <<  '\n';
         memArr = memArr.Ahead( Cv_Cask<Test23>::Spread( ct2));
  
-        auto        ct1 = Cv_Cask<  Cv_CArr< uint32_t>>::Bloom( memArr.Ptr());
+        auto        ct1 = Cv_Cask<  Cv_Seq< uint32_t>>::Bloom( memArr.Ptr());
         auto        arr = ct1->Value();
         for ( uint32_t i = 0; i < arr.Size(); ++i)
             std::cout << arr[ i] << ' ';
         std::cout << '\n';
-        memArr = memArr.Ahead( Cv_Cask<Cv_CArr< uint32_t>>::Spread( ct1));
+        memArr = memArr.Ahead( Cv_Cask<Cv_Seq< uint32_t>>::Spread( ct1));
         bool t = true;
          
     }    

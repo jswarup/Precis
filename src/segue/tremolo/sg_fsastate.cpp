@@ -44,7 +44,7 @@ bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     strm << " </FONT>>];\n "; 
 
     FsaElemRepos        *elemRepos = static_cast< FsaElemRepos *>( fsaRepos);
-    Cv_CArr< FsaId>     dests = Dests(); 
+    Cv_Seq< FsaId>      dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
         FsaElem      *regex =  fsaRepos->ToVar( dests[ k]).Elem< FsaElem>();
