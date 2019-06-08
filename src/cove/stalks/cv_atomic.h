@@ -93,6 +93,16 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
+template < typename Stor>
+struct Cv_NType : public Cv_Type< Stor, std::false_type>
+{
+    Cv_NType( const Stor &value = Stor()) 
+        :  Cv_Type< Stor, std::false_type>( value)
+    {} 
+};
+
+//_____________________________________________________________________________________________________________________________
+
 template < typename Atm>
 class Cv_Spinlock
 {     

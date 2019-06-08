@@ -40,6 +40,7 @@
 #include    <intrin.h>
 #else
 #include    <unistd.h> 
+#include    <x86intrin.h>
 #endif
  
 #define     CV_UINT8_MAX        uint8_t( -1)
@@ -97,7 +98,9 @@ uint8_t cv_PopCount( T t);
 #define CV_FSEEK            _fseeki64
 #define CV_FTELL            _ftelli64 
 #define CV_STRCASECMP       stricmp
-#define CV_STRNCASECMP      strnicmp 
+#define CV_STRNCASECMP      strnicmp  
+
+#define CV_PREFETCH_CACHE( Addr)               {  _m_prefetch( Addr);  }
 
 template <>
 inline uint8_t cv_PopCount< uint8_t>( uint8_t t) { return uint8_t( __popcnt16( t)); } 
@@ -112,7 +115,9 @@ inline uint8_t cv_PopCount< uint64_t>( uint64_t t) { return uint8_t( __popcnt64(
 #define CV_FSEEK            fseek
 #define CV_FTELL            ftell      
 #define CV_STRCASECMP       strcasecmp 
-#define CV_STRNCASECMP      strncasecmp
+#define CV_STRNCASECMP      strncasecmp   
+
+#define Cv_PREFETCH_CACHE( Addr)               {  _builtin_prefetch( Addr);  
 
 template <>
 inline uint8_t cv_PopCount< uint8_t>( uint8_t t) { return uint8_t( __builtin_popcount ( t)); } 
@@ -131,8 +136,7 @@ T       *cv_pcast( const void *data) { return static_cast< T *>( const_cast< voi
 
 #define   SELF  (*this) 
 
-#define Cv_CACHELINE_SIZE 64
-#define Cv_PREFETCH_CACHE( Addr)               {  _builtin_prefetch( Addr);  
+#define CV_CACHELINE_SIZE   64
     
 //_____________________________________________________________________________________________________________________________
 

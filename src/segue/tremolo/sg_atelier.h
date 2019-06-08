@@ -109,6 +109,7 @@ template < typename Atelier>
             case FsaCrate::template TypeOf< FsaDfaUniXState>() : m_CurState =  dfaAtelier->DfaUniXTransition( m_CurState.GetEntry(), chrId); break;
             default : m_CurState = FsaCrate::Var(); break;
         }  
+        //CV_PREFETCH_CACHE( m_CurState.GetEntry())
         return !!m_CurState;
     }  
 
@@ -182,6 +183,7 @@ struct Sg_Bulwark
         curent->Load( m_Root); 
         m_Starts[ pickInd] = m_Curr;
         m_Allocbits = ( m_Allocbits | ( uint64_t( 1) << pickInd));  
+        //CV_PREFETCH_CACHE( m_Root.GetEntry())
         return true;
     }
 
