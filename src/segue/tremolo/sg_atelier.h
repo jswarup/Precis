@@ -214,35 +214,17 @@ struct Sg_Bulwark
                 return LoadRootAt( j);   
         return false; 
     }  
- 
-    bool    Play( uint64_t chrIds)
-    {     
-        uint32_t    pickInd = CV_UINT32_MAX;
-        uint64_t    allocbits = 0;
-        for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
-            if ( m_Allocbits & 1)
-            {
-                Sg_Parapet      *parapet = &m_Parapets[ ind];
-                if ( !parapet->Advance( m_DfaAtelier, chrId)) 
-                    pickInd = ind;   
-                else
-                {
-                    allocbits = ( uint64_t( 1) << ind) | allocbits;
-                    if ( m_TokenSet && parapet->HasTokens())
-                        DumpTokens( parapet, m_Starts[ ind]); 
-                }
-            } 
-        m_Allocbits = allocbits;
-        ++m_Curr; 
-        if ( pickInd != CV_UINT32_MAX)
-            return LoadRootAt( pickInd);
+    
+    bool    Play( const Cv_Seq< uint8_t> &chrs)
+    {
+        for ( uint32_t k = 0; k < chrs.Size(); ++k)
+        {
+            uint8_t     chr = chrs[ k];  
 
-        uint64_t    freeBits = ~allocbits;
-        for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
-            if ( freeBits & 1) 
-                return LoadRootAt( j);   
-        return false; 
-    }  
+            bool        proceed = Play( chr);
+        }
+        return true;
+    }
 };
  
 //_____________________________________________________________________________________________________________________________

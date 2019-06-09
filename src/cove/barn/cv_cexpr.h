@@ -180,10 +180,10 @@ struct Cv_PointerType< T, typename std::enable_if< std::is_pointer<T>::value>::t
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename For, uint32_t  Sz>
-struct Cv_For : public Cv_For<  For, Sz-1>
+template < uint32_t  Sz>
+struct Cv_For : public Cv_For< Sz-1>
 {
-    typedef Cv_For< For, Sz-1>    Base; 
+    typedef Cv_For< Sz-1>    Base; 
 
 template < typename Lambda, typename... Args>
     static void    ForAll( const Lambda &lambda,  const Args&... args)  
@@ -195,9 +195,10 @@ template < typename Lambda, typename... Args>
 
 //_____________________________________________________________________________________________________________________________
 
-template < typename For>
-struct Cv_For< For, 1>
-{
+template <>
+struct Cv_For< 1>
+{   
+    
 template < typename Lambda, typename... Args>
     static void    ForAll( const Lambda &lambda,  const Args&... args)  
     {

@@ -94,7 +94,7 @@ public:
     Cv_Seq( const X *ptr, const X *end)
         : m_Arr( ptr), m_Len( uint32_t( end -ptr))
     {}
-
+  
     X           *Ptr( void) const { return m_Arr; }
     uint32_t    Size( void) const { return m_Len; }
 
