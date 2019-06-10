@@ -146,7 +146,7 @@ template < typename TokenGram>
     { 
         Cv_Seq< uint64_t>      tokens = Tokens(); 
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            tokenSet->Append( Sg_MatchData( start, curr -start, tokens[ i]));
+            tokenSet->Append( Sg_MatchData( start, uint32_t( curr -start), tokens[ i]));
     } 
 };
 
@@ -174,13 +174,7 @@ struct Sg_Bulwark
         LoadRootAt( 0);
         m_Starts.fill( 0);
     }
-        
-    void            DumpTokens( Sg_Parapet  *parapet, uint64_t start)
-    { 
-        Cv_Seq< uint64_t>      tokens = parapet->Tokens(); 
-        for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            m_TokenSet->Append( Sg_MatchData( start, uint32_t( m_Curr -start), tokens[ i]));
-    }
+         
     
     bool    LoadRootAt( uint32_t pickInd)
     { 
@@ -206,7 +200,7 @@ struct Sg_Bulwark
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
                     if ( m_TokenSet && parapet->HasTokens())
-                        DumpTokens( parapet, m_Starts[ ind]); 
+                        parapet->DumpTokens( m_TokenSet, m_Starts[ ind], m_Curr); 
                 }
             } 
         m_Allocbits = allocbits;
@@ -237,35 +231,40 @@ struct Sg_Bulwark
 
 
 struct Sg_Rampart
-{  
+{    
+    std::array< Sg_Parapet, 64> m_Parapets;
+    std::array< uint64_t, 64>   m_Starts; 
+    uint64_t                    m_Allocbits;
 
-    std::array< Sg_Parapet, 64>                 m_Parapets;
-    std::array< uint64_t, 64>                   m_Starts; 
-    uint64_t                                    m_Allocbits;
+    Sg_Rampart( void)
+        :   m_Allocbits( 0)
+    {}
+
 template < typename Atelier, typename TokenGram>
-    uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {    
         uint32_t    pickInd = CV_UINT32_MAX;
         uint64_t    allocbits = 0;
         for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
-            if ( m_Allocbits & 1)
+        {
+            if ( (m_Allocbits & 1) == 0)
+                continue;
+            Sg_Parapet      *parapet = &m_Parapets[ ind];
+            bool            allocFlg = true;
+            for ( uint32_t k = 0; k < sz; ++k)
             {
-                Sg_Parapet      *parapet = &m_Parapets[ ind];
-                bool            allocFlg = true;
-                for ( uint32_t k = 0; k < sz; ++k)
+                if ( !parapet->Advance( atelier, chrs[ k]))    
                 {
-                    if ( !parapet->Advance( atelier, chrs[ k]))    
-                    {
-                        pickInd = ind;   
-                        allocFlg = false;
-                        break;
-                    }
-                    if ( tokenSet && parapet->HasTokens())
-                        parapet->DumpTokens( tokenSet, m_Starts[ ind] +k); 
+                    pickInd = ind;   
+                    allocFlg = false;
+                    break;
                 }
-                if ( allocFlg)
-                    allocbits = ( uint64_t( 1) << ind) | allocbits;                
-            } 
+                if ( tokenSet && parapet->HasTokens())
+                    parapet->DumpTokens( tokenSet, m_Starts[ ind] +k, curr); 
+            }
+            if ( allocFlg)
+                allocbits = ( uint64_t( 1) << ind) | allocbits;                
+        } 
         m_Allocbits = allocbits;
         return pickInd; 
     } 
@@ -274,19 +273,16 @@ template < typename Atelier, typename TokenGram>
 //_____________________________________________________________________________________________________________________________
 
 template < typename Atelier, typename TokenGram>
-struct Sg_Bastion
+struct Sg_Bastion : public Sg_Rampart
 {  
-    Atelier                                     *m_DfaAtelier;
-    FsaCrate::Var                               m_Root;
-    uint64_t                                    m_Curr; 
-    std::array< Sg_Parapet, 64>                 m_Parapets; 
-    std::array< uint64_t, 64>                   m_Starts; 
-    uint64_t                                    m_Allocbits;
-    TokenGram                                   *m_TokenSet;   
-    uint32_t                                    m_RootInd;
+    Atelier                 *m_DfaAtelier;
+    uint64_t                m_Curr;
+    FsaCrate::Var           m_Root;
+    TokenGram               *m_TokenSet;   
+    uint32_t                m_RootInd;
 
     Sg_Bastion( void)
-        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_Allocbits( 0), m_RootInd( 0)
+        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL),  m_RootInd( 0)
     {} 
 
     void    Setup( Atelier *dfaAtelier)
@@ -295,18 +291,12 @@ struct Sg_Bastion
         m_Root = dfaAtelier->RootState();
         m_Starts.fill( 0);
     }
-
-    void            DumpTokens( Sg_Parapet  *parapet, uint64_t start, uint32_t k)
-    { 
-        Cv_Seq< uint64_t>      tokens = parapet->Tokens(); 
-        for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            m_TokenSet->Append( Sg_MatchData( start, uint32_t( ( m_Curr +k) -start), tokens[ i]));
-    }
-
-    uint32_t    ScanRoot( FsaDfaState   *dfaState, const Cv_Seq< uint8_t> &chrs)
+ 
+    uint32_t    ScanRoot( FsaState *state, const Cv_Seq< uint8_t> &chrs)
     {
+        FsaDfaState             *dfaState = static_cast< FsaDfaState *>( state);
         Sg_Parapet              *parap = &m_Parapets[ m_RootInd]; 
-        DistribCrate::Var       dVar = m_DfaAtelier->FetchDistib( dfaState);
+        DistribCrate::Var       dVar = m_DfaAtelier->FetchDistib( dfaState); 
         uint32_t                i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
@@ -315,49 +305,20 @@ struct Sg_Bastion
                 continue;
 
             if ( m_TokenSet && parap->HasTokens())
-                DumpTokens( parap, m_Starts[ m_RootInd], i); 
+                parap->DumpTokens( m_TokenSet, m_Starts[ m_RootInd] +i, m_Curr); 
             m_Starts[ m_RootInd] = m_Curr + i;
             ++i;
             break;
         }
         return i;
-    }
-
-
-    uint32_t    ScanCycle( const Cv_Seq< uint8_t> &chrs, uint32_t sz)
-    {    
-        uint32_t    pickInd = CV_UINT32_MAX;
-        uint64_t    allocbits = 0;
-        for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)  
-            if ( m_Allocbits & 1)
-            {
-                Sg_Parapet      *parapet = &m_Parapets[ ind];
-                bool            allocFlg = true;
-                for ( uint32_t k = 0; k < sz; ++k)
-                {
-                    if ( !parapet->Advance( m_DfaAtelier, chrs[ k]))    
-                    {
-                        pickInd = ind;   
-                        allocFlg = false;
-                        break;
-                    }
-                    if ( m_TokenSet && parapet->HasTokens())
-                        DumpTokens( parapet, m_Starts[ ind], k); 
-                }
-                if ( allocFlg)
-                    allocbits = ( uint64_t( 1) << ind) | allocbits;                
-            } 
-        m_Allocbits = allocbits;
-        return pickInd; 
     } 
 
     bool    Play( Cv_Seq< uint8_t> chrs)
-    {
-        FsaDfaState             *dfaRoot = static_cast< FsaDfaState *>( m_Root.GetEntry());
+    { 
         while ( chrs.Size())
         {
-            uint32_t    szScan = ScanRoot( dfaRoot, chrs);
-            uint32_t    pickInd = ScanCycle( chrs, szScan);
+            uint32_t    szScan = ScanRoot( m_Root.GetEntry(), chrs);
+            uint32_t    pickInd = ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);
             m_Allocbits = ( uint64_t( 1) << m_RootInd) | m_Allocbits; 
             m_RootInd =  pickInd;
             if ( m_RootInd == CV_UINT32_MAX)
