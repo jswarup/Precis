@@ -201,6 +201,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             wharf.Discard( tokengram); 
         }
         m_OutFile.Write( sstrm.str().c_str(), uint32_t( sstrm.str().length()));
+        wharf.SetSize( szBurst);
         return;
     }
 }; 
