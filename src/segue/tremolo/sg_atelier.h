@@ -154,6 +154,10 @@ struct Sg_Parapet
     Sg_Parapet( void) 
     {}
 
+    Sg_Parapet( const FsaClip &state)
+        : m_CurState( state)
+    {}
+
     void        Load( const FsaCrate::Var &rootState ) { m_CurState = rootState;  }
     
     bool        IsLoaded( void) const  { return !!m_CurState; }
@@ -260,18 +264,20 @@ struct Sg_Bulwark
   
 //_____________________________________________________________________________________________________________________________
 
-
-struct Sg_Rampart
+class  Sg_Rampart
 {    
     std::array< Sg_Parapet, 64> m_Parapets;
     std::array< uint64_t, 64>   m_Starts; 
     uint64_t                    m_Allocbits;
 
+public:
     Sg_Rampart( void)
         :   m_Allocbits( 0)
-    {}
+    {
+        m_Starts.fill( 0);
+    }
 
-    void        MarkOccupied( uint32_t ind) { m_Allocbits = ( uint64_t( 1) << ind) | m_Allocbits;  }
+    void        MarkOccupied( uint32_t ind) { m_Allocbits |= ( uint64_t( 1) << ind) ;  }
 
     uint32_t    FindFree( void) const
     {
@@ -281,6 +287,12 @@ struct Sg_Rampart
                 return j;
         return CV_UINT32_MAX;
     }
+
+    Sg_Parapet  *Parapet( uint32_t ind) { return &m_Parapets[ ind]; }
+    uint64_t    Start( uint32_t ind) const { return m_Starts[ ind]; }
+
+    void        SetStart( uint32_t ind, uint64_t val) { m_Starts[ ind] = val; }
+
 
 template < typename Atelier, typename TokenGram>
     uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
@@ -333,22 +345,21 @@ struct Sg_Bastion : public Sg_Rampart
     {
         m_DfaAtelier = dfaAtelier;
         m_Root = dfaAtelier->RootState();
-        m_Starts.fill( 0);
     }
  
     uint32_t    ScanRoot( const Cv_Seq< uint8_t> &chrs)
     {
-        Sg_Parapet      *parapet = &m_Parapets[ m_RootInd]; 
+        Sg_Parapet      *parapet = Parapet( m_RootInd); 
         uint32_t        i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
-            FsaCrate::Var   nxState =m_DfaAtelier->Advance( m_Root, chrs[ i]); 
+            FsaCrate::Var   nxState = m_DfaAtelier->Advance( m_Root, chrs[ i]); 
             if ( ! nxState)
                 continue;
             parapet->m_CurState = nxState;
+            SetStart( m_RootInd, m_Curr);
             if ( m_TokenSet && parapet->HasTokens())
-                parapet->DumpTokens( m_TokenSet, m_Starts[ m_RootInd] +i, m_Curr); 
-            m_Starts[ m_RootInd] = m_Curr + i;
+                parapet->DumpTokens( m_TokenSet, m_Curr, m_Curr +i); 
             ++i;
             break;
         }
