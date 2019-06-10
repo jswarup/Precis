@@ -108,7 +108,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             if ( !m_Bulwark.m_TokenSet)
                 m_Bulwark.m_TokenSet = tokWharf.AllocFree();
             Datagram    *datagram = wharf.Get( dInd); 
-            bool        proceed = m_Bulwark.Play( Cv_Seq( datagram->PtrAt( 0), datagram->Size()));
+            bool        proceed = m_Bulwark.Play( Cv_Seq( datagram->PtrAt( 0), datagram->SzFill()));
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         }

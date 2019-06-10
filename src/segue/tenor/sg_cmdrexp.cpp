@@ -284,14 +284,17 @@ int     Sg_RExpCmdProcessor::Test(void)
         Sg_Bulwark< Sg_DfaReposAtelier, MatchArr>  bulwark;  
         bulwark.Setup( &atelier);
         bulwark.m_TokenSet = &matches;
-        for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
+
+        bulwark.Play( Cv_Seq( ( uint8_t *) ( void *) &dataMemVector.CharVec()->at( 0), ( uint32_t ) dataMemVector.CharVec()->size()));
+        for ( uint32_t k = 0; k < matches.SzFill(); ++k)
+            std::cout << matches[ k];
+        matches = MatchArr();
+
+/*        for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
         {
-            uint8_t     chrId = atelier.ByteCode(  dataMemVector.CharVec()->at( i)); 
-            bulwark.Play( chrId);
-            for ( uint32_t k = 0; k < matches.SzFill(); ++k)
-                std::cout << matches[ k];
-            matches = MatchArr();
-        }
+            uint8_t     chrId = atelier.ByteCode(  ); 
+            
+        }*/
     }
 /*
     RExpRepos				                synCrate;
