@@ -240,6 +240,17 @@ struct Sg_Rampart
         :   m_Allocbits( 0)
     {}
 
+    void        MarkOccupied( uint32_t ind) { m_Allocbits = ( uint64_t( 1) << ind) | m_Allocbits;  }
+
+    uint32_t    FindFree( void) const
+    {
+        uint64_t    freeBits = ~m_Allocbits;
+        for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
+            if ( freeBits & 1) 
+                return j;
+        return CV_UINT32_MAX;
+    }
+
 template < typename Atelier, typename TokenGram>
     uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {    
@@ -295,17 +306,17 @@ struct Sg_Bastion : public Sg_Rampart
     uint32_t    ScanRoot( FsaState *state, const Cv_Seq< uint8_t> &chrs)
     {
         FsaDfaState             *dfaState = static_cast< FsaDfaState *>( state);
-        Sg_Parapet              *parap = &m_Parapets[ m_RootInd]; 
+        Sg_Parapet              *parapet = &m_Parapets[ m_RootInd]; 
         DistribCrate::Var       dVar = m_DfaAtelier->FetchDistib( dfaState); 
         uint32_t                i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
-            parap->m_CurState = m_DfaAtelier->DfaTransition( dfaState, dVar, chrs[ i]);
-            if ( ! parap->m_CurState)
+            parapet->m_CurState = m_DfaAtelier->DfaTransition( dfaState, dVar, chrs[ i]);
+            if ( ! parapet->m_CurState)
                 continue;
 
-            if ( m_TokenSet && parap->HasTokens())
-                parap->DumpTokens( m_TokenSet, m_Starts[ m_RootInd] +i, m_Curr); 
+            if ( m_TokenSet && parapet->HasTokens())
+                parapet->DumpTokens( m_TokenSet, m_Starts[ m_RootInd] +i, m_Curr); 
             m_Starts[ m_RootInd] = m_Curr + i;
             ++i;
             break;
@@ -319,18 +330,10 @@ struct Sg_Bastion : public Sg_Rampart
         {
             uint32_t    szScan = ScanRoot( m_Root.GetEntry(), chrs);
             uint32_t    pickInd = ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);
-            m_Allocbits = ( uint64_t( 1) << m_RootInd) | m_Allocbits; 
+            MarkOccupied( m_RootInd);
             m_RootInd =  pickInd;
             if ( m_RootInd == CV_UINT32_MAX)
-            {
-                uint64_t    freeBits = ~m_Allocbits;
-                for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
-                    if ( freeBits & 1) 
-                    {
-                        m_RootInd = j;
-                        break;
-                    }
-            }
+                m_RootInd = FindFree();
             m_Curr += szScan;
             chrs.Advance( szScan);
         }
