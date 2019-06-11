@@ -220,6 +220,7 @@ template < typename TokenGram>
 template < typename Atelier, typename TokenGram>
 struct Sg_Bulwark
 {
+
     Atelier                                     *m_DfaAtelier;
     FsaCrate::Var                               m_Root;
     uint64_t                                    m_Curr;
@@ -239,7 +240,6 @@ struct Sg_Bulwark
         LoadRootAt( 0);
         m_Starts.fill( 0);
     }
-
 
     bool    LoadRootAt( uint32_t pickInd)
     {
@@ -296,26 +296,36 @@ struct Sg_Bulwark
 
 class  Sg_Rampart
 {
-    std::array< Sg_Parapet, 64> m_Parapets;
-    std::array< uint64_t, 64>   m_Starts;
+    enum {
+        Sz = 64
+    };
+
+    std::array< Sg_Parapet, Sz> m_Parapets;
+    std::array< uint64_t, Sz>   m_Starts;
     uint64_t                    m_Allocbits;
+    std::array< uint8_t, Sz>    m_FreeInds;
+    uint8_t                     m_FreeSz;
 
 public:
     Sg_Rampart( void)
-        :   m_Allocbits( 0)
+        :   m_Allocbits( 0), m_FreeSz( Sz)
     {
         m_Starts.fill( 0);
+        Cv_For< Sz>::RunAll( [this]( uint32_t ind) { m_FreeInds[ ind] = Sz -1 -ind; });
     }
 
-    void        MarkOccupied( uint32_t ind) { m_Allocbits |= ( uint64_t( 1) << ind) ;  }
+    void        MarkOccupied( uint32_t ind) 
+    { 
+        m_Allocbits |= ( uint64_t( 1) << ind) ;  
+    }
 
-    uint32_t    FindFree( void) const
-    {
-        uint64_t    freeBits = ~m_Allocbits;
-        for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)
-            if ( freeBits & 1)
-                return j;
-        return CV_UINT32_MAX;
+    uint32_t    FetchFree( void)   
+    { 
+        return m_FreeSz ?  m_FreeInds[ --m_FreeSz] : CV_UINT32_MAX; 
+    }
+    void        MarkFree( uint32_t ind)  
+    {   
+        m_FreeInds[ m_FreeSz++] = ( uint8_t) ind; 
     }
 
     Sg_Parapet  *Parapet( uint32_t ind) { return &m_Parapets[ ind]; }
@@ -325,9 +335,8 @@ public:
 
 
 template < typename Atelier, typename TokenGram>
-    uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    void    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
-        uint32_t    pickInd = CV_UINT32_MAX;
         uint64_t    allocbits = 0;
         for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)
         {
@@ -340,7 +349,7 @@ template < typename Atelier, typename TokenGram>
                 FsaCrate::Var       nxState = atelier->Advance( parapet->m_CurState, chrs[ k]);
                 if ( !nxState)
                 {
-                    pickInd = ind;
+                    MarkFree( ind);
                     surviveFlg = false;
                     break;
                 }
@@ -352,7 +361,7 @@ template < typename Atelier, typename TokenGram>
                 allocbits |= ( uint64_t( 1) << ind);
         }
         m_Allocbits = allocbits;
-        return pickInd;
+        return;
     }
 };
 
@@ -365,10 +374,9 @@ struct Sg_Bastion : public Sg_Rampart
     uint64_t                m_Curr;
     FsaCrate::Var           m_Root;
     TokenGram               *m_TokenSet;
-    uint32_t                m_RootInd;
 
     Sg_Bastion( void)
-        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL),  m_RootInd( 0)
+        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL)
     {}
 
     void    Setup( Atelier *dfaAtelier)
@@ -377,9 +385,9 @@ struct Sg_Bastion : public Sg_Rampart
         m_Root = dfaAtelier->RootState();
     }
 
-    uint32_t    ScanRoot( const Cv_Seq< uint8_t> &chrs)
+    uint32_t    ScanRoot( uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
     {
-        Sg_Parapet      *parapet = Parapet( m_RootInd);
+        Sg_Parapet      *parapet = Parapet( rootInd);
         uint32_t        i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
@@ -387,7 +395,7 @@ struct Sg_Bastion : public Sg_Rampart
             if ( ! nxState)
                 continue;
             parapet->m_CurState = nxState;
-            SetStart( m_RootInd, m_Curr);
+            SetStart( rootInd, m_Curr);
             if ( m_TokenSet && parapet->HasTokens())
                 parapet->DumpTokens( m_TokenSet, m_Curr, m_Curr +i);
             ++i;
@@ -400,17 +408,17 @@ struct Sg_Bastion : public Sg_Rampart
     {
         while ( chrs.Size())
         {
-            uint32_t    szScan = ScanRoot( chrs);                                               // scan for root-match in the buffer.
-            uint32_t    pickInd = ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);   // scan-sycle the rest upto the scan-Marker
+            uint32_t    rootInd = FetchFree();
+            uint32_t    szScan = ScanRoot( rootInd, chrs);                                               // scan for root-match in the buffer.
+            ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);   // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
             chrs.Advance( szScan);
             if ( !chrs.Size())
+            {
+                MarkFree( rootInd);
                 break;
-
-            MarkOccupied( m_RootInd);
-            m_RootInd =  pickInd;
-            if ( m_RootInd == CV_UINT32_MAX)
-                m_RootInd = FindFree();
+            }
+            MarkOccupied( rootInd);
         }
         return true;
     }
