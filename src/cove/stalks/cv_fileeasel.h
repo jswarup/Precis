@@ -151,7 +151,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
         if ( !szBurst)
         {
             stats->m_ChokeSz.Incr();
-            if ( wharf.IsClose())
+            if ( wharf.IsPrevClose())
             {
                 m_OutFile.Shut(); 
                 wharf.SetClose();

@@ -78,7 +78,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t        szTokBurst = tokWharf.Size(); 
         szTokBurst = tokWharf.ProbeSzFree( szTokBurst);
 
-        if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true))  && tokWharf.SetClose())
+        if ( !szBurst && wharf.IsPrevClose() && (( m_CloseFlg = true)) && wharf.SetClose()  && tokWharf.SetClose())
             return;
         
         if ( szBurst > szTokBurst)
@@ -178,13 +178,13 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     void    DoRunStep( void)
     {   
         Stats           *stats = this->CurStats();
-        InTokWharf          wharf( &m_InTokPort);
+        InTokWharf      wharf( &m_InTokPort);
         uint32_t        szBurst = wharf.Size(); 
 
         if ( !szBurst)
         {
             stats->m_ChokeSz.Incr();
-            if ( wharf.IsClose())
+            if ( wharf.IsPrevClose())
             {
                 m_OutFile.Shut(); 
                 wharf.SetClose();
