@@ -5,7 +5,7 @@
 #include    "segue/timbre/sg_bitset.h"
 #include    "segue/timbre/sg_partition.h"
 #include    "segue/tremolo/sg_dfastate.h" 
- 
+
 //_____________________________________________________________________________________________________________________________
 
 using namespace Sg_RExp;
@@ -15,13 +15,13 @@ using namespace Sg_RExp;
 struct Sg_DfaReposAtelier
 {
     FsaDfaRepos     *m_DfaRepos;
-    
+
     Sg_DfaReposAtelier( FsaDfaRepos *dfaRepos = NULL)
         : m_DfaRepos( dfaRepos)
     {}
-    
+
     uint8_t                 ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
-     
+
     FsaCrate::Var           RootState( void) {  return m_DfaRepos->ToVar( m_DfaRepos->m_RootId); } 
 
 
@@ -52,13 +52,13 @@ struct Sg_DfaReposAtelier
                 nxState =   DfaTransition( dfaState, FetchDistib( dfaState), chrId); 
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
-            {
-                nxState = DfaUniXTransition( state.GetEntry(), chrId); 
-                break;
-            }
-            default : 
-                break;
+                                                           case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
+                                                           {
+                                                               nxState = DfaUniXTransition( state.GetEntry(), chrId); 
+                                                               break;
+                                                           }
+                                                           default : 
+                                                               break;
         }   
         return nxState;
     }   
@@ -77,7 +77,7 @@ struct Sg_DfaBlossomAtelier
     {
         m_DfaBlossom.SauteStates();
     }
- 
+
     uint8_t                 ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
 
     FsaCrate::Var           RootState( void)  {  return m_States.ToVar( m_DfaBlossom.RootId()); } 
@@ -89,7 +89,7 @@ struct Sg_DfaBlossomAtelier
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
         return  m_States.VarId( dfaState->DestAt( img));
     }
-    
+
     FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId) 
     {  
         FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state); 
@@ -97,8 +97,8 @@ struct Sg_DfaBlossomAtelier
             return m_States.VarId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
- 
-    
+
+
     FsaCrate::Var           Advance( const FsaCrate::Var &state, uint8_t chrId)
     { 
         FsaCrate::Var   nxState;
@@ -110,18 +110,18 @@ struct Sg_DfaBlossomAtelier
                 nxState =   DfaTransition( dfaState, FetchDistib( dfaState), chrId); 
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
-            {
-                nxState = DfaUniXTransition( state.GetEntry(), chrId); 
-                break;
-            }
-            default : 
-                break;
+                                                           case FsaCrate::template TypeOf< FsaDfaUniXState>() : 
+                                                           {
+                                                               nxState = DfaUniXTransition( state.GetEntry(), chrId); 
+                                                               break;
+                                                           }
+                                                           default : 
+                                                               break;
         }   
         return nxState;
     }  
 };
- 
+
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_MatchData
@@ -150,7 +150,7 @@ struct Sg_MatchData
 struct Sg_Parapet
 {
     FsaClip         m_CurState; 
-    
+
     Sg_Parapet( void) 
     {}
 
@@ -159,10 +159,10 @@ struct Sg_Parapet
     {}
 
     void        Load( const FsaCrate::Var &rootState ) { m_CurState = rootState;  }
-    
+
     bool        IsLoaded( void) const  { return !!m_CurState; }
 
-template < typename Atelier>
+    template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
     { 
         m_CurState = dfaAtelier->Advance( m_CurState, chrId);   
@@ -176,7 +176,7 @@ template < typename Atelier>
 
     Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 
-template < typename TokenGram>
+    template < typename TokenGram>
     void            DumpTokens( TokenGram  *tokenSet, uint64_t start, uint64_t curr)
     { 
         Cv_Seq< uint64_t>      tokens = Tokens(); 
@@ -197,7 +197,7 @@ struct Sg_Bulwark
     std::array< uint64_t, 64>                   m_Starts; 
     uint64_t                                    m_Allocbits;
     TokenGram                                   *m_TokenSet;   
-    
+
     Sg_Bulwark( void)
         : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_Allocbits( 0) 
     {} 
@@ -209,8 +209,8 @@ struct Sg_Bulwark
         LoadRootAt( 0);
         m_Starts.fill( 0);
     }
-         
-    
+
+
     bool    LoadRootAt( uint32_t pickInd)
     { 
         Sg_Parapet      *curent = &m_Parapets[ pickInd];  
@@ -242,14 +242,14 @@ struct Sg_Bulwark
         ++m_Curr; 
         if ( pickInd != CV_UINT32_MAX)
             return LoadRootAt( pickInd);
-    
+
         uint64_t    freeBits = ~allocbits;
         for ( uint32_t j = 0; freeBits; j++, freeBits >>= 1)  
             if ( freeBits & 1) 
                 return LoadRootAt( j);   
         return false; 
     }  
-    
+
     bool    Play( const Cv_Seq< uint8_t> &chrs)
     {
         for ( uint32_t k = 0; k < chrs.Size(); ++k)
@@ -261,7 +261,7 @@ struct Sg_Bulwark
         return true;
     }
 };
-  
+
 //_____________________________________________________________________________________________________________________________
 
 class  Sg_Rampart
@@ -294,7 +294,7 @@ public:
     void        SetStart( uint32_t ind, uint64_t val) { m_Starts[ ind] = val; }
 
 
-template < typename Atelier, typename TokenGram>
+    template < typename Atelier, typename TokenGram>
     uint32_t    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {    
         uint32_t    pickInd = CV_UINT32_MAX;
@@ -304,22 +304,22 @@ template < typename Atelier, typename TokenGram>
             if ( (m_Allocbits & 1) == 0)
                 continue;
             Sg_Parapet      *parapet = &m_Parapets[ ind];
-            bool            allocFlg = true;
+            bool            surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
             {
                 FsaCrate::Var       nxState = atelier->Advance( parapet->m_CurState, chrs[ k]);
                 if ( !nxState)    
                 {
                     pickInd = ind;   
-                    allocFlg = false;
+                    surviveFlg = false;
                     break;
                 }
                 parapet->m_CurState = nxState;
                 if ( tokenSet && parapet->HasTokens())
                     parapet->DumpTokens( tokenSet, m_Starts[ ind] +k, curr); 
             }
-            if ( allocFlg)
-                allocbits = ( uint64_t( 1) << ind) | allocbits;                
+            if ( surviveFlg)
+                allocbits |= ( uint64_t( 1) << ind);                
         } 
         m_Allocbits = allocbits;
         return pickInd; 
@@ -346,7 +346,7 @@ struct Sg_Bastion : public Sg_Rampart
         m_DfaAtelier = dfaAtelier;
         m_Root = dfaAtelier->RootState();
     }
- 
+
     uint32_t    ScanRoot( const Cv_Seq< uint8_t> &chrs)
     {
         Sg_Parapet      *parapet = Parapet( m_RootInd); 
@@ -370,14 +370,17 @@ struct Sg_Bastion : public Sg_Rampart
     { 
         while ( chrs.Size())
         {
-            uint32_t    szScan = ScanRoot( chrs);
-            uint32_t    pickInd = ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);
-            MarkOccupied( m_RootInd);
+            uint32_t    szScan = ScanRoot( chrs);                                               // scan for root-match in the buffer.
+            uint32_t    pickInd = ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);   // scan-sycle the rest upto the scan-Marker
+            m_Curr += szScan;
+            chrs.Advance( szScan);
+            if ( !chrs.Size())
+                break;
+
+            MarkOccupied( m_RootInd);                                                            
             m_RootInd =  pickInd;
             if ( m_RootInd == CV_UINT32_MAX)
                 m_RootInd = FindFree();
-            m_Curr += szScan;
-            chrs.Advance( szScan);
         }
         return true;
     }
