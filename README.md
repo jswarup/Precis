@@ -1,4 +1,6 @@
 # Precis
-Regular Expression Parser and Scanning Engine.
+
+## High performance Regular Expression Parser and Scan Engine
+
 
 

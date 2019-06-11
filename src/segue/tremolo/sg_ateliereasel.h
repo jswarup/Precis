@@ -78,7 +78,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t        szTokBurst = tokWharf.Size(); 
         szTokBurst = tokWharf.ProbeSzFree( szTokBurst);
 
-        if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true)) && wharf.SetClose())
+        if ( !szBurst && wharf.IsClose() && (( m_CloseFlg = true))  && tokWharf.SetClose())
             return;
         
         if ( szBurst > szTokBurst)
