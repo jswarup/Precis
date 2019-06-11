@@ -186,9 +186,9 @@ struct Cv_For : public Cv_For< Sz-1>
     typedef Cv_For< Sz-1>    Base; 
 
 template < typename Lambda, typename... Args>
-    static void    ForAll( const Lambda &lambda,  const Args&... args)  
+    static void    RunAll( const Lambda &lambda,  const Args&... args)  
     {
-        Base::ForAll( lambda, args...);
+        Base::RunAll( lambda, args...);
         lambda( Sz -1, args...); 
     }
 };
@@ -200,7 +200,7 @@ struct Cv_For< 1>
 {   
     
 template < typename Lambda, typename... Args>
-    static void    ForAll( const Lambda &lambda,  const Args&... args)  
+    static void    RunAll( const Lambda &lambda,  const Args&... args)  
     {
         lambda( 0, args...); 
     }
