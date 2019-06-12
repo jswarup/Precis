@@ -302,21 +302,23 @@ class  Sg_Rampart
 
     std::array< Sg_Parapet, Sz> m_Parapets;
     std::array< uint64_t, Sz>   m_Starts;
-    uint64_t                    m_Allocbits;
     std::array< uint8_t, Sz>    m_FreeInds;
-    uint8_t                     m_FreeSz;
+    std::array< uint8_t, Sz>            m_AllocInds;
+    uint16_t                            m_FreeSz;
+    uint16_t                            m_AllocSz;
 
-public:
+public: 
     Sg_Rampart( void)
-        :   m_Allocbits( 0), m_FreeSz( Sz)
+        :  m_FreeSz( Sz), m_AllocSz( 0)
     {
+        uint32_t sz = sizeof( Sg_Rampart);
         m_Starts.fill( 0);
         Cv_For< Sz>::RunAll( [this]( uint32_t ind) { m_FreeInds[ ind] = Sz -1 -ind; });
     }
 
     void        MarkOccupied( uint32_t ind) 
     { 
-        m_Allocbits |= ( uint64_t( 1) << ind) ;  
+        m_AllocInds[ m_AllocSz++] = ( uint8_t) ind;  
     }
 
     uint32_t    FetchFree( void)   
@@ -337,11 +339,11 @@ public:
 template < typename Atelier, typename TokenGram>
     void    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
-        uint64_t    allocbits = 0;
-        for ( uint32_t ind = 0; m_Allocbits; ind++, m_Allocbits >>= 1)
+        std::array< uint8_t, Sz>        allocInds;
+        uint16_t                        szAlloc = 0;
+        for ( uint16_t i =  m_AllocSz; i > 0; --i)
         {
-            if ( (m_Allocbits & 1) == 0)
-                continue;
+            uint32_t        ind = m_AllocInds[ i -1];
             Sg_Parapet      *parapet = &m_Parapets[ ind];
             bool            surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
@@ -358,9 +360,10 @@ template < typename Atelier, typename TokenGram>
                     parapet->DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
             }
             if ( surviveFlg)
-                allocbits |= ( uint64_t( 1) << ind);
+                allocInds[ szAlloc++] = ( uint8_t) ind;  
         }
-        m_Allocbits = allocbits;
+        std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
+        m_AllocSz = szAlloc;
         return;
     }
 };
