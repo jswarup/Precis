@@ -171,14 +171,14 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 bool    FsaDfaState::DumpDot( Cv_DotStream &strm) 
 { 
-    strm << GetTypeChar() << GetId() << " [ shape=";
+    strm << GetId() << " [ shape=";
 
     uint64_t        *toks = Tokens().Ptr();
     if ( toks)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId() << "<BR />" <<   "<BR />" ;
+    strm << " color=Red label= <<FONT> " << GetId() << "<BR />" <<   "<BR />" ;
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n ";  
@@ -189,7 +189,7 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
    //     FsaClip         regex = fsaRepos->ToVar( dests[ k]);
         if ( !dests[ k].GetId())
             continue;
-        strm << GetTypeChar() << GetId() << " -> " <<  GetTypeChar() << dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm << GetId() << " -> " <<  dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
 //        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
         strm << "</FONT>>] ; \n" ;  
     }
@@ -235,6 +235,22 @@ bool    FsaDfaUniXState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     FsaClip                     regex = fsaRepos->ToVar( m_Dest); 
     strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
     strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
+    strm << "</FONT>>] ; \n" ;   
+    return true; 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaUniXState::DumpDot( Cv_DotStream &strm) 
+{ 
+    strm <<   GetId() << " [ shape=";
+ 
+    strm << "diamond"; 
+    strm << " color=Red label= <<FONT> " <<  GetId(); 
+    strm << " </FONT>>];\n"; 
+  
+    strm <<  GetId() << " -> " <<     m_Dest.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+    //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
     strm << "</FONT>>] ; \n" ;   
     return true; 
 }

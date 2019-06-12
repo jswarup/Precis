@@ -44,16 +44,8 @@ struct Sg_EaselVita : public Sg_BaseVita
 
     bool    DoInit( void)
     {
-        if ( m_ImgFile.size()) 
-        { 
-            bool	                res = Cv_Aid::ReadVec( &m_MemArr, m_ImgFile.c_str()); 
-            if ( !res)
-            {
-                std::cerr << "Not Found : " << m_ImgFile << '\n';
-                return false;
-            }
+        if ( m_ImgFile.size())
             m_Atelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
-        }
         return true;
     }
 };
@@ -65,7 +57,8 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
     { "-idata", "<input>", 0},
     { "-iimg", "<input>", 0},
     { "-oout", "<output>", 0},  
-    { "-otok", "<token>", 0},  
+    { "-otok", "<token>", 0},   
+    { "-dimg", "<dotfile>", 0},  
     { "-loop", 0, 0},
     { 0, 0,  0}
 };
@@ -74,7 +67,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
 
 class Sg_AtelierCmdProcessor : public Cv_CmdExecutor, public Sg_EaselVita
 { 
-    
+    std::string             m_DotFile;
 
 public:
     Sg_AtelierCmdProcessor( void)  
@@ -96,6 +89,12 @@ public:
             m_ImgFile = arg;
             return true;
         }
+        if ( "-dimg" == key)
+        {
+            m_DotFile = arg;
+            return true;
+        }
+
         if ( "-idata" == key)
         {
             m_InputFile = arg;
@@ -197,6 +196,31 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileReadEasel< Sg_FileReadAtelierEas
 
 int     Sg_AtelierCmdProcessor::Execute(void)
 {
+    if ( m_ImgFile.size()) 
+    { 
+        bool	                res = Cv_Aid::ReadVec( &m_MemArr, m_ImgFile.c_str()); 
+        if ( !res)
+        {
+            std::cerr << "Not Found : " << m_ImgFile << '\n';
+            return -1;
+        } 
+    }
+    if ( m_DotFile.size() && m_ImgFile.size()) 
+    {  
+        FsaDfaRepos::Blossom    blossom(  &m_MemArr[ 0]);  
+        std::ofstream           fsaOStrm( m_DotFile);
+        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+        auto                    states = blossom.States();
+        FsaDfaRepos::Id         rootId = blossom.RootId();
+        for ( uint32_t i = 0; i < states.Size(); ++i)
+        {
+            auto        var = states.VarAt( i); 
+            bool t = true;
+            if (var)
+                var( [&fsaDotStrm]( auto k) { k->DumpDot( fsaDotStrm); });
+        }
+        bool t = true; 
+    }
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();  
     
     

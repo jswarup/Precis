@@ -344,8 +344,9 @@ struct FsaDfaUniXState  : public FsaState
     Cv_Seq< FsaId>         Dests( void) { return Cv_Seq< FsaId>( &m_Dest, 1); } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
+
     bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
-     
+    bool                    DumpDot( Cv_DotStream &strm);
 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 

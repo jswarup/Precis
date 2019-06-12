@@ -73,6 +73,14 @@ struct Sg_Bit64
         return true;
     }
 
+    bool            IsZeroes( void) const 
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            if ( m_ChSet[ i])
+                return false;
+        return true;
+    }
+
 template < typename Lambda, typename... Args>
     void    ForAllTrue( const Lambda &lambda,  const Args&... args)  
     {
@@ -122,6 +130,7 @@ struct Sg_Bit64< 0>
     int32_t         Compare( const Sg_Bit64 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
     bool            IsOnes( void) const { return true; }
+    bool            IsZeroes( void) const { return true; }
 
 template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
@@ -200,7 +209,15 @@ struct Sg_Bit8
                 return false;
         return true;
     }
-    
+
+    bool            IsZeroes( void) const 
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            if ( m_ChSet[ i])
+                return false;
+        return true;
+    }
+
 template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args &... args)
     {
@@ -251,6 +268,7 @@ struct Sg_Bit8< 0>
     int32_t         Compare( const Sg_Bit8 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
     bool            IsOnes( void) const { return true; }
+    bool            IsZeroes( void) const { return true; }
 
  template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args&... args)   {}
@@ -322,6 +340,7 @@ struct Sg_Bitset
     }
 
     bool            IsOnes( void) const  { return m_Bits64.IsOnes() && m_Bits64.IsOnes();  }
+    bool            IsZeroes( void) const  { return m_Bits64.IsZeroes() && m_Bits64.IsZeroes();  }
 
 template < typename Lambda, typename... Args>
     void            ForAllTrue( const Lambda &lambda,  const Args&... args)   
