@@ -303,8 +303,10 @@ class  Sg_Bulwark
     enum {
         Sz = 64
     };
+    
+    typedef FsaDfaRepos::Id             FsaId;
 
-    std::array< Sg_Parapet, Sz>         m_Parapets;
+    std::array< FsaId, Sz>              m_States;
     std::array< uint64_t, Sz>           m_Starts;
     std::array< uint8_t, Sz>            m_FreeInds;
     std::array< uint8_t, Sz>            m_AllocInds;
@@ -334,7 +336,9 @@ public:
         m_FreeInds[ m_FreeSz++] = ( uint8_t) ind; 
     }
 
-    Sg_Parapet  *Parapet( uint32_t ind) { return &m_Parapets[ ind]; }
+    const FsaId &State( uint32_t ind) const { return m_States[ ind]; }
+    void        SetState( uint32_t ind, const FsaId &id) { m_States[ ind] = id; }
+    
     uint64_t    Start( uint32_t ind) const { return m_Starts[ ind]; }
 
     void        SetStart( uint32_t ind, uint64_t val) { m_Starts[ ind] = val; }
@@ -347,21 +351,22 @@ template < typename Atelier, typename TokenGram>
         uint16_t                        szAlloc = 0;
         for ( uint16_t  q =  m_AllocSz; q > 0; )
         {
-            uint32_t        ind = m_AllocInds[ --q];
-            Sg_Parapet      *parapet = Parapet( ind);
-            bool            surviveFlg = true;
+            uint32_t            ind = m_AllocInds[ --q];
+            Sg_Parapet          parapet = atelier->VarFromId( State( ind));
+            bool                surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
             {
-                FsaCrate::Var       nxState = atelier->VarFromId( atelier->Advance( parapet->m_CurState, chrs[ k]));
-                if ( !nxState)
+                FsaId           nxStateId = atelier->Advance( parapet.m_CurState, chrs[ k]);
+                if ( !nxStateId.IsValid())
                 {
                     MarkFree( ind);
                     surviveFlg = false;
                     break;
                 }
-                parapet->m_CurState = nxState;
-                if ( tokenSet && parapet->HasTokens())
-                    parapet->DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
+                SetState( ind, nxStateId);
+                parapet = Sg_Parapet( atelier->VarFromId( nxStateId)); 
+                if ( tokenSet && parapet.HasTokens())
+                    parapet.DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
             }
             if ( surviveFlg)
                 allocInds[ szAlloc++] = ( uint8_t) ind;  
@@ -393,18 +398,20 @@ struct Sg_Bastion : public Sg_Bulwark
     }
 
     uint32_t    ScanRoot( uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
-    {
-        Sg_Parapet      *parapet = Parapet( rootInd);
+    { 
         uint32_t        i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
             FsaDfaRepos::Id   nxStateId = m_DfaAtelier->Advance( m_Root, chrs[ i]);
             if ( ! nxStateId.IsValid())
                 continue;
-            parapet->m_CurState = m_DfaAtelier->VarFromId( nxStateId);
+
+            SetState( rootInd, nxStateId); 
             SetStart( rootInd, m_Curr +i);
-            if ( m_TokenSet && parapet->HasTokens())
-                parapet->DumpTokens( m_TokenSet, m_Curr +i, m_Curr +i +1);
+
+            Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
+            if ( m_TokenSet && nxParapet.HasTokens())
+                nxParapet.DumpTokens( m_TokenSet, m_Curr +i, m_Curr +i +1);
             ++i;
             break;
         }
