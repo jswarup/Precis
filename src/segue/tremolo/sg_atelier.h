@@ -20,9 +20,11 @@ struct Sg_DfaReposAtelier
         : m_DfaRepos( dfaRepos)
     {}
 
-    uint8_t                 ByteCode( uint8_t chr )   { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
+    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_DfaRepos->ToVar( id ); }
+    
+    uint8_t                 ByteCode( uint8_t chr ) const  { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
 
-    FsaCrate::Var           RootState( void) {  return m_DfaRepos->ToVar( m_DfaRepos->m_RootId); }
+    FsaCrate::Var           RootState( void) {  return VarFromId( m_DfaRepos->m_RootId); }
 
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId()); }
@@ -30,14 +32,14 @@ struct Sg_DfaReposAtelier
     FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); });
-        return m_DfaRepos->ToVar( dfaState->DestAt( img));
+        return VarFromId( dfaState->DestAt( img));
     }
 
     FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId)
     {
         FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state);
         if ( chrId == dfaState->m_Byte)
-            return m_DfaRepos->ToVar(  dfaState->m_Dest);
+            return VarFromId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
 
@@ -79,7 +81,9 @@ struct Sg_DfaBlossomAtelier
         m_DfaBlossom.SauteStates();
     }
 
-    uint8_t                 ByteCode( uint8_t chr )  { return m_Distribs.Base()->Image( chr); }
+    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States.VarId( id ); }
+
+    uint8_t                 ByteCode( uint8_t chr ) const  { return m_Distribs.Base()->Image( chr); }
 
     FsaCrate::Var           RootState( void)  {  return m_States.ToVar( m_DfaBlossom.RootId()); }
 
@@ -87,13 +91,13 @@ struct Sg_DfaBlossomAtelier
 
     FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
-        return  m_States.VarId( dfaState->DestAt( dVar( [ chrId]( auto k) { return k->Image( chrId); })));
+        return  VarFromId( dfaState->DestAt( dVar( [ chrId]( auto k) { return k->Image( chrId); })));
     }
 
     FsaCrate::Var           DfaUniXTransition( FsaDfaUniXState  *dfaState, uint8_t chrId)
     {
         if ( chrId == dfaState->m_Byte)
-            return m_States.VarId(  dfaState->m_Dest);
+            return VarFromId(  dfaState->m_Dest);
         return FsaCrate::Var();
     }
 
