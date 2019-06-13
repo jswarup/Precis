@@ -300,9 +300,9 @@ class  Sg_Rampart
         Sz = 64
     };
 
-    std::array< Sg_Parapet, Sz> m_Parapets;
-    std::array< uint64_t, Sz>   m_Starts;
-    std::array< uint8_t, Sz>    m_FreeInds;
+    std::array< Sg_Parapet, Sz>         m_Parapets;
+    std::array< uint64_t, Sz>           m_Starts;
+    std::array< uint8_t, Sz>            m_FreeInds;
     std::array< uint8_t, Sz>            m_AllocInds;
     uint16_t                            m_FreeSz;
     uint16_t                            m_AllocSz;
