@@ -29,23 +29,23 @@ struct Sg_DfaReposAtelier
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId()); }
 
-    FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
+    FsaDfaRepos::Id         DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); });
-        return VarFromId( dfaState->DestAt( img));
+        return dfaState->DestAt( img);
     }
 
-    FsaCrate::Var           DfaUniXTransition( FsaState *state, uint8_t chrId)
+    FsaDfaRepos::Id          DfaUniXTransition( FsaState *state, uint8_t chrId)
     {
         FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state);
         if ( chrId == dfaState->m_Byte)
-            return VarFromId(  dfaState->m_Dest);
-        return FsaCrate::Var();
+            return  dfaState->m_Dest;
+        return FsaDfaRepos::Id();
     }
 
-    FsaCrate::Var           Advance( const FsaCrate::Var &state, uint8_t chrId)
+    FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
-        FsaCrate::Var   nxState;
+        FsaDfaRepos::Id   nxState;
         switch ( state.GetType())
         {
             case FsaCrate::template TypeOf< FsaDfaState>() :
@@ -89,22 +89,22 @@ struct Sg_DfaBlossomAtelier
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
 
-    FsaCrate::Var           DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
+    FsaDfaRepos::Id         DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
-        return  VarFromId( dfaState->DestAt( dVar( [ chrId]( auto k) { return k->Image( chrId); })));
+        return  dfaState->DestAt( dVar( [ chrId]( auto k) { return k->Image( chrId); }));
     }
 
-    FsaCrate::Var           DfaUniXTransition( FsaDfaUniXState  *dfaState, uint8_t chrId)
+    FsaDfaRepos::Id         DfaUniXTransition( FsaDfaUniXState  *dfaState, uint8_t chrId)
     {
         if ( chrId == dfaState->m_Byte)
-            return VarFromId(  dfaState->m_Dest);
-        return FsaCrate::Var();
+            return  dfaState->m_Dest;
+        return FsaDfaRepos::Id();
     }
 
 
-    FsaCrate::Var           Advance( const FsaCrate::Var &state, uint8_t chrId)
+    FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
-        FsaCrate::Var   nxState;
+        FsaDfaRepos::Id   nxState;
         switch ( state.GetType())
         {
             case FsaCrate::template TypeOf< FsaDfaState>() :
@@ -124,7 +124,36 @@ struct Sg_DfaBlossomAtelier
         }
         return nxState;
     }
- 
+
+    std::array< FsaDfaRepos::Id, 8>   Advance( const FsaCrate::Var &state, uint64_t chrOct)
+    {
+        uint8_t                         *chrIds = ( uint8_t *) &chrOct;
+        std::array< FsaDfaRepos::Id, 8>   nxStates;
+        switch ( state.GetType())
+        {
+            case FsaCrate::template TypeOf< FsaDfaState>() :
+            {
+                FsaDfaState             *dfaState = static_cast< FsaDfaState *>( state.GetEntry());
+                DistribCrate::Var       dVar = FetchDistib( dfaState);
+
+                Cv_For< 8>::RunAll( [ this, dfaState, &dVar, chrIds, &nxStates]( uint32_t ind) {
+                    nxStates[ ind] =   DfaTransition( dfaState, dVar, chrIds[ ind]);
+                });
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            {
+                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
+                Cv_For< 8>::RunAll( [ this, dfaState, chrIds, &nxStates]( uint32_t ind) {
+                    nxStates[ ind] =   DfaUniXTransition(  dfaState, chrIds[ ind]);
+                });
+                break;
+            }
+            default :
+                break;
+        }
+        return nxStates;
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -170,7 +199,7 @@ struct Sg_Parapet
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
     {
-        m_CurState = dfaAtelier->Advance( m_CurState, chrId);
+        m_CurState = dfaAtelier->VarFromId( dfaAtelier->Advance( m_CurState, chrId));
         return !!m_CurState;
     }
 
@@ -211,7 +240,7 @@ struct Sg_Citadel
     void    Setup( Atelier *dfaAtelier)
     {
         m_DfaAtelier = dfaAtelier;
-        m_Root = dfaAtelier->RootState();
+        m_Root =  dfaAtelier->RootState();
         LoadRootAt( 0);
         m_Starts.fill( 0);
     }
@@ -323,7 +352,7 @@ template < typename Atelier, typename TokenGram>
             bool            surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
             {
-                FsaCrate::Var       nxState = atelier->Advance( parapet->m_CurState, chrs[ k]);
+                FsaCrate::Var       nxState = atelier->VarFromId( atelier->Advance( parapet->m_CurState, chrs[ k]));
                 if ( !nxState)
                 {
                     MarkFree( ind);
@@ -369,7 +398,7 @@ struct Sg_Bastion : public Sg_Bulwark
         uint32_t        i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
-            FsaCrate::Var   nxState = m_DfaAtelier->Advance( m_Root, chrs[ i]);
+            FsaCrate::Var   nxState = m_DfaAtelier->VarFromId( m_DfaAtelier->Advance( m_Root, chrs[ i]));
             if ( ! nxState)
                 continue;
             parapet->m_CurState = nxState;
