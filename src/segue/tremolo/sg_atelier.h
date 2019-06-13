@@ -402,9 +402,9 @@ struct Sg_Bastion : public Sg_Bulwark
             if ( ! nxState)
                 continue;
             parapet->m_CurState = nxState;
-            SetStart( rootInd, m_Curr);
+            SetStart( rootInd, m_Curr +i);
             if ( m_TokenSet && parapet->HasTokens())
-                parapet->DumpTokens( m_TokenSet, m_Curr, m_Curr +i);
+                parapet->DumpTokens( m_TokenSet, m_Curr +i, m_Curr +i +1);
             ++i;
             break;
         }
