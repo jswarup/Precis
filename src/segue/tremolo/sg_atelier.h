@@ -398,10 +398,10 @@ struct Sg_Bastion : public Sg_Bulwark
         uint32_t        i = 0;
         for ( ; i < chrs.Size(); ++i)
         {
-            FsaCrate::Var   nxState = m_DfaAtelier->VarFromId( m_DfaAtelier->Advance( m_Root, chrs[ i]));
-            if ( ! nxState)
+            FsaDfaRepos::Id   nxStateId = m_DfaAtelier->Advance( m_Root, chrs[ i]);
+            if ( ! nxStateId.IsValid())
                 continue;
-            parapet->m_CurState = nxState;
+            parapet->m_CurState = m_DfaAtelier->VarFromId( nxStateId);
             SetStart( rootInd, m_Curr +i);
             if ( m_TokenSet && parapet->HasTokens())
                 parapet->DumpTokens( m_TokenSet, m_Curr +i, m_Curr +i +1);
