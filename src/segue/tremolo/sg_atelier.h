@@ -188,13 +188,11 @@ struct Sg_Parapet
     Sg_Parapet( void)
     {}
 
-    Sg_Parapet( const FsaClip &state)
+    Sg_Parapet( const FsaCrate::Var &state)
         : m_CurState( state)
     {}
 
-    void        Load( const FsaCrate::Var &rootState ) { m_CurState = rootState;  }
-
-    bool        IsLoaded( void) const  { return !!m_CurState; }
+    void        SetState( const FsaCrate::Var &rootState ) { m_CurState = rootState;  } 
 
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)
@@ -248,7 +246,7 @@ struct Sg_Citadel
     bool    LoadRootAt( uint32_t pickInd)
     {
         Sg_Parapet      *curent = &m_Parapets[ pickInd];
-        curent->Load( m_Root);
+        curent->SetState( m_Root);
         m_Starts[ pickInd] = m_Curr;
         m_Allocbits = ( m_Allocbits | ( uint64_t( 1) << pickInd));
         //CV_PREFETCH_CACHE( m_Root.GetEntry())
@@ -364,7 +362,7 @@ template < typename Atelier, typename TokenGram>
                     break;
                 }
                 SetState( ind, nxStateId);
-                parapet = Sg_Parapet( atelier->VarFromId( nxStateId)); 
+                parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
                     parapet.DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
             }
