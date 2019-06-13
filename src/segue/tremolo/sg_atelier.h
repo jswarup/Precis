@@ -124,36 +124,7 @@ struct Sg_DfaBlossomAtelier
         }
         return nxState;
     }
-
-    std::array< FsaCrate::Var, 8>   Advance( const FsaCrate::Var &state, uint64_t chrOct)
-    {
-        uint8_t                         *chrIds = ( uint8_t *) &chrOct;
-        std::array< FsaCrate::Var, 8>   nxStates;
-        switch ( state.GetType())
-        {
-            case FsaCrate::template TypeOf< FsaDfaState>() :
-            {
-                FsaDfaState             *dfaState = static_cast< FsaDfaState *>( state.GetEntry());
-                DistribCrate::Var       dVar = FetchDistib( dfaState);
-
-                Cv_For< 8>::RunAll( [ this, dfaState, &dVar, chrIds, &nxStates]( uint32_t ind) {
-                    nxStates[ ind] =   DfaTransition( dfaState, dVar, chrIds[ ind]);
-                });
-                break;
-            }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
-            {
-                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
-                Cv_For< 8>::RunAll( [ this, dfaState, chrIds, &nxStates]( uint32_t ind) {
-                    nxStates[ ind] =   DfaUniXTransition(  dfaState, chrIds[ ind]);
-                });
-                break;
-            }
-            default :
-                break;
-        }
-        return nxStates;
-    }
+ 
 };
 
 //_____________________________________________________________________________________________________________________________
