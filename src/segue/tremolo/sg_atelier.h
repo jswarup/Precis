@@ -218,7 +218,7 @@ template < typename TokenGram>
 //_____________________________________________________________________________________________________________________________
 
 template < typename Atelier, typename TokenGram>
-struct Sg_Bulwark
+struct Sg_Citadel
 {
 
     Atelier                                     *m_DfaAtelier;
@@ -229,7 +229,7 @@ struct Sg_Bulwark
     uint64_t                                    m_Allocbits;
     TokenGram                                   *m_TokenSet;
 
-    Sg_Bulwark( void)
+    Sg_Citadel( void)
         : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL), m_Allocbits( 0)
     {}
 
@@ -294,7 +294,7 @@ struct Sg_Bulwark
 
 //_____________________________________________________________________________________________________________________________
 
-class  Sg_Rampart
+class  Sg_Bulwark
 {
     enum {
         Sz = 64
@@ -308,10 +308,10 @@ class  Sg_Rampart
     uint16_t                            m_AllocSz;
 
 public: 
-    Sg_Rampart( void)
+    Sg_Bulwark( void)
         :  m_FreeSz( Sz), m_AllocSz( 0)
     {
-        uint32_t sz = sizeof( Sg_Rampart);
+        uint32_t sz = sizeof( Sg_Bulwark);
         m_Starts.fill( 0);
         Cv_For< Sz>::RunAll( [this]( uint32_t ind) { m_FreeInds[ ind] = Sz -1 -ind; });
     }
@@ -341,10 +341,10 @@ template < typename Atelier, typename TokenGram>
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
-        for ( uint16_t i =  m_AllocSz; i > 0; --i)
+        for ( uint16_t  q =  m_AllocSz; q > 0; )
         {
-            uint32_t        ind = m_AllocInds[ i -1];
-            Sg_Parapet      *parapet = &m_Parapets[ ind];
+            uint32_t        ind = m_AllocInds[ --q];
+            Sg_Parapet      *parapet = Parapet( ind);
             bool            surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
             {
@@ -371,7 +371,7 @@ template < typename Atelier, typename TokenGram>
 //_____________________________________________________________________________________________________________________________
 
 template < typename Atelier, typename TokenGram>
-struct Sg_Bastion : public Sg_Rampart
+struct Sg_Bastion : public Sg_Bulwark
 {
     Atelier                 *m_DfaAtelier;
     uint64_t                m_Curr;
