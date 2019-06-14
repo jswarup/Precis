@@ -347,9 +347,9 @@ template < typename Atelier, typename TokenGram>
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
-        for ( uint16_t  q =  m_AllocSz; q > 0; )
+        for ( uint16_t  q = 0; q < m_AllocSz; ++q)
         {
-            uint32_t            ind = m_AllocInds[ --q];
+            uint32_t            ind = m_AllocInds[ q];
             Sg_Parapet          parapet = atelier->VarFromId( State( ind));
             bool                surviveFlg = true;
             for ( uint32_t k = 0; k < sz; ++k)
