@@ -320,6 +320,7 @@ public:
         Cv_For< Sz>::RunAll( [this]( uint32_t ind) { m_FreeInds[ ind] = Sz -1 -ind; });
     }
 
+    uint16_t    SzAlloc( void) const { return m_AllocSz; }
     void        MarkOccupied( uint32_t ind) 
     { 
         m_AllocInds[ m_AllocSz++] = ( uint8_t) ind;  
@@ -350,24 +351,25 @@ template < typename Atelier, typename TokenGram>
         for ( uint16_t  q = 0; q < m_AllocSz; ++q)
         {
             uint32_t            ind = m_AllocInds[ q];
-            Sg_Parapet          parapet = atelier->VarFromId( State( ind));
-            bool                surviveFlg = true;
+            Sg_Parapet          parapet = atelier->VarFromId( State( ind)); 
+            FsaId               nxStateId;
             for ( uint32_t k = 0; k < sz; ++k)
             {
-                FsaId           nxStateId = atelier->Advance( parapet.m_CurState, chrs[ k]);
-                if ( !nxStateId.IsValid())
-                {
-                    MarkFree( ind);
-                    surviveFlg = false;
-                    break;
-                }
-                SetState( ind, nxStateId);
+                nxStateId = atelier->Advance( parapet.m_CurState, chrs[ k]);
+                if ( !nxStateId.IsValid()) 
+                    break; 
+
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
                     parapet.DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
             }
-            if ( surviveFlg)
+            if ( nxStateId.IsValid())
+            {
                 allocInds[ szAlloc++] = ( uint8_t) ind;  
+                SetState( ind, nxStateId);
+            }
+            else
+                MarkFree( ind);
         }
         std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
         m_AllocSz = szAlloc;
@@ -397,22 +399,20 @@ struct Sg_Bastion : public Sg_Bulwark
 
     uint32_t    ScanRoot( uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
     { 
-        uint32_t        i = 0;
-        for ( ; i < chrs.Size(); ++i)
-        {
-            FsaDfaRepos::Id   nxStateId = m_DfaAtelier->Advance( m_Root, chrs[ i]);
-            if ( ! nxStateId.IsValid())
-                continue;
+        uint32_t            i = 0;
+        FsaDfaRepos::Id     nxStateId;
+        for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
+            nxStateId = m_DfaAtelier->Advance( m_Root, chrs[ i]);
+        
+        if ( ! nxStateId.IsValid())
+            return chrs.Size();
+        Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
+        SetState( rootInd, nxStateId); 
+        SetStart( rootInd, m_Curr +i -1);
 
-            SetState( rootInd, nxStateId); 
-            SetStart( rootInd, m_Curr +i);
-
-            Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
-            if ( m_TokenSet && nxParapet.HasTokens())
-                nxParapet.DumpTokens( m_TokenSet, m_Curr +i, m_Curr +i +1);
-            ++i;
-            break;
-        }
+        if ( m_TokenSet && nxParapet.HasTokens())
+            nxParapet.DumpTokens( m_TokenSet, m_Curr +i -1, m_Curr +i);
+        
         return i;
     }
 
@@ -421,8 +421,9 @@ struct Sg_Bastion : public Sg_Bulwark
         while ( chrs.Size())
         {
             uint32_t    rootInd = FetchFree();
-            uint32_t    szScan = ScanRoot( rootInd, chrs);                                               // scan for root-match in the buffer.
-            ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);   // scan-sycle the rest upto the scan-Marker
+            uint32_t    szScan = ScanRoot( rootInd, chrs);       
+            if ( SzAlloc())                                                     // scan for root-match in the buffer.
+                ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);     // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
             chrs.Advance( szScan);
             if ( !chrs.Size())
