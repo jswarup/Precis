@@ -209,11 +209,11 @@ template < typename Atelier>
     Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 
 template < typename TokenGram>
-    void            DumpTokens( TokenGram  *tokenSet, uint64_t start, uint64_t curr)
+    void            DumpTokens( TokenGram  *tokenSet, uint64_t start, uint64_t end)
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            tokenSet->Append( Sg_MatchData( start, uint32_t( curr -start), tokens[ i]));
+            tokenSet->Append( Sg_MatchData( start, uint32_t( end -start), tokens[ i]));
     }
 };
 
@@ -267,7 +267,7 @@ struct Sg_Citadel
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
                     if ( m_TokenSet && parapet->HasTokens())
-                        parapet->DumpTokens( m_TokenSet, m_Starts[ ind], m_Curr);
+                        parapet->DumpTokens( m_TokenSet, m_Starts[ ind], m_Curr +1);
                 }
             }
         m_Allocbits = allocbits;
@@ -361,7 +361,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, m_Starts[ ind] +k, curr);
+                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
             }
             if ( nxStateId.IsValid())
             {
