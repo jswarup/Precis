@@ -42,6 +42,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     InPort                              m_InDataPort;
     OutTokPort                          m_TokOutPort;
     Atelier                             *m_Atelier; 
+    Sg_Bulwark                          m_BulWark;
     Bastion                             m_Bastion;
     bool                                m_CloseFlg;
 
@@ -93,6 +94,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t    tokInd = 0;
         uint32_t    dInd = 0;
         uint32_t    tokCnt = 0;
+        m_Bastion.SetBulwark( &m_BulWark);
         for ( ; dInd < szBurst;  dInd++)
         {
             if ( m_Bastion.m_TokenSet && ( m_Bastion.m_TokenSet->Size() >  TokenGram::Sz/2))
