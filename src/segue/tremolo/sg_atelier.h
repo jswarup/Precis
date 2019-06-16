@@ -225,9 +225,9 @@ struct Sg_Citadel
 
     Atelier                                     *m_DfaAtelier;
     FsaCrate::Var                               m_Root;
-    uint64_t                                    m_Curr;
+    uint32_t                                    m_Curr;
     std::array< Sg_Parapet, 64>                 m_Parapets;
-    std::array< uint64_t, 64>                   m_Starts;
+    std::array< uint32_t, 64>                   m_Starts;
     uint64_t                                    m_Allocbits;
     TokenGram                                   *m_TokenSet;
 
@@ -304,16 +304,19 @@ class  Sg_Bulwark
     
     typedef FsaDfaRepos::Id             FsaId;
 
+    uint64_t                            m_Origin;
     std::array< FsaId, Sz>              m_States;
-    std::array< uint64_t, Sz>           m_Starts;
+    std::array< uint32_t, Sz>           m_Starts;
     std::array< uint8_t, Sz>            m_FreeInds;
     std::array< uint8_t, Sz>            m_AllocInds;
+    std::array< uint8_t, Sz>            m_FinInds;
     uint16_t                            m_FreeSz;
     uint16_t                            m_AllocSz;
+    uint16_t                            m_TokSz;
 
 public: 
     Sg_Bulwark( void)
-        :  m_FreeSz( Sz), m_AllocSz( 0)
+        :  m_FreeSz( Sz), m_AllocSz( 0), m_Origin( 0)
     {
         uint32_t sz = sizeof( Sg_Bulwark);
         m_Starts.fill( 0);
@@ -338,12 +341,14 @@ public:
     const FsaId &State( uint32_t ind) const { return m_States[ ind]; }
     void        SetState( uint32_t ind, const FsaId &id) { m_States[ ind] = id; }
     
-    uint64_t    Start( uint32_t ind) const { return m_Starts[ ind]; }
 
-    void        SetStart( uint32_t ind, uint64_t val) { m_Starts[ ind] = val; }
+    uint64_t    StartFromOrigin( uint32_t ind) const { return m_Origin + m_Starts[ ind]; }
 
-    template < typename Atelier, typename TokenGram>
-    uint32_t    ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint64_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
+    void        SetOrigin( uint64_t origin) { m_Origin = origin; }
+    void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
+
+template < typename Atelier, typename TokenGram>
+    uint32_t    ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
     { 
         uint32_t            i = 0;
         FsaDfaRepos::Id     nxStateId;
@@ -380,7 +385,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
+                    parapet.DumpTokens( tokenSet, StartFromOrigin( ind), curr +k +1);
             }
             if ( nxStateId.IsValid())
             {
@@ -403,7 +408,7 @@ struct Sg_Bastion
 {
     Sg_Bulwark              *m_BulWark;
     Atelier                 *m_DfaAtelier;
-    uint64_t                m_Curr;
+    uint32_t                m_Curr;
     FsaCrate::Var           m_Root;
     TokenGram               *m_TokenSet;
 
@@ -417,7 +422,12 @@ struct Sg_Bastion
         m_Root = dfaAtelier->RootState();
     }
 
-    void    SetBulwark( Sg_Bulwark *bulWark) { m_BulWark = bulWark; }
+    void    SetBulwark( Sg_Bulwark *bulWark, uint64_t origin) 
+    { 
+        m_BulWark = bulWark; 
+        bulWark->SetOrigin(  origin);
+        m_Curr = 0;
+    }
     
 
     bool    Play( Cv_Seq< uint8_t> chrs)
