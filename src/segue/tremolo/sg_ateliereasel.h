@@ -43,12 +43,14 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     OutTokPort                                  m_TokOutPort;
     Atelier                                     *m_Atelier; 
     uint64_t                                    m_Bytes;
+    uint32_t                                    m_AtelierEaseld;
+    uint32_t                                    m_AtelierEaseSz;
     Sg_Bulwark                                  m_BulWark;
     Bastion                                     m_Bastion;
     bool                                        m_CloseFlg;
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
-        : Base( name), m_CloseFlg( false)
+        : Base( name), m_Bytes( 0), m_AtelierEaseld( 0), m_AtelierEaseSz( 1), m_CloseFlg( false)
     {}
 
     //_____________________________________________________________________________________________________________________________
@@ -112,7 +114,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             if ( !m_Bastion.m_TokenSet)
                 m_Bastion.m_TokenSet = tokWharf.AllocFree();
             Datagram    *datagram = wharf.Get( dInd); 
-            bool        proceed = m_Bastion.Play( Cv_Seq( datagram->PtrAt( 0), datagram->SzFill()));
+            Cv_Seq      dataSeq( datagram->PtrAt( 0), datagram->SzFill());
+            bool        proceed = ( (m_AtelierEaseld++ % m_AtelierEaseSz ) == 0) ? m_Bastion.Play( dataSeq): m_Bastion.PlayScan( dataSeq);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         }

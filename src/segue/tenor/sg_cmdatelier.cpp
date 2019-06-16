@@ -21,21 +21,21 @@
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Cv_Array< uint8_t, 4096>               Datagram; 
-    typedef Sg_DataSink< Datagram, 64, 2048, 2048>  OutPort; 
+    typedef Cv_Array< uint8_t, 4096>                Datagram; 
+    typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
     typedef Cv_Array< Sg_MatchData, 1024>           TokenGram;
     typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
-    std::string             m_ImgFile;
-    std::string             m_InputFile;
-    std::string             m_OutputFile; 
-    std::string             m_TokenLogFile;
-    bool                    m_InputLoopFlg;
-    Sg_DfaBlossomAtelier    *m_Atelier;
-    std::vector< uint8_t>   m_MemArr; 
+    std::string                                     m_ImgFile;
+    std::string                                     m_InputFile;
+    std::string                                     m_OutputFile; 
+    std::string                                     m_TokenLogFile;
+    bool                                            m_InputLoopFlg;
+    Sg_DfaBlossomAtelier                            *m_Atelier;
+    std::vector< uint8_t>                           m_MemArr; 
 
     Sg_EaselVita( void)
         : m_InputLoopFlg( false), m_Atelier( NULL)
@@ -59,6 +59,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
     { "-oout", "<output>", 0},  
     { "-otok", "<token>", 0},   
     { "-dimg", "<dotfile>", 0},  
+    { "-ca", "<value>", "atelier-count"}, 
     { "-loop", 0, 0},
     { 0, 0,  0}
 };
@@ -68,9 +69,11 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
 class Sg_AtelierCmdProcessor : public Cv_CmdExecutor, public Sg_EaselVita
 { 
     std::string             m_DotFile;
+    uint32_t                m_AtelierSz;
 
 public:
     Sg_AtelierCmdProcessor( void)  
+        : m_AtelierSz( 1)
     {}
 
     int     Execute( void);
@@ -108,6 +111,12 @@ public:
         if ( "-otok" == key)
         {
             m_TokenLogFile = arg;
+            return true;
+        } 
+        if ( "-ca" == key)
+        { 
+            char      *prs = NULL;
+            m_AtelierSz = strtoul( arg.c_str(), &prs, 10);
             return true;
         } 
         if ( "-loop" == key)
@@ -227,15 +236,20 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     Sg_ReposEasel                       reposEasel; 
     Sg_FileReadAtelierEasel             *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel>();
     if ( m_ImgFile.size())
-    {
-        Sg_AtelierEasel< Sg_EaselVita, Sg_DfaBlossomAtelier>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>>(); 
-        atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
-        if ( m_TokenLogFile.size())
+    { 
+        for ( uint32_t q = 0; q < m_AtelierSz; ++q)
         {
-            Sg_TokenLogEasel< Sg_EaselVita>      *tokenLog = reposEasel.Construct< Sg_TokenLogEasel<Sg_EaselVita>>(); 
-            tokenLog->m_InTokPort.Connect( &atelier->m_TokOutPort);
-
+            Sg_AtelierEasel< Sg_EaselVita, Sg_DfaBlossomAtelier>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>>();         
+            atelier->m_AtelierEaseld = q;
+            atelier->m_AtelierEaseSz = m_AtelierSz;
+            atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
+            if ( m_TokenLogFile.size())
+            {
+                Sg_TokenLogEasel< Sg_EaselVita>      *tokenLog = reposEasel.Construct< Sg_TokenLogEasel<Sg_EaselVita>>(); 
+                tokenLog->m_InTokPort.Connect( &atelier->m_TokOutPort); 
+            }
         }
+        
     }
     if ( m_OutputFile.size())
     {

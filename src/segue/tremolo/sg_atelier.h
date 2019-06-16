@@ -348,23 +348,22 @@ public:
     void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
 
 template < typename Atelier, typename TokenGram>
-    uint32_t    ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
+    auto        ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
     { 
         uint32_t            i = 0;
         FsaDfaRepos::Id     nxStateId;
         for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
-            nxStateId = atelier->Advance( root, chrs[ i]);
+            nxStateId = atelier->Advance( root, chrs[ i]); 
 
         if ( ! nxStateId.IsValid())
-            return chrs.Size();
+            return std::make_tuple( false, chrs.Size());
         Sg_Parapet      nxParapet = atelier->VarFromId( nxStateId); 
         SetState( rootInd, nxStateId); 
         SetStart( rootInd, curr +i -1);
 
         if ( tokenSet && nxParapet.HasTokens())
             nxParapet.DumpTokens( tokenSet, curr +i -1, curr +i);
-
-        return i;
+        return std::make_tuple( true, i);
     }
 
 template < typename Atelier, typename TokenGram>
@@ -408,12 +407,12 @@ struct Sg_Bastion
 {
     Sg_Bulwark              *m_BulWark;
     Atelier                 *m_DfaAtelier;
-    uint32_t                m_Curr;
-    FsaCrate::Var           m_Root;
     TokenGram               *m_TokenSet;
+    uint32_t                m_Curr;
+    FsaCrate::Var           m_Root; 
 
     Sg_Bastion( void)
-        : m_DfaAtelier( NULL), m_Curr( 0), m_TokenSet( NULL)
+        : m_DfaAtelier( NULL), m_TokenSet( NULL), m_Curr( 0) 
     {}
 
     void    Setup( Atelier *dfaAtelier)
@@ -430,22 +429,32 @@ struct Sg_Bastion
     }
     
 
+    bool    PlayScan( Cv_Seq< uint8_t> chrs)
+    {
+        uint32_t    szScan = chrs.Size();
+
+        if ( m_BulWark->SzAlloc())                                                                       // scan for root-match in the buffer.
+            m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
+        m_Curr += szScan;
+        chrs.Advance( szScan); 
+        return true;
+    }
+
     bool    Play( Cv_Seq< uint8_t> chrs)
     {
         while ( chrs.Size())
         {
-            uint32_t    rootInd = m_BulWark->FetchFree();
-            uint32_t    szScan = m_BulWark->ScanRoot( m_DfaAtelier, m_TokenSet, m_Root, m_Curr, rootInd, chrs);       
+            
+            uint32_t    rootInd = CV_UINT32_MAX;
+            uint32_t    szScan = chrs.Size();
+            bool        injectFlg = false; 
+                std::tie( injectFlg, szScan) = m_BulWark->ScanRoot( m_DfaAtelier, m_TokenSet, m_Root, m_Curr, rootInd = m_BulWark->FetchFree(), chrs);   
+
             if ( m_BulWark->SzAlloc())                                                                       // scan for root-match in the buffer.
                 m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
-            chrs.Advance( szScan);
-            if ( !chrs.Size())
-            {
-                m_BulWark->MarkFree( rootInd);
-                break;
-            }
-            m_BulWark->MarkOccupied( rootInd);
+            chrs.Advance( szScan); 
+            injectFlg  ? m_BulWark->MarkOccupied( rootInd) : m_BulWark->MarkFree( rootInd);
         }
         return true;
     }
