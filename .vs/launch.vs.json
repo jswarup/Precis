@@ -5,9 +5,9 @@
     {
       "type": "default",
       "project": "toolkit\\builds\\code\\CMakeLists.txt",
-      "projectTarget": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
-      "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
-      "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
+      "projectTarget": "precis.exe (C:\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
+      "name": "precis.exe (C:\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
+      "currentDir": "C:\\Work\\Precis\\workbench",
       "args": [
         //"rexp  -irex ip1.rex -idata data1.txt -oimg ip1.fsa -odfa a.dot"
         "atelier -idata data1.txt  -iimg ip1.fsa -otok a.tok  "

@@ -39,12 +39,12 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     
     typedef Sg_Bastion< Atelier, TokenGram>     Bastion;
 
-    InPort                              m_InDataPort;
-    OutTokPort                          m_TokOutPort;
-    Atelier                             *m_Atelier; 
-    Sg_Bulwark                          m_BulWark;
-    Bastion                             m_Bastion;
-    bool                                m_CloseFlg;
+    InPort                                      m_InDataPort;
+    OutTokPort                                  m_TokOutPort;
+    Atelier                                     *m_Atelier; 
+    Sg_Bulwark                                  m_BulWark;
+    Bastion                                     m_Bastion;
+    bool                                        m_CloseFlg;
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
         : Base( name), m_CloseFlg( false)
