@@ -348,7 +348,7 @@ public:
     void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
 
 template < typename Atelier, typename TokenGram>
-    auto        ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
+    auto            ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
     { 
         uint32_t            i = 0;
         FsaDfaRepos::Id     nxStateId;
@@ -367,7 +367,7 @@ template < typename Atelier, typename TokenGram>
     }
 
 template < typename Atelier, typename TokenGram>
-    void    ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    uint32_t        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
@@ -396,7 +396,7 @@ template < typename Atelier, typename TokenGram>
         }
         std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
         m_AllocSz = szAlloc;
-        return;
+        return szAlloc;
     }
 };
 
@@ -426,22 +426,20 @@ struct Sg_Bastion
         m_BulWark = bulWark; 
         bulWark->SetOrigin(  origin);
         m_Curr = 0;
-    }
-    
+    } 
 
+    // return true if context is persists
     bool    PlayScan( Cv_Seq< uint8_t> chrs)
     {
-        uint32_t    szScan = chrs.Size();
-
-        if ( m_BulWark->SzAlloc())                                                                       // scan for root-match in the buffer.
-            m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
-        m_Curr += szScan;
-        chrs.Advance( szScan); 
-        return true;
+        uint32_t    szAlloc = m_BulWark->SzAlloc();
+        if ( szAlloc)                                                                                               // scan for root-match in the buffer.
+            szAlloc = m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, chrs.Size());                   // scan-sycle the rest upto the scan-Marker 
+        return szAlloc;
     }
 
+    // return true if context is persists
     bool    Play( Cv_Seq< uint8_t> chrs)
-    {
+    { 
         while ( chrs.Size())
         {
             

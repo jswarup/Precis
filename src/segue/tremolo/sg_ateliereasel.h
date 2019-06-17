@@ -48,9 +48,10 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     Sg_Bulwark                                  m_BulWark;
     Bastion                                     m_Bastion;
     bool                                        m_CloseFlg;
+    bool                                        m_SavedCtxtFlag;
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
-        : Base( name), m_Bytes( 0), m_AtelierEaseld( 0), m_AtelierEaseSz( 1), m_CloseFlg( false)
+        : Base( name), m_Bytes( 0), m_AtelierEaseld( 0), m_AtelierEaseSz( 1), m_CloseFlg( false), m_SavedCtxtFlag( false)
     {}
 
     //_____________________________________________________________________________________________________________________________
