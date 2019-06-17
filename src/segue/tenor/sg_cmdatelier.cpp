@@ -162,9 +162,9 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, 
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_FileReadAtelierEasel : public  Sg_FileReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>
+struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>
 {
-    typedef Sg_FileReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>    Base;
+    typedef Sg_FileBufferLoopReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>    Base;
     
     Sg_DfaBlossomAtelier        *m_DfaBlossomAtelier; 
 

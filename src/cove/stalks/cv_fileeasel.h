@@ -171,5 +171,97 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
     }
 }; 
 
+//_____________________________________________________________________________________________________________________________
+
+template < typename Easel, typename Vita>
+struct Sg_FileBufferLoopReadEasel : public Sg_WorkEasel< Easel, Vita, Cv_FileStats>
+{
+    typedef Sg_WorkEasel< Easel, Vita, Cv_FileStats>    Base;
+    typedef typename Vita::Datagram         Datagram;
+    typedef typename Vita::OutPort          OutPort;
+    typedef typename OutPort::Wharf         OutWharf;
+    typedef typename Base::Stats            Stats;
+
+    std::vector< uint8_t>       m_InBuffer;
+    OutPort                     m_DataPort;  
+    bool                        m_FileClosingFlg;
+    uint32_t                    m_CharIndex;  
+
+    Sg_FileBufferLoopReadEasel( const std::string &name = "FileBufferLoopRead") 
+        : Base( name), m_FileClosingFlg( false), m_CharIndex( 0)  
+    {}
+
+
+    bool    DoInit( Vita *vita)
+    {
+        if ( !Base::DoInit( vita))
+            return false;
+        
+        if ( !Cv_Aid::ReadVec( &m_InBuffer, vita->m_InputFile.c_str()))
+            return false;
+        return true;
+    }
+
+    void  ProcessDatagram( Datagram *dgram)
+    {
+    }
+
+    bool    IsRunable( void)
+    {
+        return  true;
+    }
+
+    void    DoRunStep( void)
+    {  
+        Stats           *stats = this->CurStats();
+        if ( m_FileClosingFlg )
+        {
+            m_FileClosingFlg = false;
+            m_CharIndex = 0;
+            return;
+        }
+        OutWharf        wharf( &m_DataPort);
+
+        if ( m_FileClosingFlg)
+        {
+            wharf.SetClose();
+            return;
+        }
+        uint32_t        szBurst = wharf.Size(); 
+        szBurst = wharf.ProbeSzFree( szBurst);
+        if ( !szBurst) 
+            stats->m_ChokeSz.Incr(); 
+
+        Easel           *thisEasel = ( Easel *) this;
+        uint32_t        dInd = 0;
+        for ( ; dInd < szBurst;  dInd++)
+        {   
+            Datagram    *datagram = wharf.AllocFree();
+            uint32_t    szFill = datagram->SzVoid();
+            uint32_t    szRemain = uint32_t( m_InBuffer.size() - m_CharIndex);
+            if ( szFill > szRemain)
+                szFill = szRemain;
+            if ( szFill)
+                std::copy( &m_InBuffer.at( m_CharIndex), &m_InBuffer.at( m_CharIndex) +szFill, datagram->PtrAt( 0));
+            datagram->MarkFill( szFill);
+            thisEasel->ProcessDatagram( datagram);
+            stats->m_Bytes.Incr( szFill);
+            m_CharIndex += szFill;
+
+            if ( !szFill || wharf.IsTail()) 
+                wharf.Discard( datagram);
+            else {
+                wharf.Set( dInd, datagram); 
+            }
+            if ( !szFill)
+            {
+                m_FileClosingFlg = true;
+                break;
+            }
+        }
+        wharf.SetSize( dInd);
+        return;
+    }
+}; 
 
 //_____________________________________________________________________________________________________________________________
