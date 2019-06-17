@@ -367,7 +367,7 @@ template < typename Atelier, typename TokenGram>
     }
 
 template < typename Atelier, typename TokenGram>
-    uint32_t        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    void        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
@@ -396,7 +396,7 @@ template < typename Atelier, typename TokenGram>
         }
         std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
         m_AllocSz = szAlloc;
-        return szAlloc;
+        return;
     }
 };
 
@@ -430,31 +430,32 @@ struct Sg_Bastion
 
     // return true if context is persists
     bool    PlayScan( Cv_Seq< uint8_t> chrs)
-    {
-        uint32_t    szAlloc = m_BulWark->SzAlloc();
-        if ( szAlloc)                                                                                               // scan for root-match in the buffer.
-            szAlloc = m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, chrs.Size());                   // scan-sycle the rest upto the scan-Marker 
-        return szAlloc;
+    { 
+        if ( m_BulWark->SzAlloc())                                                                                               // scan for root-match in the buffer.
+            m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, chrs.Size());                   // scan-sycle the rest upto the scan-Marker 
+        return !!m_BulWark->SzAlloc();
     }
 
     // return true if context is persists
     bool    Play( Cv_Seq< uint8_t> chrs)
     { 
+        uint32_t    szAlloc = m_BulWark->SzAlloc();
         while ( chrs.Size())
-        {
-            
-            uint32_t    rootInd = CV_UINT32_MAX;
+        {   
+            uint32_t    rootInd = m_BulWark->FetchFree();
             uint32_t    szScan = chrs.Size();
             bool        injectFlg = false; 
-                std::tie( injectFlg, szScan) = m_BulWark->ScanRoot( m_DfaAtelier, m_TokenSet, m_Root, m_Curr, rootInd = m_BulWark->FetchFree(), chrs);   
 
-            if ( m_BulWark->SzAlloc())                                                                       // scan for root-match in the buffer.
+            std::tie( injectFlg, szScan) = m_BulWark->ScanRoot( m_DfaAtelier, m_TokenSet, m_Root, m_Curr, rootInd, chrs);   
+
+            if ( szAlloc)                                                                       // scan for root-match in the buffer.
                 m_BulWark->ScanCycle( m_DfaAtelier, m_TokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
             chrs.Advance( szScan); 
             injectFlg  ? m_BulWark->MarkOccupied( rootInd) : m_BulWark->MarkFree( rootInd);
+            szAlloc = m_BulWark->SzAlloc();
         }
-        return true;
+        return !!szAlloc;
     }
 };
 

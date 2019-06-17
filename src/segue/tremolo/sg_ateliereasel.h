@@ -102,6 +102,9 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         m_Bytes += szBurst;
         for ( ; dInd < szBurst;  dInd++)
         {
+            bool        rootScanFlg = (m_AtelierEaseld++ % m_AtelierEaseSz ) == 0;
+            Datagram    *datagram = wharf.Get( dInd); 
+             
             if ( m_Bastion.m_TokenSet && ( m_Bastion.m_TokenSet->Size() >  TokenGram::Sz/2))
             {    
                 tokCnt += m_Bastion.m_TokenSet->SzFill();
@@ -114,9 +117,8 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             }
             if ( !m_Bastion.m_TokenSet)
                 m_Bastion.m_TokenSet = tokWharf.AllocFree();
-            Datagram    *datagram = wharf.Get( dInd); 
-            Cv_Seq      dataSeq( datagram->PtrAt( 0), datagram->SzFill());
-            bool        proceed = ( (m_AtelierEaseld++ % m_AtelierEaseSz ) == 0) ? m_Bastion.Play( dataSeq): m_Bastion.PlayScan( dataSeq);
+            Cv_Seq              dataSeq( datagram->PtrAt( 0), datagram->SzFill());
+            m_SavedCtxtFlag = rootScanFlg ? m_Bastion.Play( dataSeq) : (  m_SavedCtxtFlag ? m_Bastion.PlayScan( dataSeq) : 0);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         }
