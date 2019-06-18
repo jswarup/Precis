@@ -2,8 +2,8 @@
 #pragma once
 
 
-#include    "segue/timbre/sg_bitset.h"
-#include    "segue/timbre/sg_partition.h" 
+#include    "segue/epigraph/sg_bitset.h"
+#include    "segue/epigraph/sg_partition.h" 
 
 //_____________________________________________________________________________________________________________________________
 

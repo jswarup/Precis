@@ -94,10 +94,10 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/segue/tenor/sg_include.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdxml.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdfilt.cpp
-    ${SOURCE_PATH}/segue/timbre/sg_chset.cpp
-    ${SOURCE_PATH}/segue/timbre/sg_distrib.cpp
-    ${SOURCE_PATH}/segue/timbre/sg_ecdistribdb.cpp
-	${SOURCE_PATH}/segue/timbre/sg_ecoptimize.cpp
+    ${SOURCE_PATH}/segue/epigraph/sg_chset.cpp
+    ${SOURCE_PATH}/segue/epigraph/sg_distrib.cpp
+    ${SOURCE_PATH}/segue/epigraph/sg_ecdistribdb.cpp
+	${SOURCE_PATH}/segue/epigraph/sg_ecoptimize.cpp
 	${SOURCE_PATH}/segue/colophon/sg_filter.cpp
 	${SOURCE_PATH}/segue/colophon/sg_fsastate.cpp 
 	${SOURCE_PATH}/segue/colophon/sg_dfastate.cpp 

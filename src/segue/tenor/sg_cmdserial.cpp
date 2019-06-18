@@ -3,8 +3,8 @@
 
 #include    "segue/tenor/sg_include.h" 
 #include    "cove/barn/cv_cmdexec.h"
-#include    "segue/timbre/sg_parser.h"
-#include    "segue/timbre/sg_partition.h"
+#include    "segue/epigraph/sg_parser.h"
+#include    "segue/epigraph/sg_partition.h"
 
 #include <utility>
 #include  <tuple>
@@ -34,8 +34,7 @@ public:
     }
 
     bool    ParseArg( const std::string &key, const std::string &arg)
-    {
-         
+    {    
         return false;
     }
 }; 

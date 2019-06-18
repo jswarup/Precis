@@ -3,7 +3,7 @@
 
 #include    "segue/tenor/sg_include.h" 
 #include    "cove/barn/cv_cmdexec.h"
-#include    "segue/timbre/sg_chset.h" 
+#include    "segue/epigraph/sg_chset.h" 
 
 //_____________________________________________________________________________________________________________________________ 
  

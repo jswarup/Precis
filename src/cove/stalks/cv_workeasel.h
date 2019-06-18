@@ -31,8 +31,7 @@ struct Sg_BaseEasel :  public Cv_CrateEntry
 
     bool                IsRunnable( void) { return true; }
 
-    bool                DoJoin( void) { return true; }
-  
+    bool                DoJoin( void) { return true; } 
 
     bool                SnapStats( void) {  return false; } 
     bool                ResetLastSnap( void) { return false; }

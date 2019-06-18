@@ -2,11 +2,11 @@
 #pragma once
 
 
-#include    "segue/timbre/sg_parser.h"
+#include    "segue/epigraph/sg_parser.h"
 #include 	"segue/grammar/sg_xmlshard.h" 
-#include 	"segue/timbre/sg_parsenumerics.h" 
+#include 	"segue/epigraph/sg_parsenumerics.h" 
 #include    "segue/colophon/sg_filter.h"
-#include    "segue/timbre/sg_partition.h" 
+#include    "segue/epigraph/sg_partition.h" 
 
 //_____________________________________________________________________________________________________________________________
 

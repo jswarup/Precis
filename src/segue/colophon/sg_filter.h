@@ -3,7 +3,7 @@
 
 #include    "cove/barn/cv_cexpr.h"
 #include 	"cove/barn/cv_aid.h"
-#include    "segue/timbre/sg_chset.h"
+#include    "segue/epigraph/sg_chset.h"
 #include 	"cove/silo/cv_craterepos.h" 
 
 //_____________________________________________________________________________________________________________________________  

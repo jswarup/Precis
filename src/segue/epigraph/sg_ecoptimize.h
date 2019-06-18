@@ -2,7 +2,7 @@
 #pragma once
  
 #include    "cove/silo/cv_repos.h"
-#include    "segue/timbre/sg_distrib.h" 
+#include    "segue/epigraph/sg_distrib.h" 
 
 //_____________________________________________________________________________________________________________________________ 
 

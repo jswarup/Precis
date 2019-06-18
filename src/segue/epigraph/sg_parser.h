@@ -3,7 +3,7 @@
 
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/silo/cv_stack.h"
-#include    "segue/timbre/sg_shard.h"
+#include    "segue/epigraph/sg_shard.h"
   
 namespace Sg_Timbre
 {

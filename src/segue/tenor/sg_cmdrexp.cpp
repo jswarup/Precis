@@ -5,10 +5,10 @@
 #include    "cove/barn/cv_cmdexec.h" 
 #include    "cove/silo/cv_stash.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
-#include    "segue/timbre/sg_parser.h"
+#include    "segue/epigraph/sg_parser.h"
 #include    "segue/colophon/sg_fsaelemcnstr.h"
 #include    "segue/colophon/sg_dfastate.h"
-#include    "segue/timbre/sg_partition.h" 
+#include    "segue/epigraph/sg_partition.h" 
 #include    "segue/colophon/sg_atelier.h"
 #include	"cove/flux/cv_cask.h"
 
