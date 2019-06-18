@@ -2,7 +2,7 @@
 
 
 #include    "trellis/tenor/tr_include.h" 
-#include    "cove/snip/cv_cmdexec.h" 
+#include    "cove/barn/cv_cmdexec.h" 
 #include    "trellis/swarm/tr_worker.h"  
 #include    "cove/stalks/cv_datacarousal.h"
 

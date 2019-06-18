@@ -2,10 +2,10 @@
 
 
 #include    "segue/tenor/sg_include.h" 
-#include    "cove/snip/cv_cmdexec.h" 
+#include    "cove/barn/cv_cmdexec.h" 
 #include    "cove/silo/cv_stash.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
-#include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/timbre/sg_parser.h"
 #include    "segue/colophon/sg_fsaelemcnstr.h"
 #include    "segue/colophon/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 

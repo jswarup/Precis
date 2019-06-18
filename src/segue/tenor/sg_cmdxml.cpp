@@ -2,9 +2,9 @@
 
 
 #include    "segue/tenor/sg_include.h" 
-#include    "cove/snip/cv_cmdexec.h"
+#include    "cove/barn/cv_cmdexec.h"
 #include    "segue/grammar/sg_xmlgrammar.h"
-#include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/timbre/sg_parser.h"
 
 #include	<utility>
 #include	<tuple>

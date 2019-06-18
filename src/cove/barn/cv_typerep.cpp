@@ -3,7 +3,7 @@
 
 
 #include    "cove/barn/cv_include.h"
-#include 	"cove/snip/cv_typerep.h"
+#include 	"cove/barn/cv_typerep.h"
 
 //_____________________________________________________________________________________________________________________________  
 

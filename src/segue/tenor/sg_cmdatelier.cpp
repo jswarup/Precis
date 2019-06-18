@@ -2,14 +2,14 @@
 
 
 #include    "trellis/tenor/tr_include.h" 
-#include    "cove/snip/cv_cmdexec.h"  
+#include    "cove/barn/cv_cmdexec.h"  
 #include    "cove/stalks/cv_workeasel.h"  
 #include    "cove/stalks/cv_fileeasel.h"
 #include    "segue/colophon/sg_ateliereasel.h" 
 
 
 #include    "segue/grammar/sg_rexpgrammar.h"
-#include    "segue/timbre/sg_timbreparser.h"
+#include    "segue/timbre/sg_parser.h"
 #include    "segue/colophon/sg_fsaelemcnstr.h"
 #include    "segue/colophon/sg_dfastate.h"
 

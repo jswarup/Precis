@@ -2,8 +2,8 @@
 
 
 #include    "segue/tenor/sg_include.h" 
-#include    "cove/snip/cv_cmdexec.h"
-#include    "segue/timbre/sg_timbreparser.h"
+#include    "cove/barn/cv_cmdexec.h"
+#include    "segue/timbre/sg_parser.h"
 #include    "segue/timbre/sg_partition.h"
 
 #include <utility>
@@ -19,14 +19,10 @@ static Cv_CmdOption     s_SerializeIfcOptions[] =
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_SerializeCmdProcessor : public Cv_CmdExecutor
-{
-     
-
+{ 
 public:
     Sg_SerializeCmdProcessor( void)  
-    {
-
-    }
+    {}
 
     int     Execute( void);
     int     Test(void);

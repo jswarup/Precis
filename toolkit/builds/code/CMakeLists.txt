@@ -84,8 +84,8 @@ list(APPEND SOURCES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/cv_version.h")
 set ( TR_COVEFILES 
     ${SOURCE_PATH}/cove/barn/cv_include.cpp
     ${SOURCE_PATH}/cove/barn/cv_aid.cpp 
-    ${SOURCE_PATH}/cove/snip/cv_cmdexec.cpp
-    ${SOURCE_PATH}/cove/snip/cv_typerep.cpp
+    ${SOURCE_PATH}/cove/barn/cv_cmdexec.cpp
+    ${SOURCE_PATH}/cove/barn/cv_typerep.cpp
     ${SOURCE_PATH}/cove/flux/cv_spritz.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdrexp.cpp
     ${SOURCE_PATH}/segue/tenor/sg_cmdatelier.cpp
