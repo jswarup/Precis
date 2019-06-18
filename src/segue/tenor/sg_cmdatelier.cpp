@@ -6,7 +6,7 @@
 #include    "cove/stalks/cv_workeasel.h"  
 #include    "cove/stalks/cv_fileeasel.h"
 #include    "segue/colophon/sg_ateliereasel.h" 
-
+#include    "segue/colophon/sg_tokeneasel.h"
 
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/epigraph/sg_parser.h"
