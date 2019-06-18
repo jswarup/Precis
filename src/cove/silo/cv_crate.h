@@ -2,7 +2,7 @@
 #pragma once
   
 #include    "cove/barn/cv_cexpr.h"
-#include    "cove/silo/cv_dotstream.h" 
+#include    "cove/flux/cv_dotstream.h" 
 
 //_____________________________________________________________________________________________________________________________
 

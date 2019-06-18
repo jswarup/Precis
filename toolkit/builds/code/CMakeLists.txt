@@ -98,10 +98,10 @@ set ( TR_COVEFILES
     ${SOURCE_PATH}/segue/timbre/sg_distrib.cpp
     ${SOURCE_PATH}/segue/timbre/sg_ecdistribdb.cpp
 	${SOURCE_PATH}/segue/timbre/sg_ecoptimize.cpp
-	${SOURCE_PATH}/segue/tremolo/sg_filter.cpp
-	${SOURCE_PATH}/segue/tremolo/sg_fsastate.cpp 
-	${SOURCE_PATH}/segue/tremolo/sg_dfastate.cpp 
-	${SOURCE_PATH}/segue/tremolo/sg_fsaelemcnstr.cpp
+	${SOURCE_PATH}/segue/colophon/sg_filter.cpp
+	${SOURCE_PATH}/segue/colophon/sg_fsastate.cpp 
+	${SOURCE_PATH}/segue/colophon/sg_dfastate.cpp 
+	${SOURCE_PATH}/segue/colophon/sg_fsaelemcnstr.cpp
     ${SOURCE_PATH}/trellis/tenor/tr_cmdtrellis.cpp
     ${SOURCE_PATH}/trellis/tenor/tr_include.cpp
     ${SOURCE_PATH}/trellis/swarm/tr_worker.cpp

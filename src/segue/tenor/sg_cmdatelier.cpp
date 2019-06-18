@@ -5,13 +5,13 @@
 #include    "cove/snip/cv_cmdexec.h"  
 #include    "cove/stalks/cv_workeasel.h"  
 #include    "cove/stalks/cv_fileeasel.h"
-#include    "segue/tremolo/sg_ateliereasel.h" 
+#include    "segue/colophon/sg_ateliereasel.h" 
 
 
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
-#include    "segue/tremolo/sg_fsaelemcnstr.h"
-#include    "segue/tremolo/sg_dfastate.h"
+#include    "segue/colophon/sg_fsaelemcnstr.h"
+#include    "segue/colophon/sg_dfastate.h"
 
 #include    <utility>
 #include    <tuple>

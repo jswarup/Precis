@@ -1,8 +1,8 @@
 //  sg_fsastate.cpp _____________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_fsastate.h" 
-#include    "segue/tremolo/sg_dfastate.h" 
+#include    "segue/colophon/sg_fsastate.h" 
+#include    "segue/colophon/sg_dfastate.h" 
 
 using namespace Sg_RExp; 
 

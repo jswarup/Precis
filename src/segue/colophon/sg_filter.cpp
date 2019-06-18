@@ -1,7 +1,7 @@
 // sg_filter.cpp ___________________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_fsastate.h"
+#include    "segue/colophon/sg_fsastate.h"
 
 using namespace Sg_RExp;
 

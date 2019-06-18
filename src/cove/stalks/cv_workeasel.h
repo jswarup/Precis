@@ -3,7 +3,7 @@
 
 #include    "cove/silo/cv_craterepos.h" 
 #include    "cove/stalks/cv_datacarousal.h" 
-#include    "cove/silo/cv_fileflux.h"
+#include    "cove/flux/cv_fileflux.h"
 #include    "cove/stalks/cv_timer.h"
 #include    "cove/stalks/cv_easelstats.h"
 

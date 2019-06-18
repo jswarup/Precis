@@ -4,7 +4,7 @@
 
 #include    "segue/timbre/sg_bitset.h"
 #include    "segue/timbre/sg_partition.h"
-#include    "segue/tremolo/sg_dfastate.h"
+#include    "segue/colophon/sg_dfastate.h"
 
 //_____________________________________________________________________________________________________________________________
 

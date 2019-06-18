@@ -1,7 +1,7 @@
 // sg_fsaelemcnstr.cpp ___________________________________________________________________________________________________________________
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/tremolo/sg_fsaelemcnstr.h"
+#include    "segue/colophon/sg_fsaelemcnstr.h"
 
 using namespace Sg_RExp;
  

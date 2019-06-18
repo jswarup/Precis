@@ -6,10 +6,10 @@
 #include    "cove/silo/cv_stash.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/timbre/sg_timbreparser.h"
-#include    "segue/tremolo/sg_fsaelemcnstr.h"
-#include    "segue/tremolo/sg_dfastate.h"
+#include    "segue/colophon/sg_fsaelemcnstr.h"
+#include    "segue/colophon/sg_dfastate.h"
 #include    "segue/timbre/sg_partition.h" 
-#include    "segue/tremolo/sg_atelier.h"
+#include    "segue/colophon/sg_atelier.h"
 #include	"cove/flux/cv_cask.h"
 
 #include	<utility>
