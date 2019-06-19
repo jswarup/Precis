@@ -194,7 +194,7 @@ struct Sg_DataSink
         Sg_DataSink     *m_Port;
         
         Wharf( void)
-            : m_Port( NULL), Dock::Wharf( NULL)
+            : m_Port( NULL) 
         {}
 
         Wharf( Sg_DataSink *port)
@@ -232,7 +232,7 @@ struct Sg_DataSource
         Sg_DataSource     *m_Port;
 
         Wharf( void)
-            : m_Port( NULL), Dock::Wharf( NULL)
+            : m_Port( NULL)
         {}
 
         Wharf( Sg_DataSource *port)

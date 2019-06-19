@@ -10,7 +10,7 @@
       "currentDir": "C:\\Work\\Precis\\workbench",
       "args": [
         //"rexp  -irex ip1.rex -idata data1.txt -oimg ip1.fsa -odfa a.dot"
-        "atelier -idata data1.txt  -iimg ip1.fsa -otok a.tok  ",
+        "atelier -idata data1.txt  -iimg ip1.fsa -otok a.tok  -ca 2", 
         //"atelier -iimg ip_1m.fsa  -idata ipdata.txt",
         //"serial"
       ]

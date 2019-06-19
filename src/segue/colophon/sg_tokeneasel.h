@@ -42,7 +42,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     uint32_t    Connect( typename Vita::OutTokPort *provider)
     {
         uint32_t    ind = m_InTokPorts.SzFill();
-        m_InTokPorts.MarkFill( ind +1);
+        m_InTokPorts.MarkFill( 1);
         m_InTokPorts[ ind].Connect( provider); 
         return ind;
     }
@@ -60,64 +60,52 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     {
         return m_OutFile.IsActive();
     }
+ 
 
-    void    DoRunService( InTokPort *inPort)
-    {   
-        Stats           *stats = this->CurStats();
-        InTokWharf      wharf( &inPort);
-        uint32_t        szBurst = wharf.Size(); 
-
-        if ( !szBurst)
-        {
-            stats->m_ChokeSz.Incr();
-            if ( wharf.IsPrevClose())
-            {
-                m_OutFile.Shut(); 
-                wharf.SetClose();
-            }
-            return;
-        }
-        std::stringstream   sstrm;
-        for ( uint32_t i = 0; i < szBurst;  i++)
-        {   
-            TokenGram   *tokengram = wharf.Get( i); 
-            uint32_t    szWrite = tokengram->SzFill();   
-            for ( uint32_t k = 0; k < szWrite; ++k)
-                sstrm << tokengram->At( k);
-            wharf.Discard( tokengram); 
-        }
-        m_OutFile.Write( sstrm.str().c_str(), uint32_t( sstrm.str().length()));
-        wharf.SetSize( szBurst);
-        return;
+    Cv_Array< InTokWharf, SzPort>      Wharfs( void)
+    {
+        Cv_Array< InTokWharf, SzPort>   wharfs;
+        wharfs.MarkFill( m_InTokPorts.SzFill());
+        for ( uint32_t i = 0; i < wharfs.SzFill(); ++i)
+            wharfs[ i].Load( &m_InTokPorts[ i]);
+        return wharfs; 
     }
 
     void    DoRunStep( void)
     {   
-        Stats           *stats = this->CurStats();
-        InTokWharf      wharf( &m_InTokPorts[ 0]);
-        uint32_t        szBurst = wharf.Size(); 
-
-        if ( !szBurst)
+        Stats                           *stats = this->CurStats();
+        Cv_Array< InTokWharf, SzPort>   wharfs = Wharfs();
+        uint32_t                        closeCount = 0;
+        for ( uint32_t i = 0; i < m_InTokPorts.SzFill(); ++i)
         {
-            stats->m_ChokeSz.Incr();
-            if ( wharf.IsPrevClose())
+            InTokWharf      &wharf = wharfs[ i];
+            uint32_t        szBurst = wharf.Size(); 
+
+            if ( !szBurst)
             {
-                m_OutFile.Shut(); 
-                wharf.SetClose();
+                stats->m_ChokeSz.Incr();
+                if ( wharf.IsPrevClose())
+                {
+                    ++closeCount;
+                    wharf.SetClose();
+                }
+                continue;
             }
-            return;
+            std::stringstream   sstrm;
+            for ( uint32_t i = 0; i < szBurst;  i++)
+            {   
+                TokenGram   *tokengram = wharf.Get( i); 
+                uint32_t    szWrite = tokengram->SzFill();   
+                for ( uint32_t k = 0; k < szWrite; ++k)
+                    sstrm << tokengram->At( k);
+                wharf.Discard( tokengram); 
+            }
+            m_OutFile.Write( sstrm.str().c_str(), uint32_t( sstrm.str().length()));
+            wharf.SetSize( szBurst);
         }
-        std::stringstream   sstrm;
-        for ( uint32_t i = 0; i < szBurst;  i++)
-        {   
-            TokenGram   *tokengram = wharf.Get( i); 
-            uint32_t    szWrite = tokengram->SzFill();   
-            for ( uint32_t k = 0; k < szWrite; ++k)
-                sstrm << tokengram->At( k);
-            wharf.Discard( tokengram); 
-        }
-        m_OutFile.Write( sstrm.str().c_str(), uint32_t( sstrm.str().length()));
-        wharf.SetSize( szBurst);
+        if ( closeCount == m_InTokPorts.SzFill())
+            m_OutFile.Shut(); 
+            
         return;
     }
 }; 

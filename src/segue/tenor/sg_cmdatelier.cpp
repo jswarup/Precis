@@ -235,6 +235,11 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     
     Sg_ReposEasel                       reposEasel; 
     Sg_FileReadAtelierEasel             *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel>();
+    
+    Sg_TokenLogEasel<Sg_EaselVita>      *tokenLog =  NULL;
+    if (  m_ImgFile.size() && m_TokenLogFile.size())
+        tokenLog = reposEasel.Construct< Sg_TokenLogEasel< Sg_EaselVita>>(); 
+    
     if ( m_ImgFile.size())
     { 
         for ( uint32_t q = 0; q < m_AtelierSz; ++q)
@@ -243,11 +248,8 @@ int     Sg_AtelierCmdProcessor::Execute(void)
             atelier->m_AtelierEaseld = q;
             atelier->m_AtelierEaseSz = m_AtelierSz;
             atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
-            if ( m_TokenLogFile.size())
-            { 
-                Sg_TokenLogEasel<Sg_EaselVita>      *tokenLog =  reposEasel.Construct< Sg_TokenLogEasel< Sg_EaselVita>>(); 
-                tokenLog->Connect( &atelier->m_TokOutPort); 
-            }
+            if ( tokenLog) 
+                tokenLog->Connect( &atelier->m_TokOutPort);  
         }
         
     }
