@@ -26,7 +26,7 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSource< OutPort>                 InPort;
     
     typedef Cv_Array< Sg_MatchData, 1024>           TokenGram;
-    typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
+    typedef Sg_DataSink< TokenGram, 64, 4096, 4096> OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
     std::string                                     m_ImgFile;

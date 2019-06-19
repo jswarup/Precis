@@ -73,12 +73,11 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
 
     void    DoRunStep( void)
     {   
-        Stats                           *stats = this->CurStats();
-        Cv_Array< InTokWharf, SzPort>   wharfs = Wharfs();
+        Stats                           *stats = this->CurStats(); 
         uint32_t                        closeCount = 0;
         for ( uint32_t i = 0; i < m_InTokPorts.SzFill(); ++i)
         {
-            InTokWharf      &wharf = wharfs[ i];
+            InTokWharf      wharf( &m_InTokPorts[ i]);
             uint32_t        szBurst = wharf.Size(); 
 
             if ( !szBurst)
