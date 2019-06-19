@@ -1,43 +1,35 @@
 // cv_array.h ______________________________________________________________________________________________________________
 #pragma once
 
-
 //_____________________________________________________________________________________________________________________________
 
-template < typename X, uint32_t XSize, typename SzType = uint32_t, uint32_t ObjSz = 0>
+template < typename X, uint32_t XSize, typename SzType = uint32_t>
 struct Cv_Array   
-{
-    static constexpr uint32_t  ObjectSz( void) { return ObjSz ? ObjSz : sizeof( X); } 
-    
+{ 
     enum 
     {
         Sz = XSize
     };
 
     SzType                  m_SzFill;                                                           // number of occupied entries
-    uint8_t                 m_MemArr[ ObjectSz() * Sz];
+    X                       m_Arr[  Sz];
 
     Cv_Array( void)
         : m_SzFill( 0)
-    {
-        for ( uint32_t i = 0; i < Sz; ++i)
-            ::new (PtrAt( i)) X();
-    }
+    {}
+
     ~Cv_Array( void) 
-    {
-        for ( uint32_t i = 0; i < Sz; ++i)
-            PtrAt( i)->X::~X();
-    }
+    {}
 
     uint32_t    Size( void) const { return Sz; }
     uint32_t    SzFill( void) const { return m_SzFill; }             
     uint32_t    SzVoid( void) const { return Sz - m_SzFill; }                                   // number of empty entries
     X           *PtrVoid( void)  { return PtrAt( m_SzFill); }                                      // iterator at the empty slot
-    X           *PtrAt( uint32_t k) { return reinterpret_cast< X *>( &m_MemArr[ k *ObjectSz() ]); }
-    const X     *PtrAt( uint32_t k) const { return reinterpret_cast< const X *>( &m_MemArr[ k *ObjectSz() ]); }
+    X           *PtrAt( uint32_t k) { return &m_Arr[ k]; }
+    const X     *PtrAt( uint32_t k) const { return &m_Arr[ k]; }
 
-    X           &At( uint32_t k) { return *reinterpret_cast< X *>( &m_MemArr[ k *ObjectSz() ]); }
-    const X     &At( uint32_t k) const { return *reinterpret_cast< const X *>( &m_MemArr[ k *ObjectSz() ]); }
+    X           &At( uint32_t k) { return m_Arr[ k]; }
+    const X     &At( uint32_t k) const { return m_Arr[ k]; }
 
     void        MarkFill( uint32_t sz) { m_SzFill += sz; }                                      // increment additional filled slots
 
@@ -124,7 +116,51 @@ public:
 };
 
 //_____________________________________________________________________________________________________________________________
+ 
 
+template < typename X, typename TypeSZ = uint32_t>
+struct Cv_Linear
+{
+    TypeSZ      m_Sz;
+
+    Cv_Linear( TypeSZ sz)
+        : m_Sz( sz)
+    {}
+
+    TypeSZ      Size( void) const { return m_Sz; }
+
+    static uint32_t     TrailSz( TypeSZ sz) { return  sz * sizeof( X); }
+
+    static void     Init( void)
+    {
+        for ( uint32_t i = 0; i < Size(); ++i) 
+            ::new (Ptr() +i) X(); 
+    }
+
+    const X     *Ptr( void) const { return ( const X *) ( &m_Sz +1); }
+    X           *Ptr( void) { return ( X *) ( &m_Sz +1); }
+
+    X           *Begin( void) const { return Ptr(); }
+    X           *End( void) const { return Ptr() +m_Sz; }
+
+    const X     &operator[]( uint32_t i) const { return Ptr()[ i]; } 
+    X           &operator[]( uint32_t i) { return Ptr()[ i]; } 
+    
+    struct LessOp
+    {
+        bool operator()( const X *x1,  const X *x2) const 
+        {
+            if ( x1->Size() != x2->Size())
+                return x1->Size() < x2->Size();
+            const X       *arr1 = x1->Ptr();
+            const X       *arr2 = x2->Ptr();
+            for ( uint32_t i = 0; i < x1->Size(); ++i)
+                if ( arr1[ i] != arr2[ i])
+                    return arr1[ i] < arr2[ i];
+            return false;
+        }
+    };
+};
 
 //_____________________________________________________________________________________________________________________________
 

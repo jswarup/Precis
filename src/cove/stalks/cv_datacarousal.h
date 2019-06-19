@@ -75,9 +75,29 @@ public:
         uint32_t        m_Begin;
         uint32_t        m_Sz; 
 
+        Wharf( void)
+            : m_Dock( NULL), m_DataCarousal( NULL), m_Begin( 0), m_Sz( 0)
+        {}
+
         Wharf( Dock *dock)
             : m_Dock( dock), m_DataCarousal( dock->m_DataCarousal), m_Begin( 0), m_Sz( 0)
         {  
+            Extract();
+        }
+
+        ~Wharf( void) { Unload(); }
+
+        void    Load( Dock *dock) 
+        {  
+            m_Dock = dock; 
+            m_DataCarousal = dock->m_DataCarousal; 
+            m_Begin = 0; 
+            m_Sz = 0;
+            Extract();
+        }
+
+        void    Extract( void)
+        {
             m_Begin = m_Dock->Index(); 
             Dock            *prev = m_DataCarousal->Prev( m_Dock);
             uint32_t        end = prev->Index(); 
@@ -86,12 +106,14 @@ public:
             m_Sz = end -m_Begin;            
         }
 
-        ~Wharf( void)
-        {
+        
+        void        Unload( void) 
+        {  
             if ( m_Sz)
                 m_Dock->SetIndex( m_Begin +m_Sz);
+            m_Sz = 0;
         }
-        
+
         bool            IsTail( void) const { return m_Dock->IsTail(); }
         uint32_t        Begin( void) const { return m_Begin; }
         uint32_t        Size( void) const { return m_Sz; }
@@ -103,22 +125,22 @@ public:
     };
 
     Cv_DataDock( void)
-        :   m_DataCarousal( NULL), m_CloseFlg(0)
+        : m_DataCarousal( NULL), m_CloseFlg(0)
     {}
      
     uint32_t    Index( void) const { return m_Index.Get(); }
     void        SetIndex( uint32_t k) {  m_Index.Set( k % DataCarousal::CarousalSz); } 
 
-    bool        IsClose(void) const { return !!m_CloseFlg.Get(); }
-    bool        SetClose(void) { m_CloseFlg.Set( 1); return true; }
+    bool        IsClose( void) const { return !!m_CloseFlg.Get(); }
+    bool        SetClose( void) { m_CloseFlg.Set( 1); return true; }
 
-    void    Connect( DataCarousal *dataCarousal)
+    void        Connect( DataCarousal *dataCarousal)
     {
         m_DataCarousal = dataCarousal;
         m_DataCarousal->AppendDock( this); 
     }   
 
-    bool    IsTail( void)  const
+    bool        IsTail( void)  const
     {
         return m_DataCarousal->IsTail( this);
     }
@@ -170,10 +192,17 @@ struct Sg_DataSink
     struct  Wharf : public Dock::Wharf
     {
         Sg_DataSink     *m_Port;
+        
+        Wharf( void)
+            : m_Port( NULL), Dock::Wharf( NULL)
+        {}
 
         Wharf( Sg_DataSink *port)
             : m_Port( port), Dock::Wharf( &port->m_Dock)
         {}
+
+        void            Load( Sg_DataSink *port) {  Dock::Wharf::Load( &port->m_Dock); m_Port = port;  }
+        void            Unload( void) {  Dock::Wharf::Unload();  }
 
         uint32_t        ProbeSzFree( uint32_t szExpect) { return m_Port->m_DataCache.ProbeSzFree( szExpect); }
         Datagram        *AllocFree( void) { return m_Port->m_DataCache.AllocFree(); }    
@@ -202,9 +231,16 @@ struct Sg_DataSource
     {
         Sg_DataSource     *m_Port;
 
+        Wharf( void)
+            : m_Port( NULL), Dock::Wharf( NULL)
+        {}
+
         Wharf( Sg_DataSource *port)
             : m_Port( port), Dock::Wharf( &port->m_Dock)
         {}
+
+        void            Load( Sg_DataSource *port) {  Dock::Wharf::Load( &port->m_Dock); m_Port = port;  }
+        void            Unload( void) {  Dock::Wharf::Unload();  }
 
         uint32_t        ProbeSzFree( uint32_t szExpect) { return m_Port->m_DataCache.ProbeSzFree( szExpect); }
         Datagram        *AllocFree( void) { return m_Port->m_DataCache.AllocFree(); }    

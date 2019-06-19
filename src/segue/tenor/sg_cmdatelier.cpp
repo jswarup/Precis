@@ -244,9 +244,9 @@ int     Sg_AtelierCmdProcessor::Execute(void)
             atelier->m_AtelierEaseSz = m_AtelierSz;
             atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
             if ( m_TokenLogFile.size())
-            {
-                Sg_TokenLogEasel< Sg_EaselVita>      *tokenLog = reposEasel.Construct< Sg_TokenLogEasel<Sg_EaselVita>>(); 
-                tokenLog->m_InTokPort.Connect( &atelier->m_TokOutPort); 
+            { 
+                Sg_TokenLogEasel<Sg_EaselVita>      *tokenLog =  reposEasel.Construct< Sg_TokenLogEasel< Sg_EaselVita>>(); 
+                tokenLog->Connect( &atelier->m_TokOutPort); 
             }
         }
         
