@@ -141,3 +141,83 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
 }; 
 
 //_____________________________________________________________________________________________________________________________
+
+template < typename Vita>
+struct Sg_AtelierTokenEasel : public Sg_WorkEasel< Sg_AtelierTokenEasel< Vita>, Vita, Cv_AtelierStats>
+{
+    typedef Sg_WorkEasel< Sg_AtelierTokenEasel< Vita>, Vita, Cv_AtelierStats>     Base;
+
+    typedef typename Vita::Datagram             Datagram;
+    typedef typename Vita::InPort               InPort;
+    typedef typename InPort::Wharf              Wharf;
+    typedef typename Base::Stats                Stats; 
+    typedef typename Vita::TokenGram            TokenGram; 
+
+    Cv_File                                     m_OutFile;
+    InPort                                      m_InDataPort;   
+
+    Sg_AtelierTokenEasel( const std::string &name = "Token") 
+        : Base( name) 
+    {}
+
+    //_____________________________________________________________________________________________________________________________
+
+    bool    DoInit( Vita *vita)
+    {
+        if ( !Base::DoInit( vita))
+            return false;  
+        if ( !m_OutFile.Open( vita->m_TokenLogFile.c_str(), false))
+            return false;
+        return true;
+    }
+
+    bool    IsRunable( void)
+    {
+        return m_OutFile.IsActive();;
+    }
+
+    //_____________________________________________________________________________________________________________________________
+
+    void    DoRunStep( void)
+    {   
+        Stats           *stats = this->CurStats();
+        Wharf           wharf( &m_InDataPort);
+        uint32_t        szBurst = wharf.Size();  
+
+ 
+        if ( !szBurst)
+        {
+            stats->m_ChokeSz.Incr(); 
+            wharf.SetSize( 0); 
+            if ( wharf.IsPrevClose())
+            { 
+                wharf.SetClose();
+                m_OutFile.Shut(); 
+            }
+            return;
+        }  
+
+        uint32_t    tokInd = 0;
+        uint32_t    dInd = 0;
+        uint32_t    tokCnt = 0;  
+        std::stringstream   sstrm; 
+        for ( ; dInd < szBurst;  dInd++)
+        {
+             
+            Datagram    *datagram = wharf.Get( dInd);  
+            TokenGram   *tokengram = &datagram->m_TokenData; 
+            uint32_t    szWrite = tokengram->SzFill();   
+            for ( uint32_t k = 0; k < szWrite; ++k)
+                sstrm << tokengram->At( k);
+            if ( wharf.IsTail()) 
+                wharf.Discard( datagram);               
+        } 
+        m_OutFile.Write( sstrm.str().c_str(), uint32_t( sstrm.str().length()));
+        wharf.SetSize( dInd); 
+        stats->m_Matches += tokCnt; 
+            
+        return;
+    }
+}; 
+
+//_____________________________________________________________________________________________________________________________

@@ -145,8 +145,8 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 struct Sg_ReposEasel;
 struct Sg_FileReadAtelierEasel;
 
-typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
-                                                Sg_FileReadAtelierEasel, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita> >         Sg_AtelierCrate;
+typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_AtelierTokenEasel< Sg_EaselVita>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
+                                                Sg_FileReadAtelierEasel, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita>>         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -264,6 +264,12 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     {
         Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
         fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
+    }
+    Sg_AtelierTokenEasel<Sg_EaselVita>      *atelierTokenLog =  NULL;
+    if ( false && m_ImgFile.size() && m_TokenLogFile.size())
+    {
+        atelierTokenLog = reposEasel.Construct< Sg_AtelierTokenEasel< Sg_EaselVita>>(); 
+        atelierTokenLog->m_InDataPort.Connect( &fileRead->m_DataPort);
     }
 
     bool    res = DoInit();
