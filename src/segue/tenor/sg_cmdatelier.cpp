@@ -16,12 +16,19 @@
 #include    <utility>
 #include    <tuple>
 
+//_____________________________________________________________________________________________________________________________
+
+struct Sg_AtelierDatagram  
+{
+    Cv_Array< uint8_t, 4096>        m_ScanBuffer;
+    Cv_Array< Sg_MatchData, 1024>   m_TokenData; 
+};          
 
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Cv_Array< uint8_t, 4096>                Datagram; 
+    typedef Sg_AtelierDatagram                      Datagram; 
     typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
@@ -190,9 +197,9 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileRead
     {
         if ( !m_DfaBlossomAtelier)
             return;
-        for ( uint32_t i = 0; i < dgram->SzFill(); ++i)
+        for ( uint32_t i = 0; i < dgram->m_ScanBuffer.SzFill(); ++i)
         {
-            uint8_t     *chPtr = dgram->PtrAt( i);
+            uint8_t     *chPtr = dgram->m_ScanBuffer.PtrAt( i);
             *chPtr = m_DfaBlossomAtelier->ByteCode( *chPtr);
         }
     }

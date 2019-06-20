@@ -117,7 +117,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             }
             if ( !m_Bastion.m_TokenSet)
                 m_Bastion.m_TokenSet = tokWharf.AllocFree();
-            Cv_Seq              dataSeq( datagram->PtrAt( 0), datagram->SzFill());
+            Cv_Seq              dataSeq( datagram->m_ScanBuffer.PtrAt( 0), datagram->m_ScanBuffer.SzFill());
             m_SavedCtxtFlag = rootScanFlg ? m_Bastion.Play( dataSeq) : (  m_SavedCtxtFlag ? m_Bastion.PlayScan( dataSeq) : 0);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
