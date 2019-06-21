@@ -2,7 +2,30 @@
 #pragma once
 
 #include    <iostream>
-#include    "cove/silo/cv_cstr.h"
+#include    "cove/silo/cv_array.h"
+#include    "cove/silo/cv_cstr.h" 
+
+//_____________________________________________________________________________________________________________________________
+
+template < uint32_t Sz>
+class Cv_SpritzArray : public Cv_Array< uint8_t, Sz>, public std::streambuf
+{
+protected:
+
+    virtual int_type overflow (int_type c) 
+    {
+        if ( c == EOF)
+            return c;
+        if ( !SzVoid())
+            return c;
+        Append( c);
+        return c;
+    }
+
+public:
+    Cv_SpritzArray( void)
+    {}
+};
 
 //_____________________________________________________________________________________________________________________________
 

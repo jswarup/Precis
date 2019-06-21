@@ -21,6 +21,7 @@ struct Cv_Array
     ~Cv_Array( void) 
     {}
 
+
     uint32_t    Size( void) const { return Sz; }
     uint32_t    SzFill( void) const { return m_SzFill; }             
     uint32_t    SzVoid( void) const { return Sz - m_SzFill; }                                   // number of empty entries
@@ -31,6 +32,7 @@ struct Cv_Array
     X           &At( uint32_t k) { return m_Arr[ k]; }
     const X     &At( uint32_t k) const { return m_Arr[ k]; }
 
+    void        Reset( void) { m_SzFill = 0; }
     void        MarkFill( uint32_t sz) { m_SzFill += sz; }                                      // increment additional filled slots
 
     template < typename Array>     
