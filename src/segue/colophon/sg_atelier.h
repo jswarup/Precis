@@ -174,7 +174,7 @@ struct Sg_MatchData
 
     friend std::ostream &operator<<( std::ostream &strm, const Sg_MatchData &md)
     {
-        strm << md.m_Start << " " << md.m_Len << " " <<  md.m_Token << "\n";
+        strm << md.m_Start << "," << md.m_Len << "," <<  md.m_Token << "\n";
         return strm;
     }
 };
@@ -303,8 +303,7 @@ class  Sg_Bulwark
     };
     
     typedef FsaDfaRepos::Id             FsaId;
-
-    uint64_t                            m_Origin;
+ 
     std::array< FsaId, Sz>              m_States;
     std::array< uint32_t, Sz>           m_Starts;
     std::array< uint8_t, Sz>            m_FreeInds;
@@ -316,7 +315,7 @@ class  Sg_Bulwark
 
 public: 
     Sg_Bulwark( void)
-        :  m_FreeSz( Sz), m_AllocSz( 0), m_Origin( 0)
+        :  m_FreeSz( Sz), m_AllocSz( 0) 
     {
         uint32_t sz = sizeof( Sg_Bulwark);
         m_Starts.fill( 0);
@@ -341,10 +340,6 @@ public:
     const FsaId &State( uint32_t ind) const { return m_States[ ind]; }
     void        SetState( uint32_t ind, const FsaId &id) { m_States[ ind] = id; }
     
-
-    uint64_t    StartFromOrigin( uint32_t ind) const { return m_Origin + m_Starts[ ind]; }
-
-    void        SetOrigin( uint64_t origin) { m_Origin = origin; }
     void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
 
 template < typename Atelier, typename TokenGram>
@@ -384,7 +379,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, StartFromOrigin( ind), curr +k +1);
+                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
             }
             if ( nxStateId.IsValid())
             {
@@ -423,9 +418,7 @@ struct Sg_Bastion
 
     void    SetBulwark( Sg_Bulwark *bulWark, uint64_t origin) 
     { 
-        m_BulWark = bulWark; 
-        bulWark->SetOrigin(  origin);
-        m_Curr = 0;
+        m_BulWark = bulWark;   
     } 
 
     // return true if context is persists
