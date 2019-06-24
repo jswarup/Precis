@@ -209,11 +209,11 @@ template < typename Atelier>
     Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 
 template < typename TokenGram>
-    void            DumpTokens( TokenGram  *tokenSet, uint64_t start, uint64_t end)
+    void            DumpTokens( TokenGram  *tokenSet,  uint64_t origin, uint64_t start, uint64_t end)
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            tokenSet->Append( Sg_MatchData( start, uint32_t( end -start), tokens[ i]));
+            tokenSet->Append( Sg_MatchData( origin +start, uint32_t( end -start), tokens[ i]));
     }
 };
 
@@ -267,7 +267,7 @@ struct Sg_Citadel
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
                     if ( m_TokenSet && parapet->HasTokens())
-                        parapet->DumpTokens( m_TokenSet, m_Starts[ ind], m_Curr +1);
+                        parapet->DumpTokens( m_TokenSet, 0, m_Starts[ ind], m_Curr +1);
                 }
             }
         m_Allocbits = allocbits;
@@ -303,7 +303,8 @@ class  Sg_Bulwark
     };
     
     typedef FsaDfaRepos::Id             FsaId;
- 
+
+    uint64_t                            m_Origin;
     std::array< FsaId, Sz>              m_States;
     std::array< uint32_t, Sz>           m_Starts;
     std::array< uint8_t, Sz>            m_FreeInds;
@@ -315,7 +316,7 @@ class  Sg_Bulwark
 
 public: 
     Sg_Bulwark( void)
-        :  m_FreeSz( Sz), m_AllocSz( 0) 
+        :  m_FreeSz( Sz), m_AllocSz( 0), m_Origin( 0)
     {
         uint32_t sz = sizeof( Sg_Bulwark);
         m_Starts.fill( 0);
@@ -340,6 +341,16 @@ public:
     const FsaId &State( uint32_t ind) const { return m_States[ ind]; }
     void        SetState( uint32_t ind, const FsaId &id) { m_States[ ind] = id; }
     
+
+    uint32_t        FixOrigin( uint64_t origin) 
+    { 
+        uint32_t    shift = uint32_t( origin -m_Origin);
+        m_Origin += shift; 
+        for ( uint32_t i = 0; i < m_AllocSz; ++i)
+            m_Starts[ i] -= shift;
+        return shift;
+    }
+	
     void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
 
 template < typename Atelier, typename TokenGram>
@@ -357,7 +368,7 @@ template < typename Atelier, typename TokenGram>
         SetStart( rootInd, curr +i -1);
 
         if ( tokenSet && nxParapet.HasTokens())
-            nxParapet.DumpTokens( tokenSet, curr +i -1, curr +i);
+            nxParapet.DumpTokens( tokenSet, m_Origin, curr +i -1, curr +i);
         return std::make_tuple( true, i);
     }
 
@@ -379,7 +390,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
+                    parapet.DumpTokens( tokenSet, m_Origin, m_Starts[ ind], curr +k +1);
             }
             if ( nxStateId.IsValid())
             {
@@ -418,7 +429,8 @@ struct Sg_Bastion
 
     void    SetBulwark( Sg_Bulwark *bulWark, uint64_t origin) 
     { 
-        m_BulWark = bulWark;   
+        m_BulWark = bulWark; 
+        m_Curr -= m_BulWark->FixOrigin( origin);  
     } 
 
     // return true if context is persists
