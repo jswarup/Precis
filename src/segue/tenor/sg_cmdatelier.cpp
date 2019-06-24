@@ -21,7 +21,7 @@
 struct Sg_AtelierDatagram  
 {
     Cv_Array< uint8_t, 4096>        m_ScanBuffer;
-    Cv_Array< Sg_MatchData, 256>   m_TokenData; 
+    Cv_Array< Sg_MatchData, 1024>   m_TokenData; 
 };          
 
 //_____________________________________________________________________________________________________________________________
@@ -32,8 +32,8 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
-    typedef Cv_Array< Sg_MatchData, 256>           TokenGram;
-    typedef Sg_DataSink< TokenGram, 32, 1024, 256> OutTokPort; 
+    typedef Cv_Array< Sg_MatchData, 1024>           TokenGram;
+    typedef Sg_DataSink< TokenGram, 32, 4096, 1024> OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
     std::string                                     m_ImgFile;
