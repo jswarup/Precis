@@ -212,8 +212,11 @@ template < typename TokenGram>
     void            DumpTokens( TokenGram  *tokenSet,  uint64_t origin, uint64_t start, uint64_t end)
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
+        if ( tokenSet->SzVoid() < tokens.Size())
+            return;
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             tokenSet->Append( Sg_MatchData( origin +start, uint32_t( end -start), tokens[ i]));
+        return;
     }
 };
 

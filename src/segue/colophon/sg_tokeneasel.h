@@ -22,9 +22,10 @@ template < typename Vita>
 struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv_TokenLogStats>
 {
     enum { 
+        SzSpritz = 4096*4,
         SzPort = 8 
     };
-
+     
     typedef Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv_TokenLogStats>       Base;
 
     typedef typename Vita::TokenGram            TokenGram;    
@@ -35,7 +36,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     Cv_File                                     m_OutFile;
     Cv_Array< InTokPort, SzPort>                m_InTokPorts; 
     std::ostream                                m_OutStream;
-    Cv_SpritzArray< 8096>                       m_SpritzArray;
+    Cv_SpritzArray< SzSpritz>                   m_SpritzArray;
     
     Sg_TokenLogEasel( const std::string &name = "TokenLog") 
         : Base( name) , m_OutStream( &m_SpritzArray)
@@ -63,11 +64,16 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
         return m_OutFile.IsActive();
     }  
 
+    void    Flush( void)
+    {
+        m_OutFile.Write( m_SpritzArray.PtrAt( 0), m_SpritzArray.SzFill()); 
+        m_SpritzArray.Reset();
+    }
+
     void    DoRunStep( void)
     {   
         Stats                           *stats = this->CurStats(); 
         uint32_t                        closeCount = 0; 
-        m_SpritzArray.Reset();
         for ( uint32_t i = 0; i < m_InTokPorts.SzFill(); ++i)
         {
             InTokWharf      wharf( &m_InTokPorts[ i]);
@@ -89,6 +95,8 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
                 uint32_t    szWrite = tokengram->SzFill();   
                 for ( uint32_t k = 0; k < szWrite; ++k)
                     m_OutStream << tokengram->At( k);
+                if ( m_SpritzArray.SzFill() > SzSpritz/2)
+                    Flush();
             }   
             for ( uint32_t i = 0; i < szBurst;  i++)
                 wharf.Discard( wharf.Get( i)); 
@@ -96,7 +104,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             wharf.SetSize( szBurst);
         }
         if ( m_SpritzArray.SzFill())
-            m_OutFile.Write( m_SpritzArray.PtrAt( 0), m_SpritzArray.SzFill()); 
+                Flush(); 
         if ( closeCount == m_InTokPorts.SzFill())
             m_OutFile.Shut();             
         return;

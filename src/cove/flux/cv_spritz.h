@@ -16,9 +16,9 @@ protected:
     {
         if ( c == EOF)
             return c;
-        if ( !SzVoid())
+        if ( !this->SzVoid())
             return c;
-        Append( c);
+        this->Append( c);
         return c;
     }
 
