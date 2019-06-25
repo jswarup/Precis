@@ -37,15 +37,14 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     typedef typename OutTokPort::Wharf          OutTokWharf;
     typedef typename Vita::TokenGram            TokenGram;    
     
-    typedef Sg_Bastion< Atelier, TokenGram>     Bastion;
+    typedef Sg_Bastion< Atelier>                Bastion;
 
     InPort                                      m_InDataPort;
     OutTokPort                                  m_TokOutPort;
     Atelier                                     *m_Atelier; 
     uint64_t                                    m_Bytes;
     uint32_t                                    m_AtelierEaseld;
-    uint32_t                                    m_AtelierEaseSz;
-    Sg_Bulwark                                  m_BulWark;
+    uint32_t                                    m_AtelierEaseSz; 
     Bastion                                     m_Bastion;
     bool                                        m_CloseFlg;
     bool                                        m_SavedCtxtFlag;
@@ -85,9 +84,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
 
         if ( !szBurst && wharf.IsPrevClose() && (( m_CloseFlg = true)) && wharf.SetClose()  && tokWharf.SetClose())
             return;
-        
-        //if ( szBurst > szTokBurst)
-        //    szBurst = szTokBurst;
+ 
         if ( !szBurst || !szTokBurst)
         {
             stats->m_ChokeSz.Incr(); 
@@ -97,23 +94,23 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         }  
         uint32_t    dInd = 0;
         uint32_t    tokInd = 0; 
-        m_Bastion.SetBulwark( &m_BulWark, m_Bytes);
-        m_Bastion.m_TokenSet =  tokWharf.AllocFree();
+        m_Bastion.SetBulwark( m_Bytes);
+        TokenGram  *tokenSet =  tokWharf.AllocFree();
         m_Bytes += szBurst;
         for ( ; dInd < szBurst;  dInd++)
         {
             bool        rootScanFlg = (m_AtelierEaseld++ % m_AtelierEaseSz ) == 0;
             Datagram    *datagram = wharf.Get( dInd);  
             Cv_Seq      dataSeq( datagram->m_ScanBuffer.PtrAt( 0), datagram->m_ScanBuffer.SzFill());
-            m_SavedCtxtFlag = rootScanFlg ? m_Bastion.Play( dataSeq) : (  m_SavedCtxtFlag ? m_Bastion.PlayScan( dataSeq) : 0);
+            m_SavedCtxtFlag = rootScanFlg ? m_Bastion.Play( dataSeq, tokenSet) : (  m_SavedCtxtFlag ? m_Bastion.PlayScan( dataSeq, tokenSet) : 0);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         } 
-        stats->m_Matches += m_Bastion.m_TokenSet->SzFill();
+        stats->m_Matches += tokenSet->SzFill();
         if ( tokWharf.IsTail()) 
-            tokWharf.Discard( m_Bastion.m_TokenSet);
+            tokWharf.Discard( tokenSet);
         else
-            tokWharf.Set( tokInd++, m_Bastion.m_TokenSet);
+            tokWharf.Set( tokInd++, tokenSet);
         wharf.SetSize( dInd);
         tokWharf.SetSize( tokInd); 
         return;
