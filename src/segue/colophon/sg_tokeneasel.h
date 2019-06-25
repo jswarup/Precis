@@ -34,13 +34,14 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     typedef typename Base::Stats                Stats;
     
     Cv_File                                     m_OutFile;
-    Cv_Array< InTokPort, SzPort>                m_InTokPorts; 
-    std::ostream                                m_OutStream;
+    Cv_Array< InTokPort, SzPort>                m_InTokPorts;  
     Cv_SpritzArray< SzSpritz>                   m_SpritzArray;
     
     Sg_TokenLogEasel( const std::string &name = "TokenLog") 
-        : Base( name) , m_OutStream( &m_SpritzArray)
-    {}
+        : Base( name)
+    {
+        m_SpritzArray.SetFile( &m_OutFile);
+    }
  
     uint32_t    Connect( typename Vita::OutTokPort *provider)
     {
@@ -92,9 +93,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
                 TokenGram   *tokengram = wharf.Get( i); 
-                uint32_t    szWrite = tokengram->SzFill();   
-                for ( uint32_t k = 0; k < szWrite; ++k)
-                    m_OutStream << tokengram->At( k);
+                tokengram->Dump( m_SpritzArray);
                 if ( m_SpritzArray.SzFill() > SzSpritz/2)
                     Flush();
             }   

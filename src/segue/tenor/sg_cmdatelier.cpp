@@ -16,6 +16,8 @@
 #include    <utility>
 #include    <tuple>
  
+
+
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita : public Sg_BaseVita
@@ -24,8 +26,8 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
-    typedef Cv_Array< Sg_MatchData, 4096>           TokenGram;
-    typedef Sg_DataSink< TokenGram, 32, 1024, 256> OutTokPort; 
+    typedef Sg_Tokengram                            TokenGram;
+    typedef Sg_DataSink< TokenGram, 32, 1024, 256>  OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
     std::string                                     m_ImgFile;

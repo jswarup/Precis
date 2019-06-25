@@ -177,7 +177,41 @@ struct Sg_MatchData
         strm << md.m_Start << "," << md.m_Len << "," <<  md.m_Token << "\n";
         return strm;
     }
+
+template < uint32_t Sz>
+    friend Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &strm, const Sg_MatchData &md)
+    {
+        strm << md.m_Start << "," << md.m_Len << "," <<  md.m_Token << "\n";
+        return strm;
+    }
 };
+
+//_____________________________________________________________________________________________________________________________
+
+
+struct Sg_Tokengram 
+{
+    Cv_Array< Sg_MatchData, 4096>       m_Tokens;
+
+    uint32_t            SzFill( void) const { return m_Tokens.SzFill(); }   
+    uint32_t            SzVoid( void) const { return m_Tokens.SzVoid(); }     
+    const Sg_MatchData  &At( uint32_t k) const { return m_Tokens[ k]; } 
+    void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }  
+    
+    void                Dump( std::ostream &ostrm)
+    {
+        for ( uint32_t k = 0; k < SzFill(); ++k)
+            ostrm <<  At( k);
+    }
+    
+template < uint32_t Sz>
+    void                Dump( Cv_SpritzArray< Sz> &ostrm)
+    {
+        for ( uint32_t k = 0; k < SzFill(); ++k)
+            ostrm <<  At( k);
+    }
+};
+
 
 //_____________________________________________________________________________________________________________________________
 
@@ -214,7 +248,7 @@ template < typename TokenGram>
         Cv_Seq< uint64_t>      tokens = Tokens();
         if ( tokenSet->SzVoid() < tokens.Size())
         {
-            CV_ERROR_ASSERT( false)
+           // CV_ERROR_ASSERT( false)
             return;
         }
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
