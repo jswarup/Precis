@@ -213,7 +213,10 @@ template < typename TokenGram>
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
         if ( tokenSet->SzVoid() < tokens.Size())
+        {
+            CV_ERROR_ASSERT( false)
             return;
+        }
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             tokenSet->Append( Sg_MatchData( origin +start, uint32_t( end -start), tokens[ i]));
         return;
@@ -416,8 +419,8 @@ struct Sg_Bastion
 {
     Sg_Bulwark              m_BulWark;
     Atelier                 *m_DfaAtelier; 
-    uint32_t                m_Curr;
     FsaCrate::Var           m_Root; 
+    uint32_t                m_Curr;
 
     Sg_Bastion( void)
         : m_DfaAtelier( NULL),  m_Curr( 0) 
@@ -429,7 +432,7 @@ struct Sg_Bastion
         m_Root = dfaAtelier->RootState();
     }
 
-    void    SetBulwark( uint64_t origin) 
+    void    FixOrigin( uint64_t origin) 
     {  
         m_Curr -= m_BulWark.FixOrigin( origin);  
     } 

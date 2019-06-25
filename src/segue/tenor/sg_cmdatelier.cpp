@@ -15,24 +15,16 @@
 
 #include    <utility>
 #include    <tuple>
-
-//_____________________________________________________________________________________________________________________________
-
-struct Sg_AtelierDatagram  
-{
-    Cv_Array< uint8_t, 4096>        m_ScanBuffer;
-    Cv_Array< Sg_MatchData, 256>   m_TokenData; 
-};          
-
+ 
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Sg_AtelierDatagram                      Datagram; 
+    typedef Cv_Array< uint8_t, 4096>                Datagram; 
     typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
     typedef Sg_DataSource< OutPort>                 InPort;
     
-    typedef Cv_Array< Sg_MatchData, 256>           TokenGram;
+    typedef Cv_Array< Sg_MatchData, 4096>           TokenGram;
     typedef Sg_DataSink< TokenGram, 32, 1024, 256> OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
@@ -145,7 +137,7 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 struct Sg_ReposEasel;
 struct Sg_FileReadAtelierEasel;
 
-typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_AtelierTokenEasel< Sg_EaselVita>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
+typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
                                                 Sg_FileReadAtelierEasel, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita>>         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
@@ -197,9 +189,9 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileRead
     {
         if ( !m_DfaBlossomAtelier)
             return;
-        for ( uint32_t i = 0; i < dgram->m_ScanBuffer.SzFill(); ++i)
+        for ( uint32_t i = 0; i < dgram->SzFill(); ++i)
         {
-            uint8_t     *chPtr = dgram->m_ScanBuffer.PtrAt( i);
+            uint8_t     *chPtr = dgram->PtrAt( i);
             *chPtr = m_DfaBlossomAtelier->ByteCode( *chPtr);
         }
     }
@@ -263,12 +255,6 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     {
         Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
         fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
-    }
-    Sg_AtelierTokenEasel<Sg_EaselVita>      *atelierTokenLog =  NULL;
-    if ( false && m_ImgFile.size() && m_TokenLogFile.size())
-    {
-        atelierTokenLog = reposEasel.Construct< Sg_AtelierTokenEasel< Sg_EaselVita>>(); 
-        atelierTokenLog->m_InDataPort.Connect( &fileRead->m_DataPort);
     }
 
     bool    res = DoInit();

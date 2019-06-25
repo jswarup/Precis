@@ -162,7 +162,7 @@ struct Sg_FileWriteEasel : public Sg_WorkEasel< Sg_FileWriteEasel< Vita>, Vita, 
         for ( uint32_t i = 0; i < szBurst;  i++)
         {   
             Datagram    *datagram = wharf.Get( i); 
-            uint32_t    szWrite = m_OutFile.Write( datagram->m_ScanBuffer.PtrAt( 0), datagram->m_ScanBuffer.SzFill());  
+            uint32_t    szWrite = m_OutFile.Write( datagram->PtrAt( 0), datagram->SzFill());  
 
             stats->m_Bytes.Incr( szWrite);
             wharf.Discard( datagram); 
@@ -237,13 +237,13 @@ struct Sg_FileBufferLoopReadEasel : public Sg_WorkEasel< Easel, Vita, Cv_FileSta
         for ( ; dInd < szBurst;  dInd++)
         {   
             Datagram    *datagram = wharf.AllocFree();
-            uint32_t    szFill = datagram->m_ScanBuffer.SzVoid();
+            uint32_t    szFill = datagram->SzVoid();
             uint32_t    szRemain = uint32_t( m_InBuffer.size() - m_CharIndex);
             if ( szFill > szRemain)
                 szFill = szRemain;
             if ( szFill)
-                std::copy( &m_InBuffer.at( m_CharIndex), &m_InBuffer.at( m_CharIndex) +szFill, datagram->m_ScanBuffer.PtrAt( 0));
-            datagram->m_ScanBuffer.MarkFill( szFill);
+                std::copy( &m_InBuffer.at( m_CharIndex), &m_InBuffer.at( m_CharIndex) +szFill, datagram->PtrAt( 0));
+            datagram->MarkFill( szFill);
             thisEasel->ProcessDatagram( datagram);
             stats->m_Bytes.Incr( szFill);
             m_CharIndex += szFill;
