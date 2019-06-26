@@ -65,37 +65,68 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
         return m_OutFile.IsActive();
     }  
  
-    void    DoRunStep( void)
-    {   
+
+    uint32_t LoadInTokWharfs(  Cv_Array< InTokWharf, SzPort> *inWharfs)
+    { 
         Stats                           *stats = this->CurStats(); 
+
         uint32_t                        closeCount = 0; 
         for ( uint32_t i = 0; i < m_InTokPorts.SzFill(); ++i)
         {
-            InTokWharf      wharf( &m_InTokPorts[ i]);
-            uint32_t        szBurst = wharf.Size();  
+            InTokWharf      *wharf = inWharfs->PtrAt( inWharfs->SzFill());
+            wharf->Load( &m_InTokPorts[ i]);
+            uint32_t        szBurst = wharf->Size();  
+            if ( szBurst)
+            {
+                inWharfs->m_SzFill++;
+                continue;
+            }
+            stats->m_ChokeSz.Incr();
+            if ( wharf->IsPrevClose())
+            {
+                ++closeCount;
+                wharf->SetClose();
+            }
+            wharf->Unload();             
+        }
+        return closeCount;
+    }
+
+
+    void    DoRunStep( void)
+    {   
+        Stats                           *stats = this->CurStats(); 
+        Cv_Array< InTokWharf, SzPort>   inWharfs;
+        uint32_t                        closeCount = LoadInTokWharfs( &inWharfs);
+        if ( closeCount == m_InTokPorts.SzFill())
+        {
+            m_SpritzArray.Flush();
+            m_OutFile.Shut();             
+            return;
+        }
+        for ( uint32_t i = 0; i < inWharfs.SzFill(); ++i)
+        {
+            InTokWharf      *wharf = inWharfs.PtrAt( i);
+            uint32_t        szBurst = wharf->Size();  
             if ( !szBurst)
             {
                 stats->m_ChokeSz.Incr();
-                if ( wharf.IsPrevClose())
+                if ( wharf->IsPrevClose())
                 {
                     ++closeCount;
-                    wharf.SetClose();
+                    wharf->SetClose();
                 }
                 continue;
             } 
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
-                TokenGram   *tokengram = wharf.Get( i); 
+                TokenGram   *tokengram = wharf->Get( i); 
                 tokengram->Dump( m_SpritzArray); 
-                wharf.Discard( tokengram); 
+                wharf->Discard( tokengram); 
             }    
-            wharf.SetSize( szBurst);
+            wharf->SetSize( szBurst);
         }
-        if ( closeCount == m_InTokPorts.SzFill())
-        {
-            m_SpritzArray.Flush();
-            m_OutFile.Shut();             
-        }
+        
         return;
     }
 }; 
