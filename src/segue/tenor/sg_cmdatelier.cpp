@@ -27,7 +27,7 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSource< OutPort>                 InPort;
     
     typedef Sg_Tokengram                            TokenGram;
-    typedef Sg_DataSink< TokenGram, 32, 1024, 256>  OutTokPort; 
+    typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
     typedef Sg_DataSource< OutTokPort>              InTokPort;
 
     std::string                                     m_ImgFile;
@@ -168,7 +168,8 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileRead
     typedef Sg_FileBufferLoopReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>    Base;
     
     Sg_DfaBlossomAtelier        *m_DfaBlossomAtelier; 
-
+    uint8_t                     m_CharMap[ 256];
+ 
     Sg_FileReadAtelierEasel( const std::string &name = "FileRead") 
         : Base( name), m_DfaBlossomAtelier( NULL)
     {}
@@ -180,8 +181,14 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileRead
         if ( !Base::DoInit( vita))
             return false;  
 
-        if ( vita->m_ImgFile.size())  
-            m_DfaBlossomAtelier = vita->m_Atelier;  
+        if ( vita->m_ImgFile.size()) 
+        { 
+            m_DfaBlossomAtelier = vita->m_Atelier;
+            for ( uint32_t i = 0; i < 256; ++i)
+            {
+                m_CharMap[ i] = m_DfaBlossomAtelier->ByteCode( uint8_t( i));
+            }  
+        }
         return true;
     }
  
@@ -190,12 +197,13 @@ struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileRead
     void  ProcessDatagram( Datagram *dgram)
     {
         if ( !m_DfaBlossomAtelier)
-            return;
-        for ( uint32_t i = 0; i < dgram->SzFill(); ++i)
+            return; 
+         
+        for ( uint32_t    i = 0; i < dgram->SzFill(); i += 1)
         {
             uint8_t     *chPtr = dgram->PtrAt( i);
-            *chPtr = m_DfaBlossomAtelier->ByteCode( *chPtr);
-        }
+            chPtr[ 0] = m_CharMap[ chPtr[ 0]];
+         }
     }
 
     //_____________________________________________________________________________________________________________________________
