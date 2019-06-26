@@ -9,7 +9,7 @@
 //_____________________________________________________________________________________________________________________________
 
 template < uint32_t Sz>
-class Cv_SpritzArray : public Cv_Array< uint8_t, Sz>, public std::streambuf
+class Cv_SpritzBuf : public Cv_Array< uint8_t, Sz>, public std::streambuf
 {
 protected: 
     Cv_File      *m_OutFile ;
@@ -25,7 +25,8 @@ protected:
     }
 
 public:
-    Cv_SpritzArray( void)
+    Cv_SpritzBuf( void)
+        : m_OutFile( NULL)
     {}
 
     void    SetFile( Cv_File *file)
@@ -35,29 +36,29 @@ public:
 
     void    Flush( void)
     {
-        m_OutFile->Write( PtrAt( 0), SzFill()); 
-        Reset();
+        m_OutFile->Write( this->PtrAt( 0), this->SzFill()); 
+        this->Reset();
     }
 
     void    Annex(  const char *buf, uint32_t len) 
     {
-        uint32_t    szFill = m_SzFill + len;
+        uint32_t    szFill = this->SzFill() + len;
         if ( szFill > Sz) 
             Flush();
-        memcpy(  &SELF[ m_SzFill], &buf[ 0], len);  
-        m_SzFill += len;
+        memcpy(  &SELF[ this->SzFill()], &buf[ 0], len);  
+        this->m_SzFill += len;
     }
 };
 
 template < uint32_t Sz>
-inline Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, char chr)
+inline Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &arr, char chr)
 {
     arr.Annex( &chr, 1);
     return arr;
 } 
 
 template < uint32_t Sz>
-Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, const char *cstr) 
+Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &arr, const char *cstr) 
 {
     for ( ; *cstr; ++cstr)
         arr.m_Arr[ arr.m_SzFill++] = *cstr;
@@ -65,7 +66,7 @@ Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, const char *cstr)
 }
 
 template < uint32_t Sz>
-Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, uint64_t value) 
+Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &arr, uint64_t value) 
 { 
     static const uint32_t    DigitSz = 20;
     char                buf[ DigitSz];
@@ -80,7 +81,7 @@ Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, uint64_t value)
 }
 
 template < uint32_t Sz>
-Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &arr, uint32_t value) 
+Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &arr, uint32_t value) 
 { 
     static const uint32_t    DigitSz = 10;
     char                buf[ DigitSz];

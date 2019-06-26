@@ -35,7 +35,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     
     Cv_File                                     m_OutFile;
     Cv_Array< InTokPort, SzPort>                m_InTokPorts;  
-    Cv_SpritzArray< SzSpritz>                   m_SpritzArray;
+    Cv_SpritzBuf< SzSpritz>                     m_SpritzArray;
     
     Sg_TokenLogEasel( const std::string &name = "TokenLog") 
         : Base( name)
@@ -64,13 +64,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     {
         return m_OutFile.IsActive();
     }  
-
-    void    Flush( void)
-    {
-        m_OutFile.Write( m_SpritzArray.PtrAt( 0), m_SpritzArray.SzFill()); 
-        m_SpritzArray.Reset();
-    }
-
+ 
     void    DoRunStep( void)
     {   
         Stats                           *stats = this->CurStats(); 
@@ -88,24 +82,20 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
                     wharf.SetClose();
                 }
                 continue;
-            }
-            
+            } 
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
                 TokenGram   *tokengram = wharf.Get( i); 
-                tokengram->Dump( m_SpritzArray);
-                if ( m_SpritzArray.SzFill() > SzSpritz/2)
-                    Flush();
-            }   
-            for ( uint32_t i = 0; i < szBurst;  i++)
-                wharf.Discard( wharf.Get( i)); 
-            
+                tokengram->Dump( m_SpritzArray); 
+                wharf.Discard( tokengram); 
+            }    
             wharf.SetSize( szBurst);
         }
-        if ( m_SpritzArray.SzFill())
-                Flush(); 
         if ( closeCount == m_InTokPorts.SzFill())
+        {
+            m_SpritzArray.Flush();
             m_OutFile.Shut();             
+        }
         return;
     }
 }; 

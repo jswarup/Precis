@@ -290,50 +290,7 @@ std::string Cv_Aid::XmlEncode( const std::string &source)
         }
     return dest;
 }
-
-//_____________________________________________________________________________________________________________________________ 
-
-uint32_t Cv_Aid::WriteUInt1( char *data, uint64_t value) 
-{
-    uint32_t        len = NumOfDigits( value);
-    switch ( len) 
-    {
-        case 1:
-            WriteChar< 1>( data, value);
-            break;
-        case 2:
-            WriteChar< 2>( data, value);
-            break;
-        case 3:
-            WriteChar< 3>( data, value);
-            break;
-        case 4:
-            WriteChar< 4>( data, value);
-            break;
-        case 5:
-            WriteChar< 5>( data, value);
-            break;
-        case 6:
-            WriteChar< 6>( data, value);
-            break;
-        case 7:
-            WriteChar< 7>( data, value);
-            break;
-        case 8:
-            WriteChar< 8>( data, value);
-            break;
-        case 9:
-            WriteChar< 9>( data, value);
-            break;       
-        case 10:
-            WriteChar< 10>( data, value);
-            break;
-        default:
-            CV_ERROR_ASSERT( false)
-    }
-    return len;
-}
-
  
-
 //_____________________________________________________________________________________________________________________________
+
+

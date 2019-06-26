@@ -79,77 +79,7 @@ template < class T>
         sstrm << obj; 
         return sstrm.str();
     }
-
-    static uint32_t     Log2( uint64_t value)
-    {
-        unsigned long    index;
-        if (!_BitScanReverse64(&index, value)) 
-            return 0; 
-
-        // add 1 if x is NOT a power of 2 (to do the ceil)
-        return index + (value & (value - 1) ? 1 : 0);
-    }
- 
-    static uint32_t     Log2( uint32_t value)
-    {
-        unsigned long    index;
-        if (!_BitScanReverse64(&index, value)) 
-            return 0; 
-
-        // add 1 if x is NOT a power of 2 (to do the ceil)
-        return index + (value & (value - 1) ? 1 : 0);
-    }
     
-template < typename TUInt>
-    static uint32_t    NumOfDigits( TUInt v)
-    {
-        static const uint64_t   PowersOf10[] = { 0, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 }; 
-        uint32_t                t = ( Log2( v) + 1) * 1233 >> 12; // (use a log2 method from above)
-        return 1 + t - (v < PowersOf10[t]);
-    }
-
-
-template <int count>
-    static  void WriteChar(char* buf, uint64_t value)
-    {
-        uint64_t        div = value / 10;
-        uint64_t        rem = value % 10;
-        buf[ count - 1] = char( rem + '0');
-
-        WriteChar< count - 1>(buf, div);
-    }
-
-template <>
-    static void                 WriteChar<1>(char* buf, uint64_t value)  { buf[0] = char( '0' + value); }
-
-    static uint32_t             WriteUInt1( char* data, uint64_t value); 
-
-    static uint32_t             Write( char *data, uint64_t value) 
-    { 
-        static char buf[ 20];
-        uint32_t    i = 20;
-        do {
-            buf[ --i] = (value % 10) + '0';
-            value /= 10;
-        } while ( value > 0);
-        uint32_t    len = 20 -i + 1;
-        memcpy( &buf[ i + 1], data, len);  
-        return len;
-    }
-
-    static uint32_t             Write( char *data, const char *cstr) 
-    {
-        char    *begin = data;
-        for ( ; *cstr; ++cstr, ++data)
-            *data = *cstr;
-        return uint32_t( data -begin);
-    }
-
-    static uint32_t             Write( char *data, const char chr) 
-    {
-        *data = chr;
-        return 1;
-    }
 
     static char                 HexToChar( int chr);
 

@@ -179,7 +179,7 @@ struct Sg_MatchData
     }
 
 template < uint32_t Sz>
-    friend Cv_SpritzArray< Sz>   &operator<<( Cv_SpritzArray< Sz> &strm, const Sg_MatchData &md)
+    friend Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &strm, const Sg_MatchData &md)
     {
         strm << md.m_Start << "," << md.m_Len << "," <<  md.m_Token << "\n";
         return strm;
@@ -205,7 +205,7 @@ struct Sg_Tokengram
     }
     
 template < uint32_t Sz>
-    void                Dump( Cv_SpritzArray< Sz> &ostrm)
+    void                Dump( Cv_SpritzBuf< Sz> &ostrm)
     {
         for ( uint32_t k = 0; k < SzFill(); ++k)
             ostrm <<  At( k);
