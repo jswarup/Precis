@@ -91,33 +91,24 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
         }
         return closeCount;
     }
-
-
+     
+    
     void    DoRunStep( void)
     {   
         Stats                           *stats = this->CurStats(); 
         Cv_Array< InTokWharf, SzPort>   inWharfs;
+        
         uint32_t                        closeCount = LoadInTokWharfs( &inWharfs);
         if ( closeCount == m_InTokPorts.SzFill())
         {
             m_SpritzArray.Flush();
             m_OutFile.Shut();             
             return;
-        }
+        }  
         for ( uint32_t i = 0; i < inWharfs.SzFill(); ++i)
         {
             InTokWharf      *wharf = inWharfs.PtrAt( i);
-            uint32_t        szBurst = wharf->Size();  
-            if ( !szBurst)
-            {
-                stats->m_ChokeSz.Incr();
-                if ( wharf->IsPrevClose())
-                {
-                    ++closeCount;
-                    wharf->SetClose();
-                }
-                continue;
-            } 
+            uint32_t        szBurst = wharf->Size();             
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
                 TokenGram   *tokengram = wharf->Get( i); 

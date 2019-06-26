@@ -160,15 +160,14 @@ struct Sg_DfaBlossomAtelier
 
 struct Sg_MatchData
 {
-    uint64_t                m_Start;
+    uint32_t                m_Start;
     uint32_t                m_Len;
     uint64_t                m_Token;
 
-    Sg_MatchData( void)
-        : m_Start( 0), m_Len( 0), m_Token( 0)
+    Sg_MatchData( void) 
     {}
 
-    Sg_MatchData( uint64_t start, uint32_t len, uint64_t token)
+    Sg_MatchData( uint32_t start, uint32_t len, uint64_t token)
         : m_Start( start), m_Len( len), m_Token( token)
     {}
 
@@ -179,36 +178,36 @@ struct Sg_MatchData
     }
 
 template < uint32_t Sz>
-    friend Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &strm, const Sg_MatchData &md)
+    void                Dump( Cv_SpritzBuf< Sz> &ostrm, uint64_t origin)
     {
-        strm << md.m_Start << "," << md.m_Len << "," <<  md.m_Token << "\n";
-        return strm;
+        ostrm << ( origin + m_Start) << ',' << m_Len << ',' <<  m_Token << '\n'; 
     }
 };
 
 //_____________________________________________________________________________________________________________________________
 
-
 struct Sg_Tokengram 
 {
+    uint64_t                            m_Origin;
     Cv_Array< Sg_MatchData, 4096>       m_Tokens;
+
+    Sg_Tokengram( void)
+        :  m_Origin( 0)
+    {}
+
+    void    SetOrigin( uint64_t origin)  {   m_Origin = origin; }
 
     uint32_t            SzFill( void) const { return m_Tokens.SzFill(); }   
     uint32_t            SzVoid( void) const { return m_Tokens.SzVoid(); }     
     const Sg_MatchData  &At( uint32_t k) const { return m_Tokens[ k]; } 
     void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }  
     
-    void                Dump( std::ostream &ostrm)
-    {
-        for ( uint32_t k = 0; k < SzFill(); ++k)
-            ostrm <<  At( k);
-    }
     
 template < uint32_t Sz>
     void                Dump( Cv_SpritzBuf< Sz> &ostrm)
     {
-        for ( uint32_t k = 0; k < SzFill(); ++k)
-            ostrm <<  At( k);
+        for ( uint32_t k = 0; k < m_Tokens.SzFill(); ++k)
+            m_Tokens.PtrAt( k)->Dump( ostrm, m_Origin);
     }
 };
 
@@ -243,7 +242,7 @@ template < typename Atelier>
     Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 
 template < typename TokenGram>
-    void            DumpTokens( TokenGram  *tokenSet,  uint64_t origin, uint64_t start, uint64_t end)
+    void            DumpTokens( TokenGram  *tokenSet,  uint32_t start, uint32_t end)
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
         if ( tokenSet->SzVoid() < tokens.Size())
@@ -252,7 +251,7 @@ template < typename TokenGram>
             return;
         }
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
-            tokenSet->Append( Sg_MatchData( origin +start, uint32_t( end -start), tokens[ i]));
+            tokenSet->Append( Sg_MatchData( start, uint32_t( end -start), tokens[ i]));
         return;
     }
 };
@@ -307,7 +306,7 @@ struct Sg_Citadel
                 {
                     allocbits = ( uint64_t( 1) << ind) | allocbits;
                     if ( m_TokenSet && parapet->HasTokens())
-                        parapet->DumpTokens( m_TokenSet, 0, m_Starts[ ind], m_Curr +1);
+                        parapet->DumpTokens( m_TokenSet, m_Starts[ ind], m_Curr +1);
                 }
             }
         m_Allocbits = allocbits;
@@ -408,12 +407,12 @@ template < typename Atelier, typename TokenGram>
         SetStart( rootInd, curr +i -1);
 
         if ( tokenSet && nxParapet.HasTokens())
-            nxParapet.DumpTokens( tokenSet, m_Origin, curr +i -1, curr +i);
+            nxParapet.DumpTokens( tokenSet, curr +i -1, curr +i);
         return std::make_tuple( true, i);
     }
 
 template < typename Atelier, typename TokenGram>
-    void        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint64_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    void        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint32_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
@@ -430,7 +429,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, m_Origin, m_Starts[ ind], curr +k +1);
+                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
             }
             if ( nxStateId.IsValid())
             {

@@ -37,15 +37,13 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     typedef typename OutTokPort::Wharf          OutTokWharf;
     typedef typename Vita::TokenGram            TokenGram;    
     
-    typedef Sg_Bastion< Atelier>                Bastion;
-
     InPort                                      m_InDataPort;
     OutTokPort                                  m_TokOutPort;
     Atelier                                     *m_Atelier; 
     uint64_t                                    m_Bytes;
     uint32_t                                    m_AtelierEaseld;
     uint32_t                                    m_AtelierEaseSz; 
-    Bastion                                     m_Bastion;
+    Sg_Bastion< Atelier>                        m_Bastion;
     bool                                        m_CloseFlg;
     bool                                        m_SavedCtxtFlag;
 
@@ -96,6 +94,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t    tokInd = 0; 
         m_Bastion.FixOrigin( m_Bytes);
         TokenGram  *tokenSet =  tokWharf.AllocFree();
+        tokenSet->SetOrigin( m_Bytes);
         m_Bytes += szBurst;
         for ( ; dInd < szBurst;  dInd++)
         {
