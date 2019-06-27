@@ -64,13 +64,12 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
     {
         return m_OutFile.IsActive();
     }  
- 
-
+  
     uint32_t LoadInTokWharfs(  Cv_Array< InTokWharf, SzPort> *inWharfs)
     { 
-        Stats                           *stats = this->CurStats(); 
+        Stats               *stats = this->CurStats(); 
+        uint32_t            closeCount = 0; 
 
-        uint32_t                        closeCount = 0; 
         for ( uint32_t i = 0; i < m_InTokPorts.SzFill(); ++i)
         {
             InTokWharf      *wharf = inWharfs->PtrAt( inWharfs->SzFill());
@@ -90,8 +89,7 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             wharf->Unload();             
         }
         return closeCount;
-    }
-     
+    } 
     
     void    DoRunStep( void)
     {   
@@ -104,7 +102,8 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             m_SpritzArray.Flush();
             m_OutFile.Shut();             
             return;
-        }  
+        }   
+
         for ( uint32_t i = 0; i < inWharfs.SzFill(); ++i)
         {
             InTokWharf      *wharf = inWharfs.PtrAt( i);

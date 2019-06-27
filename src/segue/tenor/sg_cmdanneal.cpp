@@ -1,4 +1,4 @@
-// sg_cmdrexp.cpp ____________________________________________________________________________________________________________ 
+// sg_cmdanneal.cpp ____________________________________________________________________________________________________________ 
 
 
 #include    "segue/tenor/sg_include.h" 
@@ -17,7 +17,7 @@
 
 ///_____________________________________________________________________________________________________________________________ 
 
-static Cv_CmdOption     s_RExpIfcOptions[] = 
+static Cv_CmdOption     s_AnnealIfcOptions[] = 
 {         
     { "-irex",      "<input>",  "input rule-file"},
     { "-ilex",      "<input>",  "input rule-file"},
@@ -32,7 +32,7 @@ static Cv_CmdOption     s_RExpIfcOptions[] =
 
 //_____________________________________________________________________________________________________________________________ 
 
-class Sg_RExpCmdProcessor : public Cv_CmdExecutor
+class Sg_AnealCmdProcessor : public Cv_CmdExecutor
 { 
     std::string         m_LexInputFile;
     std::string         m_RexInputFile;
@@ -45,7 +45,7 @@ class Sg_RExpCmdProcessor : public Cv_CmdExecutor
     std::string         m_OutputFile;
 
 public:
-    Sg_RExpCmdProcessor( void)  
+    Sg_AnealCmdProcessor( void)  
         :  m_DebugFlg( false)
     {}
 
@@ -113,7 +113,7 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
  
-CV_CMD_DEFINE( Sg_RExpCmdProcessor, "rexp", "rexp", s_RExpIfcOptions)
+CV_CMD_DEFINE( Sg_AnealCmdProcessor, "anneal", "anneal", s_AnnealIfcOptions)
 
 using namespace Sg_Timbre;
 using namespace Sg_RExp; 
@@ -153,7 +153,7 @@ auto ProcessMatch( TimbreShard *shard, ...) -> void
 
 //_____________________________________________________________________________________________________________________________ 
 
-int     Sg_RExpCmdProcessor::Test(void)
+int     Sg_AnealCmdProcessor::Test(void)
 { 
     int32_t	    apiErrCode = 0;
    // typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
@@ -211,9 +211,13 @@ int     Sg_RExpCmdProcessor::Test(void)
     } 
     //std::cout << rexpRepos.m_Base.ToString() << '\n';
 
+    if ( !m_ElemDotFile.size() && !m_DfaDotFile.size() && !m_ImgFile.size() && !m_DataFile.size())
+        return apiErrCode;
+
     FsaElemRepos            elemRepos;
     FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
     automReposCnstr.Process(); 
+
     //elemRepos.Dump( std::cout);
     if ( m_ElemDotFile.size())
     {
@@ -224,6 +228,10 @@ int     Sg_RExpCmdProcessor::Test(void)
     elemRepos.DumpStats( std::cout);
     FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
+
+    if ( !m_DfaDotFile.size() && !m_ImgFile.size() && !m_DataFile.size())
+        return apiErrCode;
+
     dfaCnstr.SubsetConstruction();
     dfaRepos.DumpStats( std::cout);
     dfaRepos.m_DistribRepos.Dump( std::cout);
@@ -314,7 +322,7 @@ int     Sg_RExpCmdProcessor::Test(void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-int     Sg_RExpCmdProcessor::Execute( void)
+int     Sg_AnealCmdProcessor::Execute( void)
 {
     Sg_Partition        prtn;
     Sg_ChSet            ws = Sg_ChSet::Word();

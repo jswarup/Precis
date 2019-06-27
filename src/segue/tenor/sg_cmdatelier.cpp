@@ -14,9 +14,7 @@
 #include    "segue/colophon/sg_dfastate.h"
 
 #include    <utility>
-#include    <tuple>
- 
-
+#include    <tuple> 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -41,7 +39,6 @@ struct Sg_EaselVita : public Sg_BaseVita
     Sg_EaselVita( void)
         : m_InputLoopFlg( false), m_Atelier( NULL)
     {}
-
 
     bool    DoInit( void)
     {
@@ -157,7 +154,6 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, 
     {
         return Base::IsRunable();
     }
-    
      
 };
 
