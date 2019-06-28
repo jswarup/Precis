@@ -134,10 +134,12 @@ CV_CMD_DEFINE( Sg_AtelierCmdProcessor, "atelier", "atelier", s_AtelierIfcOptions
 //_____________________________________________________________________________________________________________________________
   
 struct Sg_ReposEasel;
+
+template <template<class, class> class ReadEasel>
 struct Sg_FileReadAtelierEasel;
 
 typedef Cv_Crate< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>, Sg_TokenLogEasel< Sg_EaselVita>, Sg_FileWriteEasel< Sg_EaselVita>, 
-                                                Sg_FileReadAtelierEasel, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita>>         Sg_AtelierCrate;
+    Sg_FileReadAtelierEasel< Sg_FileReadEasel>, Sg_FileReadAtelierEasel< Sg_FileBufferLoopReadEasel>, Sg_ReposEasel, Sg_BaseEasel< Sg_EaselVita>>         Sg_AtelierCrate;
 
 //_____________________________________________________________________________________________________________________________
 
@@ -159,9 +161,11 @@ struct Sg_ReposEasel : public  Sg_MonitorEasel< Sg_ReposEasel, Sg_AtelierCrate, 
 
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_FileReadAtelierEasel : public  Sg_FileBufferLoopReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>
+template <template<class, class> class ReadEasel>
+struct Sg_FileReadAtelierEasel : public  ReadEasel< Sg_FileReadAtelierEasel< ReadEasel>, Sg_EaselVita>
 {
-    typedef Sg_FileBufferLoopReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>    Base;
+    typedef ReadEasel< Sg_FileReadAtelierEasel, Sg_EaselVita>       Base;
+    typedef typename Sg_EaselVita::Datagram                         Datagram;
     
     Sg_DfaBlossomAtelier        *m_DfaBlossomAtelier; 
     uint8_t                     m_CharMap[ 256];
@@ -238,8 +242,19 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();  
     
     
-    Sg_ReposEasel                       reposEasel; 
-    Sg_FileReadAtelierEasel             *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel>();
+    Sg_ReposEasel                   reposEasel; 
+    Sg_EaselVita::OutPort           *readOutPort = NULL;
+    
+    if ( !m_InputLoopFlg)
+    {
+        auto                            *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel< Sg_FileReadEasel>>();
+        readOutPort = &fileRead->m_DataPort;
+    }
+    else
+    {
+        auto                            *fileRead = reposEasel.Construct< Sg_FileReadAtelierEasel< Sg_FileBufferLoopReadEasel>>();
+        readOutPort = &fileRead->m_DataPort;
+    }
     
     Sg_TokenLogEasel<Sg_EaselVita>      *tokenLog =  NULL;
     if (  m_ImgFile.size() && m_TokenLogFile.size())
@@ -252,7 +267,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
             Sg_AtelierEasel< Sg_EaselVita, Sg_DfaBlossomAtelier>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>>();         
             atelier->m_AtelierEaseld = q;
             atelier->m_AtelierEaseSz = m_AtelierSz;
-            atelier->m_InDataPort.Connect( &fileRead->m_DataPort);
+            atelier->m_InDataPort.Connect( readOutPort);
             if ( tokenLog) 
                 tokenLog->Connect( &atelier->m_TokOutPort);  
         } 
@@ -260,7 +275,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     if ( m_OutputFile.size())
     {
         Sg_FileWriteEasel< Sg_EaselVita>       *fileWrite = reposEasel.Construct< Sg_FileWriteEasel< Sg_EaselVita>>();
-        fileWrite->m_DataPort.Connect( &fileRead->m_DataPort);
+        fileWrite->m_DataPort.Connect( readOutPort);
     }
 
     bool    res = DoInit();

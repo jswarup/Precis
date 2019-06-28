@@ -187,6 +187,12 @@ struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
         return []( auto forge) {
             forge->template Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
             return true;  }; }
+
+    auto		EscCharListener( void) const {
+        return []( auto forge) {
+            forge->template Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
+            return true;  }; }
+
     auto		AlphaNumListener( void) const {
         return []( auto forge) {
             forge->template Pred< RExpAnyCCLChar>()->m_Char = forge->MatchStr()[0];
@@ -213,7 +219,7 @@ struct RExpAnyCCLChar : public Shard< RExpAnyCCLChar>, public RExpPrimitive
             return true;  }; }
 
     auto        AnyCCLChar(  void) const { 
-        return AlphaNum()[ AlphaNumListener()] | ( Char( '\\') >> ( CharSet( "abfnrtv")[ CtrlCharListener()] |  CharSet( s_CCLEscapedCharset)[ CharListener()] |  
+        return AlphaNum()[ AlphaNumListener()] | ( Char( '\\') >> ( CharSet( "abfnrtv")[ CtrlCharListener()] |  CharSet( s_CCLEscapedCharset)[ EscCharListener()] |  
                         Oct()[ CharValueListener()] |  ( IStr( "x") >> Hex()[ CharValueListener()]) | Any()[ CharListener()])) | Any()[ CharListener()]; }
 
 template < typename Forge>
@@ -385,13 +391,15 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     typedef ParseInt< uint8_t, 16, 2, 2>    Hex;
 
     CharSet     m_AlphaNum;
-    CharSet     m_EscapedCharset;
+    CharSet     m_PeEscapedCharset;
+    CharSet     m_PxEscapedCharset;
     Oct         m_Octal;
     Hex         m_Hex;
     Dec         m_BackRef;
     RExpCCL     m_CCLExpr;
 
-    static constexpr const char   *EscapedCharset = ".^$*+?()[{\\|:/=&-_~%."; //";    // "[]+*?{}().\\/" [ /:=&-_~%. added for a test ]
+    static constexpr const char   *PCREEscapedCharset = ".^$*+?()[{\\|:/=&-_~%."; //";    // "[]+*?{}().\\/" [ /:=&-_~%. added for a test ]
+    static constexpr const char   *PosixEscapedCharset = ".^$*+?()[{\\|:/=&-_~%.\""; //";    // "[]+*?{}().\\/" [ /:=&-_~%. added for a test ]
 
     struct Whorl
     {
@@ -399,7 +407,7 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
     }; 
 
     RExpUnit( void)
-        :  m_AlphaNum( AlphaNum()), m_EscapedCharset( EscapedCharset ), m_Octal()
+        :  m_AlphaNum( AlphaNum()), m_PeEscapedCharset( PCREEscapedCharset ), m_PxEscapedCharset( PosixEscapedCharset), m_Octal()
     {}
 
     auto		CharListener(void) const {
@@ -496,12 +504,14 @@ struct RExpUnit : public Shard< RExpUnit>, public RExpPrimitive
 
     auto        Unit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | 
                             Char( '.')[ DotListener()] | 
-                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
-                              m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
+                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_PeEscapedCharset[ EscCharListener()]  | 
+                                m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] )); } 
+
     auto        PxUnit(  void) const { return m_AlphaNum[ CharListener()] | m_CCLExpr[ CCLExprListener()] | 
                             Char( '.')[ DotListener()] | Char( '/')[ TrailCtxtListener()] |
-                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_EscapedCharset[ EscCharListener()]  | 
-                                m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()] |  Any()[ CharListener()])) ; } 
+                            ( Char('\\') >> ( KeyChar() | CharSet("abfnrtv")[ CtrlCharListener()] | m_PxEscapedCharset[ EscCharListener()]  | 
+                                m_Octal[ OctalListener()] | (IStr( "x") >> m_Hex[ HexListener()]) | m_BackRef[ BackrefListener()])) | 
+                                CharSet(",")[ CharListener()]  ; } 
 
 
  template < typename Forge>
