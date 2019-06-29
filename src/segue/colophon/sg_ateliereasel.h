@@ -40,16 +40,25 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
     InPort                                      m_InDataPort;
     OutTokPort                                  m_TokOutPort;
     Atelier                                     *m_Atelier; 
+    Sg_Bastion< Atelier>                        m_Bastion;
     uint64_t                                    m_Bytes;
     uint32_t                                    m_AtelierEaseld;
+    uint32_t                                    m_AtelierEaselnd;
     uint32_t                                    m_AtelierEaseSz; 
-    Sg_Bastion< Atelier>                        m_Bastion;
-    bool                                        m_CloseFlg;
-    bool                                        m_SavedCtxtFlag;
+    bool                                        m_CloseFlg; 
 
     Sg_AtelierEasel( const std::string &name = "Atelier") 
-        : Base( name), m_Bytes( 0), m_AtelierEaseld( 0), m_AtelierEaseSz( 1), m_CloseFlg( false), m_SavedCtxtFlag( false)
+        : Base( name), m_Bytes( 0), m_AtelierEaseld( 0), m_AtelierEaselnd( 0), m_AtelierEaseSz( 1), m_CloseFlg( false)
     {}
+
+
+    //_____________________________________________________________________________________________________________________________
+
+    void SetEasel( uint32_t ind, uint32_t sz)
+    {
+        m_AtelierEaseld = m_AtelierEaselnd = ind;
+        m_AtelierEaseSz = sz;
+    }
 
     //_____________________________________________________________________________________________________________________________
 
@@ -93,15 +102,15 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t    dInd = 0;
         uint32_t    tokInd = 0; 
         m_Bastion.FixOrigin( m_Bytes);
-        TokenGram  *tokenSet =  tokWharf.AllocFree();
+        TokenGram  *tokenSet =  tokWharf.AllocFree(); 
         tokenSet->SetOrigin( m_Bytes);
-        m_Bytes += szBurst;
         for ( ; dInd < szBurst;  dInd++)
         {
-            bool        rootScanFlg = (m_AtelierEaseld++ % m_AtelierEaseSz ) == 0;
+            bool        rootScanFlg = (m_AtelierEaselnd++ % m_AtelierEaseSz ) == 0;
             Datagram    *datagram = wharf.Get( dInd);  
             Cv_Seq      dataSeq( datagram->PtrAt( 0), datagram->SzFill());
-            m_SavedCtxtFlag = rootScanFlg ? m_Bastion.Play( dataSeq, tokenSet) : (  m_SavedCtxtFlag ? m_Bastion.PlayScan( dataSeq, tokenSet) : 0);
+            m_Bytes += dataSeq.Size();
+            rootScanFlg ? m_Bastion.Play( dataSeq, tokenSet) :  m_Bastion.PlayScan( dataSeq, tokenSet);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         } 

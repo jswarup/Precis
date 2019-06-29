@@ -456,7 +456,7 @@ struct Sg_Bastion
     uint32_t                m_Curr;
 
     Sg_Bastion( void)
-        : m_DfaAtelier( NULL),  m_Curr( 0) 
+        : m_DfaAtelier( NULL),  m_Curr( 0)
     {}
 
     void    Setup( Atelier *dfaAtelier)
@@ -476,6 +476,7 @@ template < typename TokenGram>
     { 
         if ( m_BulWark.SzAlloc())                                                                                               // scan for root-match in the buffer.
             m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, chrs.Size());                   // scan-sycle the rest upto the scan-Marker 
+        m_Curr += chrs.Size();
         return !!m_BulWark.SzAlloc();
     }
 

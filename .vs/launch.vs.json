@@ -10,8 +10,9 @@
       "currentDir": "C:\\Work\\Precis\\workbench",
       "args": [
         //"anneal  -irex ip1.rex -idata data1.txt -oimg ip1.fsa -odfa a.dot"
-       // "atelier -idata data1.txt  -iimg ip1.fsa -otok a.tok",
-        "anneal -ilex ip2.lex -oshard a.dot"
+        "atelier -idata ipdata2.txt  -iimg ip_1m.fsa -otok a.tok -ca 2",
+       //"atelier -idata avro1.txt -iimg ip_1m.fsa  -ca 2  -otok b.tok"
+        //  "anneal -ilex ip2.lex -oshard a.dot"
         //"atelier -iimg ip_1m.fsa  -idata ipdata.txt",
         //"serial"
       ]

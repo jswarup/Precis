@@ -86,6 +86,7 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
     }
     void            DoStop( void)
     {
+        std::cerr << "Stoping " << m_Name << '\n';
         this->m_Vita->m_CntActive.Decr();
         this->m_DoneFlg = true;
     }

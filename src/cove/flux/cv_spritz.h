@@ -70,6 +70,7 @@ Cv_SpritzBuf< Sz>   &operator<<( Cv_SpritzBuf< Sz> &arr, uint64_t value)
 { 
     static const uint32_t    DigitSz = 20;
     char                buf[ DigitSz];
+    
     uint32_t            i = DigitSz;
     do {
         buf[ --i] = (value % 10) + '0';

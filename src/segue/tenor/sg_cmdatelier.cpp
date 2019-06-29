@@ -265,8 +265,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
         for ( uint32_t q = 0; q < m_AtelierSz; ++q)
         {
             Sg_AtelierEasel< Sg_EaselVita, Sg_DfaBlossomAtelier>      *atelier = reposEasel.Construct< Sg_AtelierEasel<Sg_EaselVita, Sg_DfaBlossomAtelier>>();         
-            atelier->m_AtelierEaseld = q;
-            atelier->m_AtelierEaseSz = m_AtelierSz;
+            atelier->SetEasel( q, m_AtelierSz);
             atelier->m_InDataPort.Connect( readOutPort);
             if ( tokenLog) 
                 tokenLog->Connect( &atelier->m_TokOutPort);  
