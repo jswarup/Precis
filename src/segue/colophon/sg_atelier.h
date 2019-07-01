@@ -14,17 +14,23 @@ using namespace Sg_RExp;
 
 struct Sg_DfaReposAtelier
 {
-    FsaDfaRepos     *m_DfaRepos;
+    FsaDfaRepos             *m_DfaRepos;
+    FsaCrate::Var           m_Root;
+    DistribCrate::Var       m_RootDistrib;
 
     Sg_DfaReposAtelier( FsaDfaRepos *dfaRepos = NULL)
         : m_DfaRepos( dfaRepos)
-    {}
+    {
+        m_Root = VarFromId( m_DfaRepos->m_RootId);
+        if ( m_Root.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
+            m_RootDistrib = FetchDistib( static_cast< FsaDfaState *>( m_Root.GetEntry()));
+    }
 
     FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_DfaRepos->ToVar( id ); }
     
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
 
-    FsaCrate::Var           RootState( void) {  return VarFromId( m_DfaRepos->m_RootId); }
+    const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_DfaRepos->m_DistribRepos.ToVar( dfaState->DistribId()); }
@@ -65,33 +71,63 @@ struct Sg_DfaReposAtelier
         return nxState;
     }
 
+    FsaDfaRepos::Id         AdvanceRoot(  uint8_t chrId)
+    {
+        FsaDfaRepos::Id   nxState;
+        switch ( m_Root.GetType())
+        {
+            case FsaCrate::template TypeOf< FsaDfaState>() :
+            {
+                FsaDfaState             *dfaState = static_cast< FsaDfaState *>( m_Root.GetEntry());
+                nxState =   DfaTransition( dfaState, m_RootDistrib, chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            {
+                nxState = DfaUniXTransition( m_Root.GetEntry(), chrId);
+                break;
+            }
+            default :
+                break;
+        }
+        return nxState; 
+    }
 };
 
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_DfaBlossomAtelier
 {
+    
     FsaDfaRepos::Blossom    m_DfaBlossom;
     DistribRepos::Blossom   m_Distribs;
     FsaRepos::Blossom       m_States;
+    FsaCrate::Var           m_Root;
+    DistribCrate::Var       m_RootDistrib;
 
     Sg_DfaBlossomAtelier( void *dfaImage)
         : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs()), m_States( m_DfaBlossom.States())
     {
         m_DfaBlossom.SauteStates();
+        m_Root = m_States.ToVar( m_DfaBlossom.RootId());
+        if ( m_Root.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
+            m_RootDistrib = FetchDistib( static_cast< FsaDfaState *>( m_Root.GetEntry()));
     }
 
     FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States.VarId( id ); }
 
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_Distribs.Base()->Image( chr); }
 
-    FsaCrate::Var           RootState( void)  {  return m_States.ToVar( m_DfaBlossom.RootId()); }
+    const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
 
     FsaDfaRepos::Id         DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
-        return  dfaState->DestAt( dVar( [ chrId]( auto k) { return k->Image( chrId); }));
+        uint8_t    index = dVar( [ chrId]( auto k) { return k->Image( chrId); });
+        if ( index == dfaState->DeadInd())
+            return FsaDfaRepos::Id();
+        return  dfaState->DestAt( index);
     }
 
     FsaDfaRepos::Id         DfaUniXTransition( FsaDfaUniXState  *dfaState, uint8_t chrId)
@@ -116,6 +152,29 @@ struct Sg_DfaBlossomAtelier
             case FsaCrate::template TypeOf< FsaDfaUniXState>() :
             {
                 FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
+                nxState = DfaUniXTransition( dfaState, chrId);
+                break;
+            }
+            default :
+                break;
+        }
+        return nxState;
+    }
+    
+    FsaDfaRepos::Id         AdvanceRoot(  uint8_t chrId)
+    {
+        FsaDfaRepos::Id   nxState;
+        switch ( m_Root.GetType())
+        {
+            case FsaCrate::template TypeOf< FsaDfaState>() :
+            {
+                FsaDfaState             *dfaState = static_cast< FsaDfaState *>( m_Root.GetEntry());
+                nxState =   DfaTransition( dfaState, m_RootDistrib, chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            {
+                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( m_Root.GetEntry());
                 nxState = DfaUniXTransition( dfaState, chrId);
                 break;
             }
@@ -203,12 +262,7 @@ struct Sg_Tokengram
     void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }  
     
     
-template < uint32_t Sz>
-    void                Dump( Cv_SpritzBuf< Sz> &ostrm)
-    {
-        for ( uint32_t k = 0; k < m_Tokens.SzFill(); ++k)
-            m_Tokens.PtrAt( k)->Dump( ostrm, m_Origin);
-    }
+
 };
 
 
@@ -392,24 +446,6 @@ public:
 	
     void        SetStart( uint32_t ind, uint32_t val) { m_Starts[ ind] = val; }
 
-template < typename Atelier, typename TokenGram>
-    auto            ScanRoot( Atelier *atelier, TokenGram  *tokenSet, const FsaCrate::Var &root, uint32_t curr, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
-    { 
-        uint32_t            i = 0;
-        FsaDfaRepos::Id     nxStateId;
-        for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
-            nxStateId = atelier->Advance( root, chrs[ i]); 
-
-        if ( ! nxStateId.IsValid())
-            return std::make_tuple( false, chrs.Size());
-        Sg_Parapet      nxParapet = atelier->VarFromId( nxStateId); 
-        SetState( rootInd, nxStateId); 
-        SetStart( rootInd, curr +i -1);
-
-        if ( tokenSet && nxParapet.HasTokens())
-            nxParapet.DumpTokens( tokenSet, curr +i -1, curr +i);
-        return std::make_tuple( true, i);
-    }
 
 template < typename Atelier, typename TokenGram>
     void        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint32_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
@@ -451,8 +487,7 @@ template < typename Atelier>
 struct Sg_Bastion
 {
     Sg_Bulwark              m_BulWark;
-    Atelier                 *m_DfaAtelier; 
-    FsaCrate::Var           m_Root; 
+    Atelier                 *m_DfaAtelier;  
     uint32_t                m_Curr;
 
     Sg_Bastion( void)
@@ -461,8 +496,7 @@ struct Sg_Bastion
 
     void    Setup( Atelier *dfaAtelier)
     {
-        m_DfaAtelier = dfaAtelier;
-        m_Root = dfaAtelier->RootState();
+        m_DfaAtelier = dfaAtelier; 
     }
 
     void    FixOrigin( uint64_t origin) 
@@ -470,12 +504,31 @@ struct Sg_Bastion
         m_Curr -= m_BulWark.FixOrigin( origin);  
     } 
 
+template <  typename TokenGram>
+    auto            ScanRoot(  TokenGram  *tokenSet, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
+    { 
+        uint32_t            i = 0;
+        FsaDfaRepos::Id     nxStateId;
+        for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
+            nxStateId = m_DfaAtelier->AdvanceRoot( chrs[ i]); 
+
+        if ( ! nxStateId.IsValid())
+            return std::make_tuple( false, chrs.Size());
+        Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
+        m_BulWark.SetState( rootInd, nxStateId); 
+        m_BulWark.SetStart( rootInd, m_Curr +i -1);
+
+        if ( tokenSet && nxParapet.HasTokens())
+            nxParapet.DumpTokens( tokenSet, m_Curr +i -1, m_Curr +i);
+        return std::make_tuple( true, i);
+    }
+
     // return true if context is persists
 template < typename TokenGram>
     bool    PlayScan( Cv_Seq< uint8_t> chrs, TokenGram  *tokenSet)
     { 
-        if ( m_BulWark.SzAlloc())                                                                                               // scan for root-match in the buffer.
-            m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, chrs.Size());                   // scan-sycle the rest upto the scan-Marker 
+        if ( m_BulWark.SzAlloc())                                                           // scan for root-match in the buffer.
+            m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, chrs.Size());        // scan-sycle the rest upto the scan-Marker 
         m_Curr += chrs.Size();
         return !!m_BulWark.SzAlloc();
     }
@@ -491,7 +544,7 @@ template < typename TokenGram>
             uint32_t    szScan = chrs.Size();
             bool        injectFlg = false; 
 
-            std::tie( injectFlg, szScan) = m_BulWark.ScanRoot( m_DfaAtelier, tokenSet, m_Root, m_Curr, rootInd, chrs);   
+            std::tie( injectFlg, szScan) = ScanRoot(  tokenSet, rootInd, chrs);   
 
             if ( szAlloc)                                                                       // scan for root-match in the buffer.
                 m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker

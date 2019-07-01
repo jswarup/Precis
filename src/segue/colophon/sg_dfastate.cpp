@@ -154,7 +154,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
     strm << " </FONT>>];\n "; 
 
     FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos);
-    std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
+    std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_DId);
     Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
@@ -201,7 +201,7 @@ bool    FsaDfaState::DumpDot( Cv_DotStream &strm)
 
 bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 {
-    bRepos->Distribs().ConvertIdToVarId( &m_Discr.m_DId);
+    bRepos->Distribs().ConvertIdToVarId( &m_DId);
     Cv_Seq< FsaId>         dests = Dests(); 
     for ( uint32_t i = 0; i < dests.Size(); ++i)
         bRepos->States().ConvertIdToVarId( dests.PtrAt( i));

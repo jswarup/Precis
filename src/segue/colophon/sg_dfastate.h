@@ -252,11 +252,13 @@ struct FsaSupState  : public FsaState
 struct FsaDfaState  : public FsaState
 {  
 private:
-    DistribRepos::Discr     m_Discr;
-    uint16_t                m_TokSz;         
+    Id                      m_DId;
+    uint16_t                m_TokSz;   
+    uint16_t                m_Inv;
+    uint8_t                 m_MxEqClass;       
     
     FsaDfaState( const DistribRepos::Discr &discr, uint8_t tokSz) 
-        : m_Discr( discr), m_TokSz( tokSz)
+        : m_DId( discr.m_DId), m_Inv( discr.m_Inv), m_MxEqClass( discr.m_MxEqClass),  m_TokSz( tokSz)
     {}
 
 public:
@@ -271,6 +273,7 @@ public:
         delete [] ( uint8_t *) this;
     }
      
+    uint16_t                DeadInd( void) { return m_Inv; }
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
 
     static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
@@ -287,9 +290,9 @@ public:
         return dfaState;
     }
 
-    uint32_t                DestSz( void) const { return m_Discr.SzDescend(); }
+    uint32_t                DestSz( void) const { return m_MxEqClass +1; }
     
-    DistribRepos::Id        DistribId( void) const { return m_Discr.m_DId; }
+    DistribRepos::Id        DistribId( void) const { return m_DId; }
 
     Cv_Seq< FsaId>         Dests( void) { return DestSz() ? Cv_Seq< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_Seq< FsaId>(); } 
     void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }

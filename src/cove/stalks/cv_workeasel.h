@@ -80,15 +80,18 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
 
     void            DoStart( void)
     {
-        this->m_Vita->m_CntActive.Incr();
-        while ( this->m_Vita->m_CntActive.Get() != this->m_Vita->m_CntEasel)
+        Easel   *easel = GetEasel();
+        
+        easel->m_Vita->m_CntActive.Incr();
+        while ( easel->m_Vita->m_CntActive.Get() != easel->m_Vita->m_CntEasel)
             std::this_thread::yield();
     }
     void            DoStop( void)
     {
-        std::cerr << "Stoping " << m_Name << '\n';
-        this->m_Vita->m_CntActive.Decr();
-        this->m_DoneFlg = true;
+        Easel   *easel = GetEasel();
+        std::cerr << "Stoping " << easel->m_Name << '\n';
+        easel->m_Vita->m_CntActive.Decr();
+        easel->m_DoneFlg = true;
     }
 
     bool            DoLaunch( void)
@@ -104,8 +107,8 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
         easel->DoStart();
         while ( easel->IsRunable())
         {
-            Cv_StopWatch< Cv_Type< uint64_t>>   stopWatch( &this->m_Worktime);
-            uint64_t    val = this->m_Worktime.Get();
+            Cv_StopWatch< Cv_Type< uint64_t>>   stopWatch( &easel->m_Worktime);
+            uint64_t    val = easel->m_Worktime.Get();
             easel->DoRunStep();
         }
         easel->DoStop();
@@ -118,12 +121,12 @@ struct Sg_WorkEasel : public Sg_BaseEasel< Vita>, Cv_EaselStatsAgent< Easel, Eas
         return true;
     }
 
-    Stats               *CurStats( void)  { return &this->m_Curr; }
+    Stats               *CurStats( void)  { return &GetEasel()->m_Curr; }
     bool                SnapStats( void) {  return StatsAgent::SnapStats(); } 
     bool                ResetLastSnap( void) { return StatsAgent::ResetLastSnap(); }
     bool                LogStats( std::ostream &strm) 
     { 
-        strm << this->m_Name << ": ";
+        strm << GetEasel()->m_Name << ": ";
         return StatsAgent::LogStats( strm); 
     }
 };

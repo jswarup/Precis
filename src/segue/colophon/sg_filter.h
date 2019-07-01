@@ -363,14 +363,14 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
     struct Discr
     {
         Id          m_DId;
-        uint8_t     m_Inv;
+        uint16_t    m_Inv;
         uint8_t     m_MxEqClass; 
 
         Discr( void)
             : m_Inv( 0), m_MxEqClass( uint8_t( -1))
         { }
 
-        Discr( Id id, uint8_t inv, uint8_t mxEqClass)
+        Discr( Id id, uint16_t inv, uint8_t mxEqClass)
             :   m_DId( id), m_Inv( inv), m_MxEqClass( mxEqClass)
         { }
 
@@ -411,7 +411,7 @@ template < uint32_t Bits>
             intersector.Over();
             auto            invalidCCL =  intersector.ValidCCL().Negative();
             uint32_t        invRep = invalidCCL.RepIndex();
-            uint8_t         invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT32_MAX; 
+            uint16_t        invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT16_MAX; 
             Discr           discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1)); 
             return discr;
         }

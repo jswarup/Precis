@@ -110,8 +110,9 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
             uint32_t        szBurst = wharf->Size();             
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
-                TokenGram   *tokengram = wharf->Get( i); 
-                tokengram->Dump( m_SpritzArray); 
+                TokenGram   *tokengram = wharf->Get( i);  
+                for ( uint32_t k = 0; k < tokengram->m_Tokens.SzFill(); ++k)
+                    tokengram->m_Tokens.PtrAt( k)->Dump( m_SpritzArray, tokengram->m_Origin); 
                 wharf->Discard( tokengram); 
             }    
             wharf->SetSize( szBurst);
