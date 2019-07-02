@@ -543,10 +543,8 @@ template < typename TokenGram>
         while ( chrs.Size())
         {   
             uint32_t    rootInd = m_BulWark.FetchFree();
-            uint32_t    szScan = chrs.Size();
-            uint32_t    szDropped = 0;
-            bool        injectFlg = ScanRoot(  tokenSet, rootInd, chrs, &szScan, &szDropped);   
-            szDroppedToken += szDropped;
+            uint32_t    szScan = chrs.Size(); 
+            bool        injectFlg = ScanRoot(  tokenSet, rootInd, chrs, &szScan, &szDroppedToken);   
             if ( szAlloc)                                                                       // scan for root-match in the buffer.
                 szDroppedToken += m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
