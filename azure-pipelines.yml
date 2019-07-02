@@ -10,14 +10,14 @@ pool:
     vmImage: 'windows-2019'
 
 steps:
-- script: echo Build Begin !
+- script: echo 'Build Begin!'
     displayName: 'Begin Build'
 
 - checkout: self
     clean: true
 
-- script:  echo Build Precis..........
-	displayName: 'Build Precis'
+- script:  echo 'Build Precis..........'
+    displayName: 'Build Precis'
  
-- script: echo Build Complete!
-	displayName: 'Begin Build'
+- script: echo 'Build Complete!'
+    displayName: 'End Build'
