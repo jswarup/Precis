@@ -11,13 +11,12 @@ pool:
 
 steps:
 - script: echo 'Build Begin!'
-    displayName: 'Begin Build'
 
 - checkout: self
     clean: true
 
 - script:  echo 'Build Precis..........'
-    displayName: 'Build Precis'
+ displayName: 'Build Precis'
  
 - script: echo 'Build Complete!'
-    displayName: 'End Build'
+ displayName: 'End Build'
