@@ -9,17 +9,15 @@
 struct  Cv_AtelierStats : public Cv_EaselStats
 {
     typedef Cv_EaselStats       Base;
-    
+
     Cv_Type< uint64_t>          m_Matches;
-    Cv_Type< uint64_t>          m_SzDroppedToken;
 
     uint64_t    Matches( Cv_AtelierStats *prev) { return m_Matches.Get() -prev->m_Matches.Get(); }
-    uint64_t    SzDroppedToken( Cv_AtelierStats *prev) { return m_SzDroppedToken.Get() -prev->m_SzDroppedToken.Get(); }
 
     void    LogStats( std::ostream &strm, Cv_AtelierStats *prev)
     {
         Base::LogStats( strm, prev);
-        strm << "Matches[ " << Matches( prev) << "] " << "Dropped[ " << SzDroppedToken( prev) << "] ";
+        strm << "Matches[ " << Matches( prev) << "] ";
         return;
     }
 };
@@ -103,7 +101,6 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         }  
         uint32_t    dInd = 0;
         uint32_t    tokInd = 0; 
-        uint32_t    szDroppedToken = 0;
         m_Bastion.FixOrigin( m_Bytes);
         TokenGram  *tokenSet =  tokWharf.AllocFree(); 
         tokenSet->SetOrigin( m_Bytes);
@@ -118,7 +115,6 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
                 wharf.Discard( datagram);
         } 
         stats->m_Matches += tokenSet->SzFill();
-        stats->m_SzDroppedToken += szDroppedToken;
         if ( tokWharf.IsTail()) 
             tokWharf.Discard( tokenSet);
         else
