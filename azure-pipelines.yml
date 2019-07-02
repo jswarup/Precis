@@ -7,16 +7,16 @@ trigger:
 - master
 
 pool:
-	vmImage: 'windows-2019'
+    vmImage: 'windows-2019'
 
 steps:
 - script: echo Build Begin !
-	displayName: 'Begin Build'
+    displayName: 'Begin Build'
 
 - checkout: self
-  clean: true
+    clean: true
 
-- script:  
+- script:  echo Build Precis..........
 	displayName: 'Build Precis'
  
 - script: echo Build Complete!
