@@ -296,17 +296,15 @@ template < typename Atelier>
     Cv_Seq< uint64_t>      Tokens( void) {  return m_CurState.Tokens(); }
 
 template < typename TokenGram>
-    void            DumpTokens( TokenGram  *tokenSet,  uint32_t start, uint32_t end)
+    uint32_t                DumpTokens( TokenGram  *tokenSet,  uint32_t start, uint32_t end)
     {
         Cv_Seq< uint64_t>      tokens = Tokens();
         if ( tokenSet->SzVoid() < tokens.Size())
-        {
-           // CV_ERROR_ASSERT( false)
-            return;
-        }
+            return tokens.Size();
+
         for ( uint32_t i = 0; i < tokens.Size(); ++i)
             tokenSet->Append( Sg_MatchData( start, uint32_t( end -start), tokens[ i]));
-        return;
+        return 0;
     }
 };
 
@@ -448,10 +446,11 @@ public:
 
 
 template < typename Atelier, typename TokenGram>
-    void        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint32_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
+    uint32_t        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint32_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
     {
         std::array< uint8_t, Sz>        allocInds;
         uint16_t                        szAlloc = 0;
+        uint32_t                        szDroppedToken = 0;
         for ( uint16_t  q = 0; q < m_AllocSz; ++q)
         {
             uint32_t            ind = m_AllocInds[ q];
@@ -465,7 +464,7 @@ template < typename Atelier, typename TokenGram>
 
                 parapet.SetState( atelier->VarFromId( nxStateId)); 
                 if ( tokenSet && parapet.HasTokens())
-                    parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
+                    szDroppedToken += parapet.DumpTokens( tokenSet, m_Starts[ ind], curr +k +1);
             }
             if ( nxStateId.IsValid())
             {
@@ -477,7 +476,7 @@ template < typename Atelier, typename TokenGram>
         }
         std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
         m_AllocSz = szAlloc;
-        return;
+        return szDroppedToken;
     }
 };
 
@@ -505,55 +504,57 @@ struct Sg_Bastion
     } 
 
 template <  typename TokenGram>
-    auto            ScanRoot(  TokenGram  *tokenSet, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs)
+    auto            ScanRoot(  TokenGram  *tokenSet, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs, uint32_t *pLen, uint32_t *pSzDroppedToken)
     { 
-        uint32_t            i = 0;
+        uint32_t            i = 0; 
         FsaDfaRepos::Id     nxStateId;
         for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
             nxStateId = m_DfaAtelier->AdvanceRoot( chrs[ i]); 
 
-        if ( ! nxStateId.IsValid())
-            return std::make_tuple( false, chrs.Size());
+        *pLen = i;
+        if ( !nxStateId.IsValid())
+            return false;
         Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
         m_BulWark.SetState( rootInd, nxStateId); 
         m_BulWark.SetStart( rootInd, m_Curr +i -1);
 
         if ( tokenSet && nxParapet.HasTokens())
-            nxParapet.DumpTokens( tokenSet, m_Curr +i -1, m_Curr +i);
-        return std::make_tuple( true, i);
+            *pSzDroppedToken += nxParapet.DumpTokens( tokenSet, m_Curr +i -1, m_Curr +i);
+        return true;
     }
 
     // return true if context is persists
 template < typename TokenGram>
-    bool    PlayScan( Cv_Seq< uint8_t> chrs, TokenGram  *tokenSet)
+    uint32_t    PlayScan( Cv_Seq< uint8_t> chrs, TokenGram  *tokenSet)
     { 
+        uint32_t    szDroppedToken = 0;
         if ( m_BulWark.SzAlloc())                                                           // scan for root-match in the buffer.
-            m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, chrs.Size());        // scan-sycle the rest upto the scan-Marker 
+            szDroppedToken = m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, chrs.Size());        // scan-sycle the rest upto the scan-Marker 
         m_Curr += chrs.Size();
-        return !!m_BulWark.SzAlloc();
+        return szDroppedToken;
     }
 
     // return true if context is persists
 template < typename TokenGram>
-    bool    Play( Cv_Seq< uint8_t> chrs, TokenGram  *tokenSet)
+    uint32_t    Play( Cv_Seq< uint8_t> chrs, TokenGram  *tokenSet)
     { 
+        uint32_t    szDroppedToken = 0;
         uint32_t    szAlloc = m_BulWark.SzAlloc();
         while ( chrs.Size())
         {   
             uint32_t    rootInd = m_BulWark.FetchFree();
             uint32_t    szScan = chrs.Size();
-            bool        injectFlg = false; 
-
-            std::tie( injectFlg, szScan) = ScanRoot(  tokenSet, rootInd, chrs);   
-
+            uint32_t    szDropped = 0;
+            bool        injectFlg = ScanRoot(  tokenSet, rootInd, chrs, &szScan, &szDropped);   
+            szDroppedToken += szDropped;
             if ( szAlloc)                                                                       // scan for root-match in the buffer.
-                m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
+                szDroppedToken += m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, m_Curr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker
             m_Curr += szScan;
             chrs.Advance( szScan); 
             injectFlg  ? m_BulWark.MarkOccupied( rootInd) : m_BulWark.MarkFree( rootInd);
             szAlloc = m_BulWark.SzAlloc();
         }
-        return !!szAlloc;
+        return szDroppedToken;
     }
 };
 
