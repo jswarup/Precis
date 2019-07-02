@@ -13,7 +13,7 @@ steps:
 - script: echo 'Build Begin!'
 
 - checkout: self
-    clean: true
+ clean: true
 
 - script:  echo 'Build Precis..........'
  displayName: 'Build Precis'
