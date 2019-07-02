@@ -10,14 +10,14 @@ pool:
   vmImage: 'windows-2019'
 
 steps:
-- script: Begin Build!
+- script: echo Build Begin !
   displayName: 'Begin Build'
 
 - checkout: self
   clean: true
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
+- script:  
   displayName: 'Build Precis'
  
+ - script: echo Build Complete!
+  displayName: 'Begin Build'
