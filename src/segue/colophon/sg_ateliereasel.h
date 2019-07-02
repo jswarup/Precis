@@ -107,13 +107,14 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         m_Bastion.FixOrigin( m_Bytes);
         TokenGram  *tokenSet =  tokWharf.AllocFree(); 
         tokenSet->SetOrigin( m_Bytes);
+        uint32_t    curr = 0;
         for ( ; dInd < szBurst;  dInd++)
         {
             bool        rootScanFlg = (m_AtelierEaselnd++ % m_AtelierEaseSz ) == 0;
             Datagram    *datagram = wharf.Get( dInd);  
             Cv_Seq      dataSeq( datagram->PtrAt( 0), datagram->SzFill());
             m_Bytes += dataSeq.Size();
-            szDroppedToken += rootScanFlg ? m_Bastion.Play( dataSeq, tokenSet) :  m_Bastion.PlayScan( dataSeq, tokenSet);
+            szDroppedToken += rootScanFlg ? m_Bastion.Play( dataSeq, &curr, tokenSet) :  m_Bastion.PlayScan( dataSeq, &curr, tokenSet);
             if ( wharf.IsTail()) 
                 wharf.Discard( datagram);
         } 
