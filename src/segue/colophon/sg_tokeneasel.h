@@ -8,14 +8,19 @@
 
 struct  Cv_TokenLogStats : public Cv_EaselStats
 {
-    typedef Cv_EaselStats       Base;
+    typedef Cv_EaselStats       Base; 
+    Cv_Type< uint64_t>          m_SzToken;
+
+    uint64_t        Tokens( Cv_TokenLogStats *prev) { return m_SzToken.Get() -prev->m_SzToken.Get(); }
 
     void    LogStats( std::ostream &strm, Cv_TokenLogStats *prev)
     {
         Base::LogStats( strm, prev); 
+        strm << "Tokens[ " << Tokens( prev) << "] ";
         return;
     }
 };
+
 //_____________________________________________________________________________________________________________________________
 
 template < typename Vita>
@@ -107,13 +112,14 @@ struct Sg_TokenLogEasel : public Sg_WorkEasel< Sg_TokenLogEasel< Vita>, Vita, Cv
         for ( uint32_t i = 0; i < inWharfs.SzFill(); ++i)
         {
             InTokWharf      *wharf = inWharfs.PtrAt( i);
-            uint32_t        szBurst = wharf->Size();             
+            uint32_t        szBurst = wharf->Size();         
             for ( uint32_t i = 0; i < szBurst;  i++)
             {   
-                TokenGram   *tokengram = wharf->Get( i);  
-                for ( uint32_t k = 0; k < tokengram->m_Tokens.SzFill(); ++k)
-                    tokengram->m_Tokens.PtrAt( k)->Dump( m_SpritzArray, tokengram->m_Origin); 
-                wharf->Discard( tokengram); 
+                TokenGram       *tokenSet = wharf->Get( i);  
+                stats->m_SzToken += tokenSet->SzFill();    
+                for ( uint32_t k = 0; k < tokenSet->m_Tokens.SzFill(); ++k)
+                    tokenSet->m_Tokens.PtrAt( k)->Dump( m_SpritzArray, tokenSet->m_Origin); 
+                wharf->Discard( tokenSet); 
             }    
             wharf->SetSize( szBurst);
         }
