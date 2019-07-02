@@ -301,9 +301,8 @@ std::string Sg_ChSet::ToString( bool negFlg) const
 
 //_____________________________________________________________________________________________________________________________
 
-std::string     Sg_ChSet::ToString ( void) const
-{
- 
+std::string     Sg_ChSet::ToString( void) const
+{ 
     if ( Compare( Word()) == 0)
         return "[[Word]]";
     if ( Compare( NonWord()) == 0)

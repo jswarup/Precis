@@ -253,12 +253,12 @@ struct FsaDfaState  : public FsaState
 {  
 private:
     Id                      m_DId;
-    uint16_t                m_TokSz;   
-    uint16_t                m_Inv;
     uint8_t                 m_MxEqClass;       
+    uint8_t                 m_TokSz;   
+    uint16_t                m_Inv;
     
     FsaDfaState( const DistribRepos::Discr &discr, uint8_t tokSz) 
-        : m_DId( discr.m_DId), m_Inv( discr.m_Inv), m_MxEqClass( discr.m_MxEqClass),  m_TokSz( tokSz)
+        : m_DId( discr.m_DId), m_MxEqClass( discr.m_MxEqClass),  m_TokSz( tokSz), m_Inv( discr.m_Inv)
     {}
 
 public:
@@ -294,12 +294,12 @@ public:
     
     DistribRepos::Id        DistribId( void) const { return m_DId; }
 
-    Cv_Seq< FsaId>         Dests( void) { return DestSz() ? Cv_Seq< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_Seq< FsaId>(); } 
+    Cv_Seq< FsaId>          Dests( void) { return DestSz() ? Cv_Seq< FsaId>( ( FsaId *) PastPtr(), uint32_t( DestSz())) : Cv_Seq< FsaId>(); } 
     void                    SetDest( uint8_t k, FsaId fsaId) {   Dests()[ k] = fsaId; }
     FsaId                   DestAt( uint64_t k) { return (( FsaId *) PastPtr())[ k]; } 
 
     uint16_t                SzTokens( void) { return m_TokSz; }
-    Cv_Seq< uint64_t>      Tokens( void) { return m_TokSz ? Cv_Seq< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_Seq< uint64_t>(); } 
+    Cv_Seq< uint64_t>       Tokens( void) { return m_TokSz ? Cv_Seq< uint64_t>( ( uint64_t *) ( PastPtr() + DestSz() * sizeof( FsaId)), uint32_t( m_TokSz)) : Cv_Seq< uint64_t>(); } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 

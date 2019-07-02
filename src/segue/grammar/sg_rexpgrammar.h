@@ -264,6 +264,7 @@ struct RExpCCLCharRange : public Shard< RExpCCLCharRange>, public RExpPrimitive
     auto		BegListener( void) const {
         return []( auto forge) {
             forge->template Pred< RExpCCLCharRange>()->m_Beg = forge->m_Char;
+            forge->template Pred< RExpCCLCharRange>()->m_End = forge->m_Char;
             return true;  }; }
 
     auto		EndListener( void) const {
@@ -306,7 +307,10 @@ struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
             : m_NegateFlg( false)
         {}
 
-        auto        FetchCCL( void) const { return m_NegateFlg ? m_ChSet.Negative() : m_ChSet; }
+        auto        FetchCCL( void) const 
+        { 
+            return m_NegateFlg ? m_ChSet.Negative() : m_ChSet; 
+        }
     }; 
     
 
@@ -317,7 +321,7 @@ struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
 
     auto		SquareBracketEndListener( void) const {
         return []( auto forge) {
-            forge->template Pred< RExpCCL>()->m_ChSet.Set( ']', true);
+            //forge->template Pred< RExpCCL>()->m_ChSet.Set( ']', true);
             return true;  }; }
 
     auto		SpaceListener( void) const {
@@ -361,10 +365,10 @@ struct RExpCCL : public Shard< RExpCCL>, public RExpPrimitive
             forge->template Pred< RExpCCL>()->m_ChSet.UnionWith( forge->FetchCCL());
             return true;  }; }
 
-    auto        CharClass(  void) const { return Char( '[') >> !( Char( '^')[ NegateListener()]) >> !( Char( ']')[ SquareBracketEndListener()]) >> 
+    auto        CharClass(  void) const { return Char( '[') >> !( Char( '^')[ NegateListener()]) >>  
                             *(( Char( '\\') >> ( Char( 's')[ SpaceListener()] | Char( 'S')[ NonSpaceListener()] | Char( 'd')[ DigitListener()] |
                                 Char( 'D')[ NonDigitListener()] | Char( 'w')[ WordListener()] | Char( 'W')[ NonWordListener()])) | 
-                                m_NamedCharClass[ NamedCharClassListener()] |  m_CharRange[ CharRangeListener()]) >>  Char( ']'); }
+                                m_NamedCharClass[ NamedCharClassListener()] |  m_CharRange[ CharRangeListener()]) >>  Char( ']')[ SquareBracketEndListener()]; }
 
 template < typename Forge>
     bool    DoParse( Forge *forge) const

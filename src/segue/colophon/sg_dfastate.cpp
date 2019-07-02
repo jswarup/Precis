@@ -331,17 +331,17 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
     uint32_t            sz = discr.SzDescend();
     uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;    
     bool                doneFlg = false;
-    if ( !doneFlg && !szTok && ( discr.m_Inv != CV_UINT32_MAX))
+    if ( !doneFlg && !szTok && ( discr.m_Inv != CV_UINT16_MAX))
     {
         uint32_t                szSingles = 0;
         std::vector< uint32_t>  byteValues;
         std::tie( szSingles, byteValues) = m_DfaRepos->m_DistribRepos.SingleChars( discr.m_DId);
-        if (( szSingles + ( discr.m_Inv != CV_UINT32_MAX)) == sz)
+        if (( szSingles + ( discr.m_Inv != CV_UINT16_MAX)) == sz)
             CV_ERROR_ASSERT( destArr[ discr.m_Inv] == 0)
         
         Cv_Seq< uint8_t>       bytes;
         Cv_Seq< FsaId>         dests;
-        if ( szSingles == 1)
+        if (( sz == 1) && ( szSingles == 1))
         {
             FsaDfaUniXState             *dfaState = new FsaDfaUniXState();              
             m_DfaRepos->StoreAt( index, dfaState); 
