@@ -515,20 +515,26 @@ template < typename Elem>
         return domain;
     }
    
-    auto    SingleChars( Id dId)
+    auto    SingleChars( Id dId, uint16_t invInd)
     {
         DistribCrate::Var           dVar = ToVar( dId);
-        return   dVar( [this]( auto dist) { 
-                uint32_t                szSingle = 0;
-                auto                    distDomain = dist->Domain(); 
-                std::vector< uint32_t>  uniList( distDomain.size(), CV_UINT32_MAX);
-                for ( uint32_t  i = 0; i < distDomain.size(); ++i)
+        return   dVar( [this, invInd]( auto dist) { 
+                uint32_t                    szSingle = 0;
+                auto                        distDomain = dist->Domain(); 
+                Cv_Array< uint16_t, 256>    uniList;
+                std::fill_n( &uniList[ 0], distDomain.size(), CV_UINT16_MAX);
+                uniList.MarkFill( uint32_t( distDomain.size()));
+                for ( uint16_t  i = 0; i < distDomain.size(); ++i)
                 {
-                    uint8_t  pcnt = distDomain[ i].PopCount();
-                    if ( pcnt != 1)
-                        continue;
-                    uniList[ i] =  distDomain[ i].Index( true);
-                    szSingle++;
+                    if ( invInd != i)
+                    {
+                        uint8_t         pcnt = distDomain[ i].PopCount();
+                        if ( pcnt == 1)
+                        {
+                            uniList[ i] = distDomain[ i].Index( true);
+                            szSingle++;
+                        }
+                    }
                 }
                 return std::make_tuple( szSingle, uniList); 
             } ); 

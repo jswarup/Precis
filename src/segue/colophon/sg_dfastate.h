@@ -343,8 +343,13 @@ struct FsaDfaUniXState  : public FsaState
     Id                  m_Dest;  
     uint8_t             m_Byte;
 
-    Cv_Seq< uint8_t>       Bytes( void) { return Cv_Seq< uint8_t>( &m_Byte, 1); } 
-    Cv_Seq< FsaId>         Dests( void) { return Cv_Seq< FsaId>( &m_Dest, 1); } 
+    static FsaDfaUniXState  *Construct( void)
+    {
+        return new FsaDfaUniXState();
+    }
+
+    Cv_Seq< uint8_t>        Bytes( void) { return Cv_Seq< uint8_t>( &m_Byte, 1); } 
+    Cv_Seq< FsaId>          Dests( void) { return Cv_Seq< FsaId>( &m_Dest, 1); } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 

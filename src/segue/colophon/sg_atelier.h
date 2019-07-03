@@ -378,8 +378,8 @@ struct Sg_Citadel
         for ( uint32_t k = 0; k < chrs.Size(); ++k)
         {
             uint8_t     chr = chrs[ k];
-
-            bool        proceed = Play( chr);
+            uint8_t     chrId = m_DfaAtelier->ByteCode( chr);
+            bool        proceed = Play( chrId);
         }
         return true;
     }
