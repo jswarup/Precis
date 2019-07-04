@@ -48,6 +48,18 @@ struct Sg_DfaReposAtelier
             return  dfaState->m_Dest;
         return FsaDfaRepos::Id();
     }
+	
+	FsaDfaRepos::Id          DfaXTransition( FsaState *state, uint8_t chrId)
+    {
+        FsaDfaXByteState     *dfaState = static_cast< FsaDfaXByteState *>( state);
+    
+        Cv_Seq< uint8_t>            bytes = dfaState->Bytes();
+        Cv_Seq< FsaDfaRepos::Id>    dests = dfaState->Dests(); 
+        for ( uint32_t i = 0; i < bytes.Size(); ++i)
+            if ( chrId == bytes[ i])
+                return  dests[ i];
+        return FsaDfaRepos::Id();
+    }
 
     FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
@@ -63,6 +75,11 @@ struct Sg_DfaReposAtelier
             case FsaCrate::template TypeOf< FsaDfaUniXState>() :
             {
                 nxState = DfaUniXTransition( state.GetEntry(), chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaXByteState>() :
+            {
+                nxState = DfaXTransition( state.GetEntry(), chrId);
                 break;
             }
             default :
@@ -85,6 +102,11 @@ struct Sg_DfaReposAtelier
             case FsaCrate::template TypeOf< FsaDfaUniXState>() :
             {
                 nxState = DfaUniXTransition( m_Root.GetEntry(), chrId);
+                break;
+            }
+			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
+            {
+                nxState = DfaXTransition( m_Root.GetEntry(), chrId);
                 break;
             }
             default :
@@ -138,6 +160,16 @@ struct Sg_DfaBlossomAtelier
     }
 
 
+    FsaDfaRepos::Id         DfaXTransition( FsaDfaXByteState  *dfaState, uint8_t chrId)
+    { 
+        Cv_Seq< uint8_t>            bytes = dfaState->Bytes();
+        Cv_Seq< FsaDfaRepos::Id>    dests = dfaState->Dests(); 
+        for ( uint32_t i = 0; i < bytes.Size(); ++i)
+            if ( chrId == bytes[ i])
+                return  dests[ i];
+        return FsaDfaRepos::Id();
+    } 
+
     FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
         FsaDfaRepos::Id   nxState;
@@ -153,6 +185,12 @@ struct Sg_DfaBlossomAtelier
             {
                 FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
                 nxState = DfaUniXTransition( dfaState, chrId);
+                break;
+            }
+			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
+            {
+                FsaDfaXByteState     *dfaState = static_cast< FsaDfaXByteState *>( state.GetEntry());
+                nxState = DfaXTransition( dfaState, chrId);
                 break;
             }
             default :
@@ -176,6 +214,12 @@ struct Sg_DfaBlossomAtelier
             {
                 FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( m_Root.GetEntry());
                 nxState = DfaUniXTransition( dfaState, chrId);
+                break;
+            }
+			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
+            {
+                FsaDfaXByteState     *dfaState = static_cast< FsaDfaXByteState *>( m_Root.GetEntry());
+                nxState = DfaXTransition( dfaState, chrId);
                 break;
             }
             default :
@@ -205,6 +249,14 @@ struct Sg_DfaBlossomAtelier
                 FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
                 Cv_For< 8>::RunAll( [ this, dfaState, chrIds, &nxStates]( uint32_t ind) {
                     nxStates[ ind] =   DfaUniXTransition(  dfaState, chrIds[ ind]);
+                });
+                break;
+            }
+			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
+            {
+                FsaDfaXByteState     *dfaState = static_cast< FsaDfaXByteState *>( state.GetEntry());
+                Cv_For< 8>::RunAll( [ this, dfaState, chrIds, &nxStates]( uint32_t ind) {
+                    nxStates[ ind] =   DfaXTransition(  dfaState, chrIds[ ind]);
                 });
                 break;
             }

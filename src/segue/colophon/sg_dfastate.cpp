@@ -263,6 +263,75 @@ bool  FsaDfaUniXState::DoSaute( FsaDfaRepos::Blossom *bRepos)
     return true;
 }
 
+
+//_____________________________________________________________________________________________________________________________
+
+bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
+{ 
+    Cv_Seq< FsaId>      dests = Dests();
+    for ( uint32_t i = 0; i < DestSz(); ++i)
+    {
+        FsaClip         regex = dfaRepos->ToVar( dests[ i]);
+        dests[ i] = regex ? *regex.GetEntry() : Id();    
+    }
+    return true;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaXByteState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+{ 
+    strm << GetTypeChar() << GetId() << " [ shape=";
+
+    uint64_t        *toks = Tokens().Ptr(); 
+    strm << "diamond"; 
+    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
+    strm << " </FONT>>];\n"; 
+
+    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+    Cv_Seq< FsaId>              dests = Dests(); 
+    Cv_Seq< uint8_t>            bytes = Bytes(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
+    {
+        FsaClip         regex = fsaRepos->ToVar( dests[ k]);
+        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ k]).ToString());  
+        strm << "</FONT>>] ; \n" ;   
+    }
+    return true; 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool    FsaDfaXByteState::DumpDot( Cv_DotStream &strm) 
+{ 
+    strm <<   GetId() << " [ shape=";
+ 
+    strm << "diamond"; 
+    strm << " color=Red label= <<FONT> " <<  GetId(); 
+    strm << " </FONT>>];\n"; 
+
+    Cv_Seq< uint8_t>            bytes = Bytes(); 
+    Cv_Seq< FsaId>              dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k)
+    {
+        strm <<  GetId() << " -> " <<     dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
+        strm << "</FONT>>] ; \n" ;   
+    }
+    return true; 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool  FsaDfaXByteState::DoSaute( FsaDfaRepos::Blossom *bRepos)
+{
+    Cv_Seq< FsaId>              dests = Dests(); 
+    for ( uint32_t k = 0; k < dests.Size(); ++k) 
+        bRepos->States().ConvertIdToVarId( &dests[ k]);
+    return true;
+}
+
 //_____________________________________________________________________________________________________________________________
 
 bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
@@ -348,7 +417,14 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            }
+            } else
+        	{
+	            FsaDfaXByteState             *dfaState = FsaDfaXByteState::Construct( szSingles);              
+	            m_DfaRepos->StoreAt( index, dfaState); 
+	            bytes = dfaState->Bytes();
+	            dests = dfaState->Dests();
+	            doneFlg = true;
+	        }
         }
         for ( uint32_t i = 0, k = 0; doneFlg && ( i < sz); ++i)
         {

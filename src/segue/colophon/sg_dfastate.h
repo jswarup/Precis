@@ -290,7 +290,7 @@ public:
         return dfaState;
     }
 
-    uint32_t                DestSz( void) const { return m_MxEqClass +1; }
+    uint32_t                DestSz( void) const { return uint32_t( m_MxEqClass) +1; }
     
     DistribRepos::Id        DistribId( void) const { return m_DId; }
 
@@ -370,13 +370,73 @@ struct FsaDfaUniXState  : public FsaState
 
         static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaUniXState &obj) 
         {  
-            FsaDfaUniXState             &dfaState = const_cast< FsaDfaUniXState &>( obj);
-            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            FsaDfaUniXState     &dfaState = const_cast< FsaDfaUniXState &>( obj);
+            bool                res = spritz->Write( &dfaState, sizeof( dfaState)); 
             return obj; 
         }  
 
         template < typename Spritz>
         static void   SaveContent( Spritz *spritz, const FsaDfaUniXState &obj) 
+        { 
+            return;
+        }
+    };
+};
+
+//_____________________________________________________________________________________________________________________________ 
+
+struct FsaDfaXByteState  : public FsaState
+{
+    uint8_t                 m_MxEqClass; 
+    
+    FsaDfaXByteState( uint32_t mxSz)
+        : m_MxEqClass( mxSz)
+    {}
+
+    uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaXByteState); }
+
+    uint32_t                DestSz( void) const { return uint32_t( m_MxEqClass) +1; }
+    Cv_Seq< uint8_t>        Bytes( void) { return DestSz() ? Cv_Seq< uint8_t>( ( uint8_t *) PastPtr(), uint32_t( DestSz())) : Cv_Seq< uint8_t>(); }   
+    Cv_Seq< FsaId>          Dests( void) { return DestSz() ? Cv_Seq< FsaId>( ( FsaId *) ( PastPtr() +DestSz() * sizeof( uint8_t)), uint32_t( DestSz())) : Cv_Seq< FsaId>(); } 
+
+    static FsaDfaXByteState      *Construct( uint32_t sz)
+    {
+        uint8_t             mxSz = uint8_t( sz -1);
+        auto                memSz = sizeof( FsaDfaXByteState) + sz * sizeof( uint8_t) + sz * sizeof( FsaId) ;
+        FsaDfaXByteState     *dfaState = new ( new uint8_t[ memSz]) FsaDfaXByteState( mxSz);   
+        return dfaState;
+    } 
+
+    bool                    CleanupDestIds( FsaRepos *dfaRepos);
+
+    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    DumpDot( Cv_DotStream &strm);
+
+    bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
+
+    struct Cask : public Cv_SerializeUtils 
+    {      
+        typedef FsaDfaXByteState        Type;
+        typedef FsaDfaXByteState        ContentType;  
+
+        static uint32_t             Spread( ContentType *obj) 
+        {   
+            return sizeof( *obj) + obj->DestSz() * sizeof( uint8_t) + obj->DestSz() * sizeof( FsaId);  
+        }
+
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaXByteState &obj) 
+        { 
+            FsaDfaXByteState         &dfaState = const_cast< FsaDfaXByteState &>( obj);
+            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            Cv_Seq< uint8_t>        bytes = dfaState.Bytes();  
+            res = spritz->Write( &bytes[ 0], sizeof( uint8_t) *  bytes.Size()); 
+            Cv_Seq< FsaId>          dests = dfaState.Dests();  
+            res = spritz->Write( &dests[ 0], sizeof( FsaId) *  dests.Size());  
+            return obj; 
+        }  
+
+        template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaXByteState &obj) 
         { 
             return;
         }

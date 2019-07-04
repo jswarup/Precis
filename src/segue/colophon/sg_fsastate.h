@@ -21,11 +21,12 @@ struct    FsaElem;
 struct    FsaSupState;
 struct     FsaDfaState;
 struct    FsaDfaUniXState;
+struct    FsaDfaXByteState;
 struct    FsaDfaCnstr;
 struct    FsaDfaStateMap;
 struct    FsaDfaStateMapCltn;
 
-typedef Cv_Crate< FsaDfaUniXState, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
+typedef Cv_Crate< FsaDfaXByteState, FsaDfaUniXState, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 
