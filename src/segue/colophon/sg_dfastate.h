@@ -340,36 +340,39 @@ public:
 
 template < uint32_t Sz>
 struct FsaDfaByteState  : public FsaState
-{
-    Id                  m_Dests[ Sz];  
-    uint8_t             m_Bytes[ Sz];
+{ 
+    uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaByteState< Sz>); } 
+    Cv_Seq< FsaId>          Dests( void) { return Cv_Seq< FsaId>( ( FsaId *)  PastPtr(), uint32_t( Sz)); }   
+    Cv_Seq< uint8_t>        Bytes( void) { return   Cv_Seq< uint8_t>( ( uint8_t *)( PastPtr() +Sz * sizeof( FsaId)), uint32_t( Sz)); } 
 
-    static FsaDfaByteState  *Construct( void)
-    {
-        return new FsaDfaByteState();
-    }
+    static FsaDfaByteState      *Construct( void)
+    { 
+        auto                memSz = sizeof( FsaDfaByteState< Sz>) +  Sz * sizeof( uint8_t) + Sz * sizeof( FsaId) ;
+        FsaDfaByteState     *dfaState = new ( new uint8_t[ memSz]) FsaDfaByteState();   
+        return dfaState;
+    } 
 
-    Cv_Seq< uint8_t>        Bytes( void) { return Cv_Seq< uint8_t>( &m_Bytes[ 0], Sz); } 
-    Cv_Seq< FsaId>          Dests( void) { return Cv_Seq< FsaId>( &m_Dests[ 0], Sz); } 
- 
     FsaDfaRepos::Id         Eval( uint8_t chrId)
     {
+        uint8_t     *bytes = Bytes().Ptr();
+        FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
-            if ( chrId == m_Bytes[ i])
-            return  m_Dests[ i];
+            if ( chrId == bytes[ i])
+                return  dests[ i];
         return Id();
     }
-
+ 
     bool                    CleanupDestIds( FsaRepos *dfaRepos)
     { 
+        FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
         {
-            auto    regexEnt = dfaRepos->ToVar( m_Dests[ i]).GetEntry();
-            m_Dests[ i] = regexEnt ? *regexEnt : Id();
+            auto    regexEnt = dfaRepos->ToVar( dests[ i]).GetEntry();
+            dests[ i] = regexEnt ? *regexEnt : Id();
         }
         return true;
     }
- 
+
 
     bool     WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
     { 
@@ -378,14 +381,16 @@ struct FsaDfaByteState  : public FsaState
         uint64_t        *toks = Tokens().Ptr(); 
         strm << "diamond"; 
         strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
-        strm << " </FONT>>];\n"; 
+        strm << " </FONT>>];\n";  
 
-        FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+        FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+        uint8_t             *bytes = Bytes().Ptr();
+        FsaId               *dests = Dests().Ptr(); 
         for ( uint32_t i = 0; i < Sz; ++i)
         {
-            FsaClip                     regex = fsaRepos->ToVar( m_Dests[ i]); 
+            FsaCrate::Var       regex = fsaRepos->ToVar( dests[ i]); 
             strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-            strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
+            strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ i]).ToString());  
             strm << "</FONT>>] ; \n" ;   
         }
         return true; 
@@ -398,19 +403,23 @@ struct FsaDfaByteState  : public FsaState
         strm << "diamond"; 
         strm << " color=Red label= <<FONT> " <<  GetId(); 
         strm << " </FONT>>];\n"; 
+        
+        uint8_t     *bytes = Bytes().Ptr();
+        FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
         {
-            strm <<  GetId() << " -> " <<     m_Dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            strm <<  GetId() << " -> " <<     dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
             //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
             strm << "</FONT>>] ; \n" ;   
         }
         return true; 
     }
- 
+
     bool   DoSaute( FsaDfaRepos::Blossom *bRepos)
     {
+        FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
-            bRepos->States().ConvertIdToVarId( &m_Dests[ i]);
+            bRepos->States().ConvertIdToVarId( &dests[ i]);
         return true;
     }
 
@@ -421,23 +430,29 @@ struct FsaDfaByteState  : public FsaState
 
         static uint32_t             Spread( ContentType *obj) 
         {   
-            return sizeof( *obj); 
+            return  Sz * sizeof( uint8_t) + Sz * sizeof( FsaId);  
         }
 
         static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaByteState &obj) 
-        {  
-            FsaDfaByteState     &dfaState = const_cast< FsaDfaByteState &>( obj);
-            bool                res = spritz->Write( &dfaState, sizeof( dfaState)); 
+        { 
+            FsaDfaByteState         &dfaState = const_cast< FsaDfaByteState &>( obj); 
+            bool                    res = spritz->Write( &dfaState, sizeof( dfaState)); 
+            Cv_Seq< FsaId>          dests = dfaState.Dests();  
+            bool                    resd = spritz->Write( &dests[ 0], sizeof( FsaId) *  Sz);  
+            Cv_Seq< uint8_t>        bytes = dfaState.Bytes();  
+            bool                    resb = spritz->Write( &bytes[ 0], sizeof( uint8_t) * Sz); 
             return obj; 
         }  
 
- template < typename Spritz>
+        template < typename Spritz>
         static void   SaveContent( Spritz *spritz, const FsaDfaByteState &obj) 
         { 
             return;
         }
     };
 };
+
+ 
 
 //_____________________________________________________________________________________________________________________________ 
 

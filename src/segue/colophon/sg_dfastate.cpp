@@ -362,14 +362,14 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } /*else if ( szSingles == 2)    
+            } else if (  szSingles == 2)    
             {
                 FsaDfaByteState< 2>             *dfaState = FsaDfaByteState< 2>::Construct();              
                 m_DfaRepos->StoreAt( index, dfaState); 
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } else if ( szSingles == 3)    
+            } else if (  szSingles == 3)    
             {
                 FsaDfaByteState< 3>             *dfaState = FsaDfaByteState< 3>::Construct();              
                 m_DfaRepos->StoreAt( index, dfaState); 
@@ -383,7 +383,7 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } else 
+            } /*else 
         	{
 	            FsaDfaXByteState             *dfaState = FsaDfaXByteState::Construct( szSingles);              
 	            m_DfaRepos->StoreAt( index, dfaState); 
