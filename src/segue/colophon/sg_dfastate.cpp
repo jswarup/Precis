@@ -208,61 +208,6 @@ bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
     return true;
 }
 
-//_____________________________________________________________________________________________________________________________
-
-bool FsaDfaUniXState::CleanupDestIds( FsaRepos *dfaRepos)
-{ 
-    FsaClip         regex = dfaRepos->ToVar( m_Dest);
-    if ( !regex)
-        m_Dest = Id();
-    else
-        m_Dest = *regex.GetEntry();    
-    return true;
-}
-
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaDfaUniXState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
-{ 
-    strm << GetTypeChar() << GetId() << " [ shape=";
-
-    uint64_t        *toks = Tokens().Ptr(); 
-    strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
-    strm << " </FONT>>];\n"; 
-
-    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
-    FsaClip                     regex = fsaRepos->ToVar( m_Dest); 
-    strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-    strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
-    strm << "</FONT>>] ; \n" ;   
-    return true; 
-}
-
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaDfaUniXState::DumpDot( Cv_DotStream &strm) 
-{ 
-    strm <<   GetId() << " [ shape=";
- 
-    strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " <<  GetId(); 
-    strm << " </FONT>>];\n"; 
-  
-    strm <<  GetId() << " -> " <<     m_Dest.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-    //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
-    strm << "</FONT>>] ; \n" ;   
-    return true; 
-}
-
-//_____________________________________________________________________________________________________________________________
-
-bool  FsaDfaUniXState::DoSaute( FsaDfaRepos::Blossom *bRepos)
-{
-    bRepos->States().ConvertIdToVarId( &m_Dest);
-    return true;
-}
-
 
 //_____________________________________________________________________________________________________________________________
 
@@ -412,19 +357,40 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
         {
             if ( szSingles == 1)    
             {
-                FsaDfaUniXState             *dfaState = FsaDfaUniXState::Construct();              
+                FsaDfaByteState< 1>             *dfaState = FsaDfaByteState< 1>::Construct();              
                 m_DfaRepos->StoreAt( index, dfaState); 
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } else
+            } /*else if ( szSingles == 2)    
+            {
+                FsaDfaByteState< 2>             *dfaState = FsaDfaByteState< 2>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            } else if ( szSingles == 3)    
+            {
+                FsaDfaByteState< 3>             *dfaState = FsaDfaByteState< 3>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            } else if ( szSingles == 4)    
+            {
+                FsaDfaByteState< 4>             *dfaState = FsaDfaByteState< 4>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            } else 
         	{
 	            FsaDfaXByteState             *dfaState = FsaDfaXByteState::Construct( szSingles);              
 	            m_DfaRepos->StoreAt( index, dfaState); 
 	            bytes = dfaState->Bytes();
 	            dests = dfaState->Dests();
 	            doneFlg = true;
-	        }
+	        }*/
         }
         for ( uint32_t i = 0, k = 0; doneFlg && ( i < sz); ++i)
         {

@@ -338,45 +338,101 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct FsaDfaUniXState  : public FsaState
+template < uint32_t Sz>
+struct FsaDfaByteState  : public FsaState
 {
-    Id                  m_Dest;  
-    uint8_t             m_Byte;
+    Id                  m_Dests[ Sz];  
+    uint8_t             m_Bytes[ Sz];
 
-    static FsaDfaUniXState  *Construct( void)
+    static FsaDfaByteState  *Construct( void)
     {
-        return new FsaDfaUniXState();
+        return new FsaDfaByteState();
     }
 
-    Cv_Seq< uint8_t>        Bytes( void) { return Cv_Seq< uint8_t>( &m_Byte, 1); } 
-    Cv_Seq< FsaId>          Dests( void) { return Cv_Seq< FsaId>( &m_Dest, 1); } 
+    Cv_Seq< uint8_t>        Bytes( void) { return Cv_Seq< uint8_t>( &m_Bytes[ 0], Sz); } 
+    Cv_Seq< FsaId>          Dests( void) { return Cv_Seq< FsaId>( &m_Dests[ 0], Sz); } 
+ 
+    FsaDfaRepos::Id         Eval( uint8_t chrId)
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            if ( chrId == m_Bytes[ i])
+            return  m_Dests[ i];
+        return Id();
+    }
 
-    bool                    CleanupDestIds( FsaRepos *dfaRepos);
+    bool                    CleanupDestIds( FsaRepos *dfaRepos)
+    { 
+        for ( uint32_t i = 0; i < Sz; ++i)
+        {
+            auto    regexEnt = dfaRepos->ToVar( m_Dests[ i]).GetEntry();
+            m_Dests[ i] = regexEnt ? *regexEnt : Id();
+        }
+        return true;
+    }
+ 
 
-    bool                    WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm);
-    bool                    DumpDot( Cv_DotStream &strm);
+    bool     WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+    { 
+        strm << GetTypeChar() << GetId() << " [ shape=";
 
-    bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
+        uint64_t        *toks = Tokens().Ptr(); 
+        strm << "diamond"; 
+        strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
+        strm << " </FONT>>];\n"; 
+
+        FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+        for ( uint32_t i = 0; i < Sz; ++i)
+        {
+            FsaClip                     regex = fsaRepos->ToVar( m_Dests[ i]); 
+            strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
+            strm << "</FONT>>] ; \n" ;   
+        }
+        return true; 
+    } 
+
+    bool    DumpDot( Cv_DotStream &strm) 
+    { 
+        strm <<   GetId() << " [ shape=";
+
+        strm << "diamond"; 
+        strm << " color=Red label= <<FONT> " <<  GetId(); 
+        strm << " </FONT>>];\n"; 
+        for ( uint32_t i = 0; i < Sz; ++i)
+        {
+            strm <<  GetId() << " -> " <<     m_Dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
+            strm << "</FONT>>] ; \n" ;   
+        }
+        return true; 
+    }
+ 
+    bool   DoSaute( FsaDfaRepos::Blossom *bRepos)
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            bRepos->States().ConvertIdToVarId( &m_Dests[ i]);
+        return true;
+    }
 
     struct Cask : public Cv_SerializeUtils 
     {      
-        typedef FsaDfaUniXState        Type;
-        typedef FsaDfaUniXState        ContentType;  
+        typedef FsaDfaByteState        Type;
+        typedef FsaDfaByteState        ContentType;  
 
         static uint32_t             Spread( ContentType *obj) 
         {   
             return sizeof( *obj); 
         }
 
-        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaUniXState &obj) 
+        static const ContentType    &Encase( Cv_Spritz *spritz, const FsaDfaByteState &obj) 
         {  
-            FsaDfaUniXState     &dfaState = const_cast< FsaDfaUniXState &>( obj);
+            FsaDfaByteState     &dfaState = const_cast< FsaDfaByteState &>( obj);
             bool                res = spritz->Write( &dfaState, sizeof( dfaState)); 
             return obj; 
         }  
 
-        template < typename Spritz>
-        static void   SaveContent( Spritz *spritz, const FsaDfaUniXState &obj) 
+ template < typename Spritz>
+        static void   SaveContent( Spritz *spritz, const FsaDfaByteState &obj) 
         { 
             return;
         }

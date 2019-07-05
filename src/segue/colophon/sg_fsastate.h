@@ -20,13 +20,14 @@ struct    FsaState;
 struct    FsaElem;
 struct    FsaSupState;
 struct     FsaDfaState;
-struct    FsaDfaUniXState;
+template < uint32_t Sz>
+struct    FsaDfaByteState;
 struct    FsaDfaXByteState;
 struct    FsaDfaCnstr;
 struct    FsaDfaStateMap;
 struct    FsaDfaStateMapCltn;
 
-typedef Cv_Crate< FsaDfaXByteState, FsaDfaUniXState, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
+typedef Cv_Crate< FsaDfaXByteState, FsaDfaByteState< 4>, FsaDfaByteState< 3>, FsaDfaByteState< 2>, FsaDfaByteState< 1>, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 

@@ -40,15 +40,7 @@ struct Sg_DfaReposAtelier
         uint8_t             img = dVar( [ chrId]( auto k) { return k->Image( chrId); });
         return dfaState->DestAt( img);
     }
-
-    FsaDfaRepos::Id          DfaUniXTransition( FsaState *state, uint8_t chrId)
-    {
-        FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state);
-        if ( chrId == dfaState->m_Byte)
-            return  dfaState->m_Dest;
-        return FsaDfaRepos::Id();
-    }
-	
+ 
 	FsaDfaRepos::Id          DfaXTransition( FsaState *state, uint8_t chrId)
     {
         FsaDfaXByteState     *dfaState = static_cast< FsaDfaXByteState *>( state);
@@ -72,9 +64,32 @@ struct Sg_DfaReposAtelier
                 nxState =   DfaTransition( dfaState, FetchDistib( dfaState), chrId);
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            case FsaCrate::template TypeOf< FsaDfaByteState< 1> >() :
             {
-                nxState = DfaUniXTransition( state.GetEntry(), chrId);
+
+                FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1>  *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 2> >() :
+            {
+
+                FsaDfaByteState< 2>     *dfaState = static_cast< FsaDfaByteState< 2>  *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 3> >() :
+            {
+
+                FsaDfaByteState< 3>     *dfaState = static_cast< FsaDfaByteState< 3>  *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 4> >() :
+            {
+
+                FsaDfaByteState< 4>     *dfaState = static_cast< FsaDfaByteState< 4>  *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
                 break;
             }
             case FsaCrate::template TypeOf< FsaDfaXByteState>() :
@@ -99,9 +114,24 @@ struct Sg_DfaReposAtelier
                 nxState =   DfaTransition( dfaState, m_RootDistrib, chrId);
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            case FsaCrate::template TypeOf< FsaDfaByteState< 1>>() :
             {
-                nxState = DfaUniXTransition( m_Root.GetEntry(), chrId);
+                FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1>  *>( m_Root.GetEntry());
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 2>>() :
+            {
+                FsaDfaByteState< 2>     *dfaState = static_cast< FsaDfaByteState< 2>  *>( m_Root.GetEntry());
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 3>>() :
+            {
+                FsaDfaByteState< 3>     *dfaState = static_cast< FsaDfaByteState< 3>  *>( m_Root.GetEntry());
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 4>>() :
+            {
+                FsaDfaByteState< 4>     *dfaState = static_cast< FsaDfaByteState< 4>  *>( m_Root.GetEntry());
                 break;
             }
 			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
@@ -151,14 +181,7 @@ struct Sg_DfaBlossomAtelier
             return FsaDfaRepos::Id();
         return  dfaState->DestAt( index);
     }
-
-    FsaDfaRepos::Id         DfaUniXTransition( FsaDfaUniXState  *dfaState, uint8_t chrId)
-    {
-        if ( chrId == dfaState->m_Byte)
-            return  dfaState->m_Dest;
-        return FsaDfaRepos::Id();
-    }
-
+ 
 
     FsaDfaRepos::Id         DfaXTransition( FsaDfaXByteState  *dfaState, uint8_t chrId)
     { 
@@ -181,10 +204,28 @@ struct Sg_DfaBlossomAtelier
                 nxState =   DfaTransition( dfaState, FetchDistib( dfaState), chrId);
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            case FsaCrate::template TypeOf< FsaDfaByteState< 1>>() :
             {
-                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
-                nxState = DfaUniXTransition( dfaState, chrId);
+                FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1> *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 2>>() :
+            {
+                FsaDfaByteState< 2>     *dfaState = static_cast< FsaDfaByteState< 2> *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 3>>() :
+            {
+                FsaDfaByteState< 3>     *dfaState = static_cast< FsaDfaByteState< 3> *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
+                break;
+            }
+            case FsaCrate::template TypeOf< FsaDfaByteState< 4>>() :
+            {
+                FsaDfaByteState< 4>     *dfaState = static_cast< FsaDfaByteState< 4> *>( state.GetEntry());
+                nxState = dfaState->Eval( chrId);
                 break;
             }
 			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
@@ -210,10 +251,10 @@ struct Sg_DfaBlossomAtelier
                 nxState =   DfaTransition( dfaState, m_RootDistrib, chrId);
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            case FsaCrate::template TypeOf< FsaDfaByteState< 1>>() :
             {
-                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( m_Root.GetEntry());
-                nxState = DfaUniXTransition( dfaState, chrId);
+                FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1> *>( m_Root.GetEntry());
+                nxState = dfaState->Eval( chrId);
                 break;
             }
 			case FsaCrate::template TypeOf< FsaDfaXByteState>() :
@@ -244,11 +285,11 @@ struct Sg_DfaBlossomAtelier
                 });
                 break;
             }
-            case FsaCrate::template TypeOf< FsaDfaUniXState>() :
+            case FsaCrate::template TypeOf< FsaDfaByteState< 1>>() :
             {
-                FsaDfaUniXState     *dfaState = static_cast< FsaDfaUniXState *>( state.GetEntry());
+                FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1> *>( state.GetEntry());
                 Cv_For< 8>::RunAll( [ this, dfaState, chrIds, &nxStates]( uint32_t ind) {
-                    nxStates[ ind] =   DfaUniXTransition(  dfaState, chrIds[ ind]);
+                    nxStates[ ind] = dfaState->Eval( chrIds[ ind]);
                 });
                 break;
             }
