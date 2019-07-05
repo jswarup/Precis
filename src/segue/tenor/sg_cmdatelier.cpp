@@ -57,7 +57,7 @@ static Cv_CmdOption     s_AtelierIfcOptions[] =
     { "-oout", "<output>", 0},  
     { "-otok", "<token>", 0},   
     { "-dimg", "<dotfile>", 0},  
-    { "-ca", "<value>", "atelier-count"}, 
+    { "-e", "<value>", "atelier-engine-count"}, 
     { "-loop", 0, 0},
     { 0, 0,  0}
 };

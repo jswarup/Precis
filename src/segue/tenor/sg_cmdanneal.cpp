@@ -21,11 +21,12 @@ static Cv_CmdOption     s_AnnealIfcOptions[] =
 {         
     { "-irex",      "<input>",  "input rule-file"},
     { "-ilex",      "<input>",  "input rule-file"},
-    { "-d",         0,          "debug"},
-    { "-oshard",    "<dot>",    0},
-    { "-oelem",     "<dot>",    0},
-    { "-odfa",      "<dot>",    0},
-    { "-oimg",      "<dot>",    0},
+    { "-g",         0,          "debug"},
+    { "-dshard",    "<dot>",    0},
+    { "-delem",     "<dot>",    0},
+    { "-ddfa",      "<dot>",    0},
+    { "-dimg",      "<dot>",    0},
+    { "-oimg",      "<image>",    0},
     { "-idata",     "<input>",  0},
     { 0,            0,          0},
 };
@@ -41,6 +42,7 @@ class Sg_AnealCmdProcessor : public Cv_CmdExecutor
     std::string         m_ElemDotFile;
     std::string         m_ShardDotFile;
     std::string         m_DfaDotFile;
+    std::string         m_ImgDotFile;
     bool                m_DebugFlg;
     std::string         m_OutputFile;
 
@@ -70,25 +72,29 @@ public:
             m_LexInputFile = arg;
             return true;
         }
-        if ("-d" == key)
+        if ("-g" == key)
         {
             m_DebugFlg = true;
             return true;
         }  
-        if ("-oelem" == key)
+        if ("-delem" == key)
         {
             m_ElemDotFile = arg;
             return true;
         }  
-        if ("-oshard" == key)
+        if ("-dshard" == key)
         {
             m_ShardDotFile = arg;
             return true;
         }  
-        
-        if ("-odfa" == key)
+        if ("-ddfa" == key)
         {
             m_DfaDotFile = arg;
+            return true;
+        }
+        if ("-dimg" == key)
+        {
+            m_ImgDotFile = arg;
             return true;
         }
         if ("-o" == key)
@@ -252,12 +258,13 @@ int     Sg_AnealCmdProcessor::Test(void)
             Cv_Aid::Save( &valSpritz, dfaRepos);
             //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
-        }
-        if ( false) {
+        }        
+        if ( m_ImgDotFile.size()) 
+        {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
             FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
-            std::ofstream           fsaOStrm( "b.dot");
+            std::ofstream           fsaOStrm( m_ImgDotFile.c_str());
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
             auto                    states = blossom.States();
             FsaDfaRepos::Id         rootId = blossom.RootId();
