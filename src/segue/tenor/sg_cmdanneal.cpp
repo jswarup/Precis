@@ -273,7 +273,7 @@ int     Sg_AnealCmdProcessor::Test(void)
                 auto        var = states.VarAt( i); 
                 bool t = true;
                 if (var)
-                    var( [ i, &fsaDotStrm]( auto k) { k->DumpDot( i, fsaDotStrm); });
+                    var( [ i, var, &fsaDotStrm]( auto k) { k->DumpDot( Cv_CrateId( i, var.GetType()), fsaDotStrm); });
             }
             bool t = true;
            

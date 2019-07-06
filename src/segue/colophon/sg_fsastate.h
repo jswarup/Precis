@@ -95,7 +95,7 @@ public:
 
     bool                CleanupDestIds( FsaRepos *dfaRepos) { return false; }
     bool                WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
-    bool                DumpDot( uint32_t id, Cv_DotStream &strm) { return false; }
+    bool                DumpDot( Id id, Cv_DotStream &strm) { return false; }
 
     FsaId               DfaTransition( FsaRepos *dfaRepos, uint8_t chr) { return FsaId(); }
     bool                DoSaute( void *) { return false; }

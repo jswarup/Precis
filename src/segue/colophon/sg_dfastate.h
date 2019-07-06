@@ -304,7 +304,7 @@ public:
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
     bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
-    bool                    DumpDot( uint32_t id, Cv_DotStream &strm); 
+    bool                    DumpDot( Id id, Cv_DotStream &strm); 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 
     struct Cask : public Cv_SerializeUtils 
@@ -396,7 +396,7 @@ struct FsaDfaByteState  : public FsaState
         return true; 
     } 
 
-    bool    DumpDot( uint32_t id, Cv_DotStream &strm) 
+    bool    DumpDot( Id id, Cv_DotStream &strm) 
     { 
         strm <<   GetId() << " [ shape=";
 
@@ -481,7 +481,7 @@ struct FsaDfaXByteState  : public FsaState
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
     bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
-    bool                    DumpDot( uint32_t id, Cv_DotStream &strm);
+    bool                    DumpDot( Id id, Cv_DotStream &strm);
 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 

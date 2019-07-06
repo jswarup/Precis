@@ -169,7 +169,7 @@ bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)
 }
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaState::DumpDot( uint32_t id, Cv_DotStream &strm) 
+bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm) 
 { 
     strm << GetId() << " [ shape=";
 
@@ -248,7 +248,7 @@ bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &str
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaXByteState::DumpDot( uint32_t id, Cv_DotStream &strm) 
+bool    FsaDfaXByteState::DumpDot( Id id, Cv_DotStream &strm) 
 { 
     strm <<   GetId() << " [ shape=";
  
