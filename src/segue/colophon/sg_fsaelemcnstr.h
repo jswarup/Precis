@@ -57,7 +57,7 @@ public:
 
     void            FinalizeEpsLinks( void);
     
-    bool            WriteDot( uint32_t id, Cv_DotStream &strm) ;
+    bool            WriteDot( FsaElem::Id id, Cv_DotStream &strm) ;
 };
 
 //_____________________________________________________________________________________________________________________________  

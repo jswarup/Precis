@@ -89,7 +89,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaSupState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaSupState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=oval";
     strm << " color=purple label= <<FONT>" << GetTypeChar() << GetId() << "<BR />" << "<BR />" ; 
@@ -139,7 +139,7 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=";
 
@@ -224,7 +224,7 @@ bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaXByteState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=";
 
@@ -285,7 +285,7 @@ bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
     {
         Var     si = Get( i);
         if (si)
-            si( [this, i, &strm]( auto k) { k->WriteDot( i, this, strm); });
+            si( [this, i, si, &strm]( auto k) { k->WriteDot( Cv_CrateId( i, si.GetType()), this, strm); });
     }
     return true;
 }

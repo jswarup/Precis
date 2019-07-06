@@ -62,7 +62,7 @@ void    FsaElemCnstr::FinalizeEpsLinks( void)
 
 //_____________________________________________________________________________________________________________________________   
 
-bool    FsaElemCnstr::WriteDot( uint32_t id, Cv_DotStream &strm)  
+bool    FsaElemCnstr::WriteDot( FsaElem::Id id, Cv_DotStream &strm)  
 {
 
     for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
@@ -99,7 +99,7 @@ bool    FsaElemReposCnstr::WriteDot( const std::string &str)
     {
         FsaElemCnstr  *si = m_Cnstrs[ i];
         if (si)
-            si->WriteDot( i, rexpDotStrm); 
+            si->WriteDot( Cv_CrateId( i, 0), rexpDotStrm); 
     }
     return true;
 }

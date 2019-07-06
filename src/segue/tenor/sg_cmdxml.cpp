@@ -67,7 +67,7 @@ int     Sg_XmlCmdProcessor::Test(void)
 	Cv_DotStream								synDotStrm( &ostrm, false); 
 
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
-		return k->WriteDot( 0, synDotStrm); 
+		return k->WriteDot( Cv_CrateId(), synDotStrm); 
 	});
 	synCrate.Clear();
 	bool                    t = true; 

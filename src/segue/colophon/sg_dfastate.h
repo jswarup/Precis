@@ -147,7 +147,7 @@ struct FsaSupState  : public FsaState
     } 
 
     void                    DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
-    bool                    WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm); 
+    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm); 
 
     struct ElemIt
     {
@@ -303,7 +303,7 @@ public:
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
-    bool                    WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
     bool                    DumpDot( uint32_t id, Cv_DotStream &strm); 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 
@@ -374,7 +374,7 @@ struct FsaDfaByteState  : public FsaState
     }
 
 
-    bool     WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
+    bool     WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
     { 
         strm << GetTypeChar() << GetId() << " [ shape=";
 
@@ -480,7 +480,7 @@ struct FsaDfaXByteState  : public FsaState
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
-    bool                    WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
     bool                    DumpDot( uint32_t id, Cv_DotStream &strm);
 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
