@@ -27,9 +27,7 @@ public:
     typedef void                    Copiable;
 
     Filter( void) 
-    {
-        SetType( FilterCrate::TypeOf< Filter>());
-    } 
+    {} 
 
     std::string		GetName( void) const { return "Filter"; } 
      
@@ -46,9 +44,7 @@ struct     CharFilter : public Filter
 
     CharFilter( void)
         : m_Char( 0)
-    {
-        SetType( FilterCrate::TypeOf< CharFilter>());
-    }
+    {}
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "Ch[ ", m_Char, "]"); }
 
@@ -67,21 +63,15 @@ struct     ChSetFilter : public Filter, public Sg_Bitset< N>
 
     ChSetFilter( void)
         : Base()
-    {
-        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
-    }
+    {}
     
     ChSetFilter( Base &&chSet)
         : Base( chSet)
-    {
-        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
-    }
+    {}
 
     ChSetFilter( const Base &chSet)
         : Base( chSet)
-    {
-        SetType( FilterCrate::TypeOf< ChSetFilter< N>>());
-    }
+    {}
 
     std::string		GetName( void) const { return Cv_Aid::ToStr( "ChSet[ ", Sg_ChSet::ToString(), "]"); } 
 
@@ -163,12 +153,12 @@ template < uint32_t N>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, elm.GetType());
+        m_TVar = Var( &elm, FilterCrate::template TypeOf< Elem>() );
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Store( elm);
+        Id       id = Base::Store( m_TVar.GetType(), elm);
         m_IdTbl.insert( id);
         return id;
     }
@@ -224,9 +214,7 @@ struct CharDistribBase : public Cv_CrateEntry
     typedef void                    Copiable;
 
     CharDistribBase( void) 
-    {
-        SetType( DistribCrate::TypeOf< CharDistribBase>());
-    } 
+    {} 
 
     std::string		        GetName( void) const { return "Filter"; } 
 
@@ -253,9 +241,7 @@ struct CharDistrib : public Sg_CharPartition< Bits>, public CharDistribBase
 
 public:
     CharDistrib( void) 
-    {
-        SetType( DistribCrate::TypeOf< CharDistrib>());
-    } 
+    {} 
 
     std::string		GetName( void) const { return "Distrib"; } 
 
@@ -280,18 +266,35 @@ struct DistribVar : public DistribCrate::Var
     DistribVar( uint32_t szImg)
     {
         if ( szImg <= 8)
+        {
             m_Entry = new CharDistrib< 8>();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 8>>();
+        }
         else if ( szImg <= 16)  
+        {
             m_Entry = new CharDistrib< 16>();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 16>>();
+        }
         else if ( szImg <= 32)                                      
+        {
             m_Entry = new CharDistrib< 32>();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 32>>();
+        }
         else if ( szImg <= 64)  
+        {
             m_Entry = new CharDistrib< 64>();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 64>>();
+        }
         else if ( szImg <= 128)                                     
+        {
             m_Entry = new CharDistrib< 128>();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 128>>();
+        }
         else 
+        {
             m_Entry = new CharDistrib< 256>();
-        m_Type = m_Entry->GetType();
+            m_Type = DistribCrate::template TypeOf< CharDistrib< 256>>(); 
+        }
     }
 
     ~DistribVar( void)
@@ -485,12 +488,12 @@ template < typename CnstrIt>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, elm.GetType());
+        m_TVar = Var( &elm, DistribCrate::TypeOf< Elem>());
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Store( elm);
+        Id       id = Base::Store( m_TVar.GetType(), elm);
         m_IdTbl.insert( id);
         return id;
     }

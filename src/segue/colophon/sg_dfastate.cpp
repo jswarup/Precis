@@ -91,8 +91,8 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 
 bool    FsaSupState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
-    strm << GetTypeChar() << GetId() << " [ shape=oval";
-    strm << " color=purple label= <<FONT>" << GetTypeChar() << GetId() << "<BR />" << "<BR />" ; 
+    strm << id.GetTypeChar() << id.GetId() << " [ shape=oval";
+    strm << " color=purple label= <<FONT>" << id.GetTypeChar() << id.GetId() << "<BR />" << "<BR />" ; 
     strm << " </FONT>>];\n "; 
 
     FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
@@ -100,10 +100,10 @@ bool    FsaSupState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)
     Cv_Seq< FsaId>     subStates = SubStates(); 
     for ( uint32_t k = 0; k < subStates.Size(); ++k)
     {
-        FsaClip         regex = dfaRepos->m_ElemRepos->ToVar( subStates[ k]);
-        if ( !regex)
+        FsaId           regex = subStates[ k];
+        if ( !regex.GetId())
             continue;
-        strm << GetTypeChar() << GetId() << " -> " << regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+        strm << id.GetTypeChar() << id.GetId() << " -> " << regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
         strm << "</FONT>>] ; \n" ;  
     }
     return false; 
@@ -127,13 +127,7 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
 {
     Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
-    {
-        FsaClip         regex = dfaRepos->ToVar( dests[ k]);
-        if ( !regex)
-            dests[ k] = Id();
-        else
-            dests[ k] = *regex.GetEntry();    
-    } 
+        dests[ k] =  dfaRepos->GetId( dests[ k].GetId());
     return true;
 }
 
@@ -141,14 +135,14 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
 
 bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
-    strm << GetTypeChar() << GetId() << " [ shape=";
+    strm << id.GetTypeChar() << id.GetId() << " [ shape=";
 
     uint64_t        *toks = Tokens().Ptr();
     if ( toks)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId() << "<BR />" <<   "<BR />" ;
+    strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId() << "<BR />" <<   "<BR />" ;
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n "; 
@@ -158,10 +152,10 @@ bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)
     Cv_Seq< FsaId>    dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        FsaClip         regex = fsaRepos->ToVar( dests[ k]);
-        if ( !regex)
+        FsaId         regex = dests[ k];
+        if ( !regex.GetId())
             continue;
-        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
         strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
         strm << "</FONT>>] ; \n" ;  
     }
@@ -171,14 +165,14 @@ bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm) 
 { 
-    strm << GetId() << " [ shape=";
+    strm << id.GetId() << " [ shape=";
 
     uint64_t        *toks = Tokens().Ptr();
     if ( toks)
         strm << "box";
     else
         strm << "ellipse";
-    strm << " color=Red label= <<FONT> " << GetId() << "<BR />" <<   "<BR />" ;
+    strm << " color=Red label= <<FONT> " << id.GetId() << "<BR />" <<   "<BR />" ;
     for ( uint32_t i = 0; i < m_TokSz; ++i)
         strm << " T" << toks[ i];
     strm << " </FONT>>];\n ";  
@@ -189,7 +183,7 @@ bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm)
    //     FsaClip         regex = fsaRepos->ToVar( dests[ k]);
         if ( !dests[ k].GetId())
             continue;
-        strm << GetId() << " -> " <<  dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm << id.GetId() << " -> " <<  dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
 //        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
         strm << "</FONT>>] ; \n" ;  
     }
@@ -214,11 +208,8 @@ bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
 { 
     Cv_Seq< FsaId>      dests = Dests();
-    for ( uint32_t i = 0; i < DestSz(); ++i)
-    {
-        FsaClip         regex = dfaRepos->ToVar( dests[ i]);
-        dests[ i] = regex ? *regex.GetEntry() : Id();    
-    }
+    for ( uint32_t i = 0; i < DestSz(); ++i) 
+        dests[ i] = dfaRepos->GetId( dests[ i].GetId()); 
     return true;
 }
 
@@ -226,11 +217,11 @@ bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
 
 bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
-    strm << GetTypeChar() << GetId() << " [ shape=";
+    strm << id.GetTypeChar() << id.GetId() << " [ shape=";
 
     uint64_t        *toks = Tokens().Ptr(); 
     strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
+    strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
     strm << " </FONT>>];\n"; 
 
     FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
@@ -238,8 +229,8 @@ bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &str
     Cv_Seq< uint8_t>            bytes = Bytes(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        FsaClip         regex = fsaRepos->ToVar( dests[ k]);
-        strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        FsaId       regex =  dests[ k];
+        strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
         strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ k]).ToString());  
         strm << "</FONT>>] ; \n" ;   
     }
@@ -250,17 +241,17 @@ bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &str
 
 bool    FsaDfaXByteState::DumpDot( Id id, Cv_DotStream &strm) 
 { 
-    strm <<   GetId() << " [ shape=";
+    strm <<   id.GetId() << " [ shape=";
  
     strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " <<  GetId(); 
+    strm << " color=Red label= <<FONT> " <<  id.GetId(); 
     strm << " </FONT>>];\n"; 
 
     Cv_Seq< uint8_t>            bytes = Bytes(); 
     Cv_Seq< FsaId>              dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k)
     {
-        strm <<  GetId() << " -> " <<     dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+        strm <<  id.GetId() << " -> " <<     dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
         //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
         strm << "</FONT>>] ; \n" ;   
     }

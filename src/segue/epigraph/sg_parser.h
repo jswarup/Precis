@@ -198,7 +198,7 @@ struct     StrSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
+        strm << "R" << id.m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     } 
@@ -214,7 +214,7 @@ struct     CSetSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> " <<   Cv_Aid::XmlEncode(  m_Filt.ToString()) << " <BR />"; 
+        strm << "R" << id.m_IPtr << " [ shape=diamond  label= <<FONT> " <<   Cv_Aid::XmlEncode(  m_Filt.ToString()) << " <BR />"; 
         strm << " </FONT>>];\n "; 
         return true;
     }

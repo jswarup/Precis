@@ -366,21 +366,18 @@ struct FsaDfaByteState  : public FsaState
     { 
         FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
-        {
-            auto    regexEnt = dfaRepos->ToVar( dests[ i]).GetEntry();
-            dests[ i] = regexEnt ? *regexEnt : Id();
-        }
+            dests[ i] = dfaRepos->GetId( dests[ i].GetId());
         return true;
     }
 
 
     bool     WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
     { 
-        strm << GetTypeChar() << GetId() << " [ shape=";
+        strm << id.GetTypeChar() << id.GetId() << " [ shape=";
 
         uint64_t        *toks = Tokens().Ptr(); 
         strm << "diamond"; 
-        strm << " color=Red label= <<FONT> " << GetTypeChar() << GetId(); 
+        strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
         strm << " </FONT>>];\n";  
 
         FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
@@ -388,8 +385,8 @@ struct FsaDfaByteState  : public FsaState
         FsaId               *dests = Dests().Ptr(); 
         for ( uint32_t i = 0; i < Sz; ++i)
         {
-            FsaCrate::Var       regex = fsaRepos->ToVar( dests[ i]); 
-            strm << GetTypeChar() << GetId() << " -> " <<  regex->GetTypeChar() << regex->GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            Id       regex = dests[ i]; 
+            strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
             strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ i]).ToString());  
             strm << "</FONT>>] ; \n" ;   
         }
@@ -398,17 +395,17 @@ struct FsaDfaByteState  : public FsaState
 
     bool    DumpDot( Id id, Cv_DotStream &strm) 
     { 
-        strm <<   GetId() << " [ shape=";
+        strm <<   id.GetId() << " [ shape=";
 
         strm << "diamond"; 
-        strm << " color=Red label= <<FONT> " <<  GetId(); 
+        strm << " color=Red label= <<FONT> " <<  id.GetId(); 
         strm << " </FONT>>];\n"; 
         
         uint8_t     *bytes = Bytes().Ptr();
         FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
         {
-            strm <<  GetId() << " -> " <<     dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            strm <<  id.GetId() << " -> " <<     dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
             //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
             strm << "</FONT>>] ; \n" ;   
         }

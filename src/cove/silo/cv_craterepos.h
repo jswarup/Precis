@@ -74,9 +74,13 @@ public:
 
 //_____________________________________________________________________________________________________________________________
 
-class  Cv_CrateEntry : public Cv_CrateId
+class  Cv_CrateEntry 
 {
 public:   
+    typedef uint64_t	    IndexStor;	
+    typedef uint8_t	        TypeStor;
+    typedef void            Repos;	 
+
     struct Id : public Cv_CrateId 
     { 
         typedef void    Copiable;
@@ -90,22 +94,16 @@ public:
         Id( IndexStor id, TypeStor type) 
             :  Cv_CrateId( id, type) 
         {} 
-    };
-public:
-    typedef void    Repos;
+    }; 
 
-    Cv_CrateEntry( uint32_t id = CV_UINT32_MAX)
-        :  Cv_CrateId( id, 0)
+    Cv_CrateEntry( uint32_t id = CV_UINT32_MAX) 
     {} 
 
     const char		*GetName( void) const { return "Entry"; }
  
 
-    friend	Cv_DotStream    &operator<<( Cv_DotStream  &dotStrm, const Cv_CrateEntry *x)  
-    { 
-        dotStrm.OStream() << x->GetName() << '_' <<  x->GetId();
-        return dotStrm;
-    } 
+    uint32_t 		GetId( void) const { return 0; } 
+     
 };  
 
 //_____________________________________________________________________________________________________________________________
@@ -273,9 +271,7 @@ template<  class Object>
     Id    Store( Object *x)
     {
         TypeStor	typeVal = Crate::TypeOf( x); 
-        x->SetType(  typeVal); 
         IndexStor	ind = IndexStor( m_Elems.size());
-        x->SetId( ind);
         m_Elems.push_back( x); 
         m_Types.push_back( typeVal); 
         return Id( ind, typeVal);
@@ -284,12 +280,10 @@ template<  class Object>
 template<  class Object>
     Id    StoreAt( uint32_t ind, Object *x)
     {
-        TypeStor	typeVal = Crate::TypeOf( x);
-        x->SetType(  typeVal);   
-        x->SetId( ind);
+        TypeStor	typeVal = Crate::TypeOf( x); 
         Id   id;
         if ( m_Elems[ ind])
-            id = Id( ind, m_Elems[ ind]->GetType());
+            id = Id( ind, m_Types[ ind]);
         m_Elems[ ind] = x; 
         m_Types[ ind] = typeVal; 
         return id;
@@ -461,18 +455,15 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     Id    Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
-        Elem    *insrt =  &m_Elems.back();
-        insrt->SetId( IndexStor( m_Elems.size() -1));
-        insrt->SetType( TypeStor( Crate::Sz));
-        return *insrt; 
+        return Id( IndexStor( m_Elems.size() -1), Crate::template TypeOf< Elem>()); 
     } 
 
-    Id          Store( const Entry &entry) 
+    Id          Store( TypeStor type, const Entry &entry) 
     { 
-        switch ( entry.GetType())
+        switch ( type)
         {
             case  Crate::Sz : return Push( static_cast< const Elem &>( entry));
-            default :  return Base::Store( entry);
+            default :  return Base::Store( type, entry);
         }
     }   
 
@@ -514,6 +505,7 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     typedef typename Crate::Elem        Elem;
     typedef typename Entry::Id          Id;
     typedef typename Crate::Var         Var;
+    typedef typename Entry::TypeStor		TypeStor; 
 
     std::vector< Elem>                  m_Elems; 
 
@@ -569,13 +561,10 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     Id          Push( const Elem &elm) 
     { 
         m_Elems.push_back( elm); 
-        Elem    &insrt =  m_Elems.back();
-        insrt.SetId( uint32_t( m_Elems.size() -1));
-        insrt.SetType( Crate::Sz);
-        return insrt;  
+        return Id(  m_Elems.size() -1, Crate::Sz) ;  
     }  
 
-    Id          Store( const Entry &entry) 
+    Id          Store( TypeStor type, const Entry &entry) 
     {    
         return Push( static_cast< const Elem &>( entry));
     }   

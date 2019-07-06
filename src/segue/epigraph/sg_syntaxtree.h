@@ -62,10 +62,10 @@ struct     RefSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
-        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << id.m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
  
@@ -81,10 +81,10 @@ struct     LexemeSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
-        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << id.m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
 
@@ -100,7 +100,7 @@ struct     ErrorSynElem : public SynElem
 
 	bool    WriteDot( Id id, Cv_DotStream &strm)  
 	{
-		strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << m_ErrStr << " " << "<BR />" ; 
+		strm << 'R' << id.m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << m_ErrStr << " " << "<BR />" ; 
 		strm << " </FONT>>];\n "; 
 		 
 		return true;
@@ -118,7 +118,7 @@ struct     BOLSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << "BOL" << " " << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << "BOL" << " " << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
         return true;
@@ -141,10 +141,10 @@ struct     ActionSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)   
     {
-        strm << 'R' << m_IPtr << " [ shape=box  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=box  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
  
-        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
+        strm << 'R' << id.m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=tee color=black] ; \n"; 
         return true;
     } 
      
@@ -160,15 +160,15 @@ struct     SeqSynElem : public SynElem
     
     bool			WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=rectangle  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=rectangle  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 		 
-        IPtrStor    tailIPtr = m_IPtr;
+        Id::IPtrStor    tailIPtr = id.m_IPtr;
         for ( uint32_t k = 0; k < m_SeqList.size(); ++k)
         {
             SynRepos::Id		regex = m_SeqList[ k];
             strm << 'R' << tailIPtr << " -> " << 'R' << regex.m_IPtr;
-            if ( tailIPtr == m_IPtr)
+            if ( tailIPtr == id.m_IPtr)
                 strm << " [ arrowhead=tee color=black] ; \n"; 
             else
                 strm << " [ arrowhead=vee color=black] ; \n"; 
@@ -188,13 +188,13 @@ struct     AltSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
+        strm << 'R' << id.m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
 
         for ( uint32_t k = 0; k < m_AltList.size(); ++k)
         {
             SynRepos::Id		regex = m_AltList[ k];
-            strm << 'R' << m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
+            strm << 'R' << id.m_IPtr << " -> " << 'R' << regex.m_IPtr << " [ arrowhead=tee color=black] ; \n";
         }
         return true;
     }
@@ -213,7 +213,7 @@ struct     RepeatSynElem : public SynElem
 
     bool    WriteDot( Id id, Cv_DotStream &strm)  
     {
-        strm << 'R' << m_IPtr << " [ shape=hexagon  label= <<FONT> #" << GetName() << "  <BR />";
+        strm << 'R' << id.m_IPtr << " [ shape=hexagon  label= <<FONT> #" << GetName() << "  <BR />";
         strm.OStream() << "( " << uint32_t( m_Min) << ", ";
         if ( m_Max == CV_UINT32_MAX)
             strm << "Inf";
@@ -221,7 +221,7 @@ struct     RepeatSynElem : public SynElem
             strm << m_Max;
         strm  << ")" << " </FONT>>];\n "; 
 
-        strm << 'R' << m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=dot  color=black] ; \n"; 
+        strm << 'R' << id.m_IPtr << " -> " << 'R' << m_Elem.m_IPtr << " [ arrowhead=dot  color=black] ; \n"; 
         return true;
     }
 

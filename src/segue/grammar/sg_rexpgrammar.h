@@ -81,7 +81,7 @@ struct      RExpDocSynElem : public AltSynElem
 
 	bool    WriteDot( Id id, Cv_DotStream &strm)  
 	{
-		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
+		strm << "R" << id.m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
 		strm << " </FONT>>];\n "; 
 		return true;
 	}
