@@ -211,8 +211,8 @@ int     Sg_AnealCmdProcessor::Test(void)
     {
         std::ofstream							ostrm( m_ShardDotFile);
         Cv_DotStream						    synDotStrm( &ostrm, false); 
-        rexpRepos.OperateAll( [&synDotStrm]( auto k ){
-            return k->WriteDot( Cv_CrateId(), synDotStrm); 
+        rexpRepos.OperateAll( [&synDotStrm]( auto k, uint32_t ind ){
+            return k->WriteDot( Cv_CrateId( ind, RExpCrate::TypeOf( k)), synDotStrm); 
         });
     } 
     //std::cout << rexpRepos.m_Base.ToString() << '\n';

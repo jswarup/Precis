@@ -66,7 +66,7 @@ int     Sg_XmlCmdProcessor::Test(void)
 	std::ofstream								ostrm( "b.dot");
 	Cv_DotStream								synDotStrm( &ostrm, false); 
 
-	synCrate.OperateAll( [&synDotStrm]( auto k ){
+	synCrate.OperateAll( [&synDotStrm]( auto k, uint32_t ind ){
 		return k->WriteDot( Cv_CrateId(), synDotStrm); 
 	});
 	synCrate.Clear();

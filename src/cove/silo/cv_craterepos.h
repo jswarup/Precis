@@ -102,7 +102,7 @@ public:
     const char		*GetName( void) const { return "Entry"; }
  
 
-    uint32_t 		GetId( void) const { return 0; } 
+    uint32_t 		GetCId( void) const { return 0; } 
      
 };  
 
@@ -233,7 +233,7 @@ template<typename X>
 
     auto        Deleter( void)
     {
-        return [ this]( auto x) { 
+        return [ this]( auto x, uint32_t ind) { 
             Delete( x, 0); 
             return true; };
     }
@@ -247,9 +247,9 @@ template<typename X>
     uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
 template < typename Element>
-    static Id   ToId( Element *e) { return Id( e->GetId(), Crate::template TypeOf< Element>()); }
+    static Id   ToId( Element *e) { return Id( e->GetCId(), Crate::template TypeOf< Element>()); }
 
-    static Id   ToId( Var v) { return Id( v.GetEntry()->GetId(), v.GetType()); }
+    static Id   ToId( Var v) { return Id( v.GetEntry()->GetCId(), v.GetType()); }
 
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
@@ -261,7 +261,7 @@ template < typename Element>
     { 
         Entry       *&elem = m_Elems[ k];
         TypeStor	&type = m_Types[ k];
-        Crate::Operate( elem, type, Deleter());
+        Crate::Operate( elem, type, Deleter(), k);
         type = 0; 
         elem = NULL; 
         return;
@@ -309,14 +309,14 @@ template<  class Object>
 template < typename Lambda, typename... Args>
     auto    OperateAll(  Lambda &&lambda,  Args&&... args)  
     {   
-        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
+        typedef Cv_CrateLambdaAccum< decltype( lambda( static_cast<Entry *>( nullptr), uint32_t( 0), args...))>     Accum;
         Accum                                               accum;
         for ( uint32_t i = 0; i < Size(); ++i)
         {
             Entry     *si = m_Elems[ i]; 
             if ( !si)
-                continue; 
-            if ( !accum.Accumulate( Crate::Operate( si, m_Types[ i], lambda, args...)))
+                continue;   
+            if ( !accum.Accumulate( Crate::Operate( si, m_Types[ i], lambda, i, args...)))
                 return accum;
         }
         return accum;
@@ -479,10 +479,10 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
 template < typename Lambda, typename... Args>
     auto    OperateAll( const Lambda &lambda,  Args&&... args)  
     {   
-        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
+        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), uint32_t( 0), args...))>     Accum;
         Accum                                               accum;
         for ( uint32_t i = 0; i < m_Elems.size(); ++i)         
-            if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))  
+            if ( !accum.Accumulate( lambda( &m_Elems[ i], i, args...)))  
                 return accum; 
         return accum.Accumulate( Base::OperateAll( lambda, args...));
     }
@@ -577,10 +577,10 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
 template < typename Lambda, typename... Args>
     auto    OperateAll(  Lambda &&lambda,  Args&&... args)  
     {   
-        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), args...))>     Accum;
+        typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), uint32_t( 0), args...))>     Accum;
         Accum                                               accum;
         for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
-            if ( !accum.Accumulate( lambda( &m_Elems[ i], args...)))        
+            if ( !accum.Accumulate( lambda( &m_Elems[ i], i, args...)))        
                 return accum; 
         return accum;
     }

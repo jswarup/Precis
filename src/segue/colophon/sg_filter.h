@@ -187,7 +187,7 @@ template < typename Elem>
 
     bool            Dump( std::ostream &ostr) 
     { 
-        return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  &m_Base, ostr); });
+        return OperateAll( [this, &ostr]( auto k, uint32_t ind) {  return k->Dump(  &m_Base, ostr); });
     }
 
     std::string     ToString( Var chVar) const 
@@ -587,7 +587,7 @@ template < typename Elem>
 
     bool            Dump( std::ostream &ostr) 
     { 
-        return OperateAll( [this, &ostr]( auto k) {  return k->Dump(  this, ostr); });
+        return OperateAll( [this, &ostr]( auto k, uint32_t ind) {  return k->Dump(  this, ostr); });
     }
 
     struct Cask : public Cv_MemberCask< Sg_Partition, Cv_CratePile< DistribCrate>>

@@ -33,7 +33,7 @@ template < typename Element>
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( Lambda &&lambda,  Args&&... args)  const   {
+	auto    operator()( const Lambda &lambda,  const Args&... args)  const   {
 		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
@@ -61,19 +61,19 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     }     
 
 template <typename X, typename std::enable_if< std ::is_base_of< Elem, X>::value, void>::type * = nullptr>
-	TypeStor TypeOf( X *obj)
+    static constexpr TypeStor TypeOf( X *obj)
     {
         return Sz;
     } 
 
 template < typename X, typename std::enable_if< !std ::is_base_of< Elem, X>::value, void>::type * = nullptr>
-	TypeStor TypeOf( X *obj)
+    static constexpr TypeStor TypeOf( X *obj)
     {
 		return CrateBase::TypeOf( obj);
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args&&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, const Lambda &lambda,  const Args &... args)  
     {
         switch ( typeStor)
 		{
@@ -111,13 +111,13 @@ struct Cv_CrateT
     typedef  Cv_Var< Crate>			        Var; 
 
 template < typename X = void>    
-	TypeStor	TypeOf( X *obj)
+    static constexpr TypeStor	TypeOf( X *obj)
     { 
 		return Sz;
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args&&... args)  
+    static auto    Operate( Entry *entry, TypeStor typeStor, const Lambda &lambda,  const Args &... args)  
     {
 		 return lambda( static_cast< Elem *>( entry), args...); 
     }

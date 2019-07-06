@@ -13,7 +13,7 @@ FsaElemCnstr::~FsaElemCnstr( void)
     FinalizeEpsLinks(); 
     m_Repos->m_Cnstrs[ GetId()] = NULL;
     if ( !m_State->RefCount())
-        m_Repos->m_ElemRepos->Destroy( m_State->GetId());
+        m_Repos->m_ElemRepos->Destroy( m_State->GetCId());
 }
 
 //_____________________________________________________________________________________________________________________________  

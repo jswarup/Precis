@@ -43,7 +43,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     Cv_Seq< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
-        dfaRepos->Destroy( GetId());
+        dfaRepos->Destroy( GetCId());
         return;
     } 
     DescendIt               descIt( elemRepos, dfaRepos, this);
@@ -56,7 +56,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     
     Action                  *action = DetachAction();  
 
-    m_DfaStateMap->Insert( this, GetId());
+    m_DfaStateMap->Insert( this, GetCId());
     Cv_Array< uint32_t, 256>        destArr;
     for ( uint32_t k = 0; k < discr.SzDescend(); ++k)
     {
@@ -82,7 +82,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subSupState); 
     } 
-    dfaCnstr->ConstructDfaStateAt( GetId(), discr, action, destArr);   
+    dfaCnstr->ConstructDfaStateAt( GetCId(), discr, action, destArr);   
     //m_DfaStateMap.Purge();
     return;
 }
@@ -310,7 +310,7 @@ void    FsaDfaRepos::Blossom::SauteStates( void)
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
     FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
-    uint32_t        rootId = supRootState->GetId();
+    uint32_t        rootId = supRootState->GetCId();
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
     m_FsaStk.push_back( supRootState);
@@ -323,7 +323,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     }
 
     m_DfaRepos->m_RootId = m_DfaRepos->GetId( rootId);;
-    m_DfaRepos->OperateAll( [ this]( auto k) {
+    m_DfaRepos->OperateAll( [ this]( auto k, uint32_t ind) {
         return k->CleanupDestIds( m_DfaRepos);
     });
     return;

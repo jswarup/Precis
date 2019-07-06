@@ -151,7 +151,7 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
         if ( !Base::DoInit( vita))
             return false;
 
-        bool    res = this->OperateAll( [vita]( auto k) { return k->DoInit( vita); });
+        bool    res = this->OperateAll( [vita]( auto k, uint32_t ind) { return k->DoInit( vita); });
         if ( !res)
             return false;
         this->m_Vita->m_CntEasel = this->Size();
@@ -181,12 +181,12 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
 
     bool    DoLaunch( void)
     {  
-        bool    res = this->OperateAll( []( auto k) { return k->DoLaunch(); });
+        bool    res = this->OperateAll( []( auto k, uint32_t ind) { return k->DoLaunch(); });
         if ( !res)
             return false;  
         this->DoExecute();
         
-        res = this->OperateAll( []( auto k) { return k->DoJoin(); });
+        res = this->OperateAll( []( auto k, uint32_t ind) { return k->DoJoin(); });
         SnapStats();
         LogStats( std::cout);
         return res;
@@ -197,14 +197,14 @@ struct Sg_MonitorEasel : public  Cv_CrateRepos< Crate>, public Sg_WorkEasel< Mon
         bool    runFlg = !this->m_DoneFlg; 
         bool    res = true;
         if ( !runFlg)       
-            res = this->OperateAll( []( auto k) { return k->ResetLastSnap(); }); 
-        res = this->OperateAll( []( auto k) { return k->SnapStats(); }); 
+            res = this->OperateAll( []( auto k, uint32_t ind) { return k->ResetLastSnap(); }); 
+        res = this->OperateAll( []( auto k, uint32_t ind) { return k->SnapStats(); }); 
         return res; 
     }
 
     bool        LogStats( std::ostream &strm)
     { 
-        bool    res = this->OperateAll( [&strm]( auto k) {  
+        bool    res = this->OperateAll( [&strm]( auto k, uint32_t ind) {  
                     bool    res =  k->LogStats( strm); 
                     strm << '\n'; 
                 return res; 

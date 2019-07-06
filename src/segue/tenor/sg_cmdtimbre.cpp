@@ -90,7 +90,7 @@ int     Sg_TimbreCmdProcessor::Execute( void)
 
 		auto                    synElem = synCnstr.FetchElemId( &regex);
 
-		synCrate.OperateAll( [&synDotStrm]( auto k ){
+		synCrate.OperateAll( [&synDotStrm]( auto k, uint32_t ind){
 			return k->WriteDot( Cv_CrateId(), synDotStrm); 
 		});
 		auto					synVar = synCrate.Get( 1); 
