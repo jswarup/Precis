@@ -89,7 +89,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaSupState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaSupState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=oval";
     strm << " color=purple label= <<FONT>" << GetTypeChar() << GetId() << "<BR />" << "<BR />" ; 
@@ -139,7 +139,7 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaDfaState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=";
 
@@ -169,7 +169,7 @@ bool    FsaDfaState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 }
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaState::DumpDot( Cv_DotStream &strm) 
+bool    FsaDfaState::DumpDot( uint32_t id, Cv_DotStream &strm) 
 { 
     strm << GetId() << " [ shape=";
 
@@ -224,7 +224,7 @@ bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaXByteState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm) 
+bool    FsaDfaXByteState::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
 { 
     strm << GetTypeChar() << GetId() << " [ shape=";
 
@@ -248,7 +248,7 @@ bool    FsaDfaXByteState::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaXByteState::DumpDot( Cv_DotStream &strm) 
+bool    FsaDfaXByteState::DumpDot( uint32_t id, Cv_DotStream &strm) 
 { 
     strm <<   GetId() << " [ shape=";
  
@@ -285,7 +285,7 @@ bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
     {
         Var     si = Get( i);
         if (si)
-            si( [this, &strm]( auto k) { k->WriteDot( this, strm); });
+            si( [this, i, &strm]( auto k) { k->WriteDot( i, this, strm); });
     }
     return true;
 }

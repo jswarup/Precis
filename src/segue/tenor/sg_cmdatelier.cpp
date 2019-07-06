@@ -111,7 +111,7 @@ public:
             m_TokenLogFile = arg;
             return true;
         } 
-        if ( "-ca" == key)
+        if ( "-e" == key)
         { 
             char      *prs = NULL;
             m_AtelierSz = strtoul( arg.c_str(), &prs, 10);
@@ -235,7 +235,7 @@ int     Sg_AtelierCmdProcessor::Execute(void)
             auto        var = states.VarAt( i); 
             bool t = true;
             if (var)
-                var( [&fsaDotStrm]( auto k) { k->DumpDot( fsaDotStrm); });
+                var( [i, &fsaDotStrm]( auto k) { k->DumpDot( i, fsaDotStrm); });
         }
         bool t = true; 
     }

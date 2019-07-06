@@ -14,7 +14,7 @@ bool        FsaRepos::WriteDot( Cv_DotStream &strm)
     {
         Var     si = Get( i);
         if (si)
-            si( [this, &strm]( auto k) { k->WriteDot( this, strm); });
+            si( [this, i, &strm]( auto k) { k->WriteDot( i, this, strm); });
     }
     return true;
 }
@@ -30,7 +30,7 @@ bool        FsaRepos::DumpDot( const char *path)
 
 //_____________________________________________________________________________________________________________________________  
 
-bool  FsaElem::WriteDot( FsaRepos *fsaRepos, Cv_DotStream &strm)  
+bool  FsaElem::WriteDot( uint32_t id, FsaRepos *fsaRepos, Cv_DotStream &strm)  
 {
     strm << GetTypeChar() << GetId() << " [ shape=";
 
