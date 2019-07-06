@@ -13,7 +13,7 @@ FsaElemCnstr::~FsaElemCnstr( void)
     FinalizeEpsLinks(); 
     m_Repos->m_Cnstrs[ GetId()] = NULL;
     if ( !m_State->RefCount())
-        m_Repos->m_ElemRepos->Destroy( m_State->GetCId());
+        m_Repos->m_ElemRepos->Destroy( GetId());
 }
 
 //_____________________________________________________________________________________________________________________________  
@@ -22,7 +22,7 @@ void    FsaElemCnstr::AddEdge( const Sg_ChSet &chSet, const ElemSlot &dest)
 { 
     dest->m_State->RaiseRef();
     auto        filtId = m_Repos->m_ElemRepos->m_FilterRepos.FetchId( chSet);
-    m_State->AddEdge( filtId, FsaRepos::ToId( dest->m_State));
+    m_State->AddEdge( filtId, m_Repos->m_ElemRepos->GetId( dest->GetId()));
 }
 
 //_____________________________________________________________________________________________________________________________   
@@ -83,7 +83,7 @@ void    FsaElemReposCnstr::Process( void)
     docVar( [ this, &start, &end](  auto k) {
         Proliferate( k, start, end);
     }); 
-    m_ElemRepos->m_RootId = FsaRepos::ToId( start->m_State);
+    m_ElemRepos->m_RootId = m_ElemRepos->GetId( start->GetId());
     return;
 }
 
