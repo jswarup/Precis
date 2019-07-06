@@ -77,9 +77,9 @@ struct      RExpDocSynElem : public AltSynElem
 { 
 	Cv_CrateId		m_Item;
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "XDocElem", GetId()); } 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "XDocElem"); } 
 
-	bool    WriteDot( Cv_DotStream &strm)  
+	bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
 	{
 		strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
 		strm << " </FONT>>];\n "; 

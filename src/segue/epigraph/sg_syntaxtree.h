@@ -43,7 +43,7 @@ public:
 
     std::string		GetName( void) const { return "Syn"; } 
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         return true;
     } 	 
@@ -58,9 +58,9 @@ struct     RefSynElem : public SynElem
 	RefSynElem( void)
 	{}
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Ref", GetId()); }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Ref"); }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -77,9 +77,9 @@ struct     LexemeSynElem : public SynElem
 {
     SynRepos::Id		m_Elem;
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex", GetId()); }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Lex"); }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -96,9 +96,9 @@ struct     ErrorSynElem : public SynElem
 {
 	std::string     m_ErrStr;
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Error", GetId()); }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Error"); }
 
-	bool    WriteDot( Cv_DotStream &strm)  
+	bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
 	{
 		strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << m_ErrStr << " " << "<BR />" ; 
 		strm << " </FONT>>];\n "; 
@@ -114,9 +114,9 @@ struct     ErrorSynElem : public SynElem
 struct     BOLSynElem : public SynElem 
 { 
 
-    std::string		GetName( void) const { return Cv_Aid::ToStr( "BOL", GetId()); }
+    std::string		GetName( void) const { return Cv_Aid::ToStr( "BOL"); }
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << " " << "BOL" << " " << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -137,9 +137,9 @@ struct     ActionSynElem : public SynElem
         : m_Token( 0)
     {}
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Act", GetId()); } 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Act"); } 
 
-    bool    WriteDot( Cv_DotStream &strm)   
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)   
     {
         strm << 'R' << m_IPtr << " [ shape=box  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -156,9 +156,9 @@ struct     SeqSynElem : public SynElem
 {
     std::vector< SynRepos::Id>     m_SeqList; 
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq", GetId()); }  
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Seq"); }  
     
-    bool			WriteDot( Cv_DotStream &strm)  
+    bool			WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=rectangle  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -184,9 +184,9 @@ struct     AltSynElem : public SynElem
 {
     std::vector< SynRepos::Id>     m_AltList; 
 	 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Alt", GetId()); }  
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Alt"); }  
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=parallelogram  label= <<FONT> #" << GetName() << "<BR />" ; 
         strm << " </FONT>>];\n "; 
@@ -209,9 +209,9 @@ struct     RepeatSynElem : public SynElem
     uint32_t            m_Min;
     uint32_t            m_Max;
 	 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Rep", GetId()); } 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Rep"); } 
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << 'R' << m_IPtr << " [ shape=hexagon  label= <<FONT> #" << GetName() << "  <BR />";
         strm.OStream() << "( " << uint32_t( m_Min) << ", ";

@@ -91,12 +91,12 @@ int     Sg_TimbreCmdProcessor::Execute( void)
 		auto                    synElem = synCnstr.FetchElemId( &regex);
 
 		synCrate.OperateAll( [&synDotStrm]( auto k ){
-			return k->WriteDot( synDotStrm); 
+			return k->WriteDot( 0, synDotStrm); 
 		});
 		auto					synVar = synCrate.Get( 1); 
 
 		synVar( [&synDotStrm]( auto k ){
-			return k->WriteDot( synDotStrm); 
+			return k->WriteDot( 0, synDotStrm); 
 		}); 
         synCrate.Clear();
         bool                    t = true; 

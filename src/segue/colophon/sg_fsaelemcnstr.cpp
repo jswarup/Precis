@@ -18,7 +18,7 @@ FsaElemCnstr::~FsaElemCnstr( void)
 
 //_____________________________________________________________________________________________________________________________  
 
-void    FsaElemCnstr::AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest) 
+void    FsaElemCnstr::AddEdge( const Sg_ChSet &chSet, const ElemSlot &dest) 
 { 
     dest->m_State->RaiseRef();
     auto        filtId = m_Repos->m_ElemRepos->m_FilterRepos.FetchId( chSet);
@@ -62,7 +62,7 @@ void    FsaElemCnstr::FinalizeEpsLinks( void)
 
 //_____________________________________________________________________________________________________________________________   
 
-bool    FsaElemCnstr::WriteDot( Cv_DotStream &strm)  
+bool    FsaElemCnstr::WriteDot( uint32_t id, Cv_DotStream &strm)  
 {
 
     for ( auto it = m_EpsDests.begin(); it !=  m_EpsDests.end(); ++it) 
@@ -76,9 +76,9 @@ bool    FsaElemCnstr::WriteDot( Cv_DotStream &strm)
 
 void    FsaElemReposCnstr::Process( void)
 { 
-    AutomSlot                       start =  ConstructCnstr();
+    ElemSlot                       start =  ConstructCnstr();
     start->m_State->RaiseRef();
-    AutomSlot                       end =  ConstructCnstr(); 
+    ElemSlot                       end =  ConstructCnstr(); 
     RExpCrate::Var  docVar = m_RexpRepos->ToVar( m_RexpRepos->m_RootId);
     docVar( [ this, &start, &end](  auto k) {
         Proliferate( k, start, end);
@@ -99,7 +99,7 @@ bool    FsaElemReposCnstr::WriteDot( const std::string &str)
     {
         FsaElemCnstr  *si = m_Cnstrs[ i];
         if (si)
-            si->WriteDot( rexpDotStrm); 
+            si->WriteDot( i, rexpDotStrm); 
     }
     return true;
 }

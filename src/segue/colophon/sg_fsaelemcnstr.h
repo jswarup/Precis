@@ -1,7 +1,6 @@
 //  sg_fsaelemcnstr.h ___________________________________________________________________________________________________________________
 #pragma once
 
-
 #include    "segue/colophon/sg_fsastate.h"
 #include    "segue/colophon/sg_dfastate.h"
 #include    "segue/epigraph/sg_parser.h"
@@ -17,7 +16,7 @@ namespace Sg_RExp
 struct      FsaElemCnstr;
 struct      FsaElemReposCnstr;
 
-typedef Cv_Slot< FsaElemCnstr>    AutomSlot;
+typedef Cv_Slot< FsaElemCnstr>    ElemSlot;
 
 //_____________________________________________________________________________________________________________________________ 
 
@@ -37,9 +36,9 @@ public:
     
     const char		*GetName( void) const { return "Spur"; }
 
-    void            AddEdge( const Sg_ChSet &chSet, const AutomSlot &dest);
+    void            AddEdge( const Sg_ChSet &chSet, const ElemSlot &dest);
 
-    void            AddEpsDest( const AutomSlot &s) 
+    void            AddEpsDest( const ElemSlot &s) 
     { 
         if ( this == s.Ptr())
             return; 
@@ -58,7 +57,7 @@ public:
 
     void            FinalizeEpsLinks( void);
     
-    bool            WriteDot( Cv_DotStream &strm) ;
+    bool            WriteDot( uint32_t id, Cv_DotStream &strm) ;
 };
 
 //_____________________________________________________________________________________________________________________________  
@@ -77,24 +76,24 @@ struct FsaElemReposCnstr
         m_ElemRepos->m_FilterRepos.m_Base = rexpRepos->m_Base;
     } 
 
-    AutomSlot   ConstructCnstr( void)
+    ElemSlot   ConstructCnstr( void)
     {
-        AutomSlot   x = new FsaElemCnstr( this);  
+        ElemSlot   x = new FsaElemCnstr( this);  
         x->SetId( m_ElemRepos->Size()); 
         x->m_State = m_ElemRepos->Construct< FsaElem>();  
         m_Cnstrs.push_back( x);
         return x;
     }
 
-    void    Proliferate( SynElem *elm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( SynElem *elm, const ElemSlot &start, const ElemSlot &end)
     {
         return;   
     }
     
-    void    Proliferate( ActionSynElem *elm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( ActionSynElem *elm, const ElemSlot &start, const ElemSlot &end)
     {
 
-        AutomSlot       actor =  ConstructCnstr();
+        ElemSlot       actor =  ConstructCnstr();
         actor->AddEpsDest( end);
 
         RExpCrate::Var      elemVar = m_RexpRepos->ToVar( elm->m_Elem); 
@@ -108,18 +107,18 @@ struct FsaElemReposCnstr
         return;   
     }
 
-    void    Proliferate( CSetSynElem *csetElm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( CSetSynElem *csetElm, const ElemSlot &start, const ElemSlot &end)
     {
         start->AddEdge( csetElm->m_Filt, end);
         return;   
     }
 
-    void    Proliferate( SeqSynElem *seqElm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( SeqSynElem *seqElm, const ElemSlot &start, const ElemSlot &end)
     { 
-        AutomSlot    right = end; 
+        ElemSlot    right = end; 
         for ( uint32_t i = uint32_t( seqElm->m_SeqList.size()); i > 1; --i)
         {
-            AutomSlot           state =  ConstructCnstr(); 
+            ElemSlot           state =  ConstructCnstr(); 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( seqElm->m_SeqList[ i -1]); 
 
             elemVar( [ this, &state, &right](  auto k) {
@@ -135,17 +134,17 @@ struct FsaElemReposCnstr
         return;   
     }
 
-    void    Proliferate( RExpEntrySeqElem *seqElm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( RExpEntrySeqElem *seqElm, const ElemSlot &start, const ElemSlot &end)
     { 
         Proliferate( static_cast< SeqSynElem *>( seqElm), start, end);
         m_ElemRepos->m_RuleIdSzList[ seqElm->m_RuleIndex] = m_ElemRepos->Size(); 
     }
 
-    void    Proliferate( AltSynElem *altElm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( AltSynElem *altElm, const ElemSlot &start, const ElemSlot &end)
     {
         for ( uint32_t i = 0; i < altElm->m_AltList.size(); ++i)
         {
-            AutomSlot       state =  ConstructCnstr();
+            ElemSlot       state =  ConstructCnstr();
             start->AddEpsDest( state);
 
             RExpCrate::Var      elemVar = m_RexpRepos->ToVar( altElm->m_AltList[ i]);
@@ -157,16 +156,16 @@ struct FsaElemReposCnstr
         return;   
     }
         
-    void    Proliferate( RepeatSynElem *repElm, const AutomSlot &start, const AutomSlot &end)
+    void    Proliferate( RepeatSynElem *repElm, const ElemSlot &start, const ElemSlot &end)
     {
         uint32_t            nSeg  = ( repElm->m_Max == 0) ? ( repElm->m_Min +1) : repElm->m_Max; 
         
-        AutomSlot           loopbackState;
-        AutomSlot           sState;
+        ElemSlot           loopbackState;
+        ElemSlot           sState;
         {
-            std::vector< AutomSlot>     optSpinList;
+            std::vector< ElemSlot>     optSpinList;
             {
-                AutomSlot           fState = ConstructCnstr();
+                ElemSlot           fState = ConstructCnstr();
                 start->AddEpsDest( fState);
                 RExpCrate::Var              elemVar = m_RexpRepos->ToVar( repElm->m_Elem);
                 for ( uint32_t i = 0; i < nSeg; ++i)

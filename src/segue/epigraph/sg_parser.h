@@ -190,13 +190,13 @@ struct     StrSynElem : public SynElem
     bool            m_CaselessFlg;
 
 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "Str", GetId()); }
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "Str"); }
 
     StrSynElem( void)
         :   m_CaselessFlg( false)
     {}
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> #" << GetName() << " <BR />"; 
         strm << " </FONT>>];\n "; 
@@ -210,9 +210,9 @@ struct     CSetSynElem : public SynElem
 {
     Sg_ChSet     m_Filt;
 	 
-	std::string		GetName( void) const { return Cv_Aid::ToStr( "CSet", GetId()); } 
+	std::string		GetName( void) const { return Cv_Aid::ToStr( "CSet"); } 
 
-    bool    WriteDot( Cv_DotStream &strm)  
+    bool    WriteDot( uint32_t id, Cv_DotStream &strm)  
     {
         strm << "R" << m_IPtr << " [ shape=diamond  label= <<FONT> " <<   Cv_Aid::XmlEncode(  m_Filt.ToString()) << " <BR />"; 
         strm << " </FONT>>];\n "; 
