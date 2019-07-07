@@ -36,14 +36,14 @@ void       FsaSupState::DescendIt::Dump( std::ostream &strm)
 }
  //_____________________________________________________________________________________________________________________________
 
-void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
+void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr)
 { 
     FsaDfaRepos                     *dfaRepos = dfaCnstr->m_DfaRepos;
     FsaElemRepos                    *elemRepos = dfaCnstr->m_ElemRepos;
     Cv_Seq< FsaId>                 subStates = SubStates();
     if ( !subStates.Size())
     {
-        dfaRepos->Destroy( GetCId());
+        dfaRepos->Destroy( supId.GetId());
         return;
     } 
     DescendIt               descIt( elemRepos, dfaRepos, this);
@@ -56,7 +56,7 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
     
     Action                  *action = DetachAction();  
 
-    m_DfaStateMap->Insert( this, GetCId());
+    m_DfaStateMap->Insert( this, supId.GetId());
     Cv_Array< uint32_t, 256>        destArr;
     for ( uint32_t k = 0; k < discr.SzDescend(); ++k)
     {
@@ -80,9 +80,9 @@ void    FsaSupState::DoConstructTransisition( FsaDfaCnstr *dfaCnstr)
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_DfaStateMap = dfaStateMap;
         destArr.Append( subId.GetId()); 
-        dfaCnstr->m_FsaStk.push_back( subSupState); 
+        dfaCnstr->m_FsaStk.push_back( subId); 
     } 
-    dfaCnstr->ConstructDfaStateAt( GetCId(), discr, action, destArr);   
+    dfaCnstr->ConstructDfaStateAt( supId.GetId(), discr, action, destArr);   
     //m_DfaStateMap.Purge();
     return;
 }
@@ -309,23 +309,24 @@ void    FsaDfaRepos::Blossom::SauteStates( void)
 
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
-    FsaSupState     *supRootState = m_DfaRepos->Construct< FsaSupState>(); 
-    uint32_t        rootId = supRootState->GetCId();
+    FsaSupState     *supRootState = new FsaSupState();
+    FsaId           rootId = m_DfaRepos->Store( supRootState); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
-    m_FsaStk.push_back( supRootState);
+    m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {
-        FsaSupState     *supState = m_FsaStk.back();
+        FsaId           supId = m_FsaStk.back();
+        FsaSupState     *supState = m_DfaRepos->ToVar( supId).Elem< FsaSupState>();
         m_FsaStk.pop_back(); 
 
-        supState->DoConstructTransisition( this);  
+        supState->DoConstructTransisition( supId, this);  
     }
 
-    m_DfaRepos->m_RootId = m_DfaRepos->GetId( rootId);;
     m_DfaRepos->OperateAll( [ this]( auto k, uint32_t ind) {
         return k->CleanupDestIds( m_DfaRepos);
     });
+    m_DfaRepos->m_RootId =  m_DfaRepos->GetId( rootId.GetId());
     return;
 }
 

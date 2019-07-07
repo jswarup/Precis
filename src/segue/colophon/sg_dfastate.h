@@ -146,7 +146,7 @@ struct FsaSupState  : public FsaState
         return act;
     } 
 
-    void                    DoConstructTransisition( FsaDfaCnstr *dfaCnstr);
+    void                    DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr);
     bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm); 
 
     struct ElemIt
@@ -205,8 +205,7 @@ struct FsaSupState  : public FsaState
         } 
 
         bool                IsCurValid( void) { return ElemIt::IsCurValid() && ( m_FilterCursor < m_Filters.Size()); }
-        FilterRepos::Var    CurrFilt( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); }
-        FsaCrate::Var       CurrDest( void) { return m_ElemRepos->ToVar( m_DestStateIds[ m_FilterCursor]); }
+        FilterRepos::Var    CurrFilt( void) { return m_ElemRepos->m_FilterRepos.ToVar( m_Filters[ m_FilterCursor]); } 
         
         bool                Next( void) 
         { 
@@ -231,11 +230,12 @@ struct FsaSupState  : public FsaState
                 FilterCrate::Var            chSet = CurrFilt();
                 Sg_Bitset< BitSz>           *bitset = static_cast< ChSetFilter< BitSz> *>( chSet.GetEntry());
                 Cv_Array< uint8_t, BitSz>   images = distrib.CCLImages( *bitset); 
-                FsaCrate::Var               dest = CurrDest();
+                FsaId                       destId = m_DestStateIds[ m_FilterCursor];
+                FsaCrate::Var               dest =  m_ElemRepos->ToVar( destId);
                 for ( uint32_t k = 0; k < images.SzFill(); ++k)
                 { 
                     FsaSupState     *subSupState = m_SubSupStates[ images[ k]];
-                    subSupState->m_SubStates.push_back( FsaDfaRepos::ToId( dest));  
+                    subSupState->m_SubStates.push_back( destId);  
                     subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); })); 
                 }
                 Next();
@@ -365,8 +365,9 @@ struct FsaDfaByteState  : public FsaState
     bool                    CleanupDestIds( FsaRepos *dfaRepos)
     { 
         FsaId       *dests = Dests().Ptr();
-        for ( uint32_t i = 0; i < Sz; ++i)
-            dests[ i] = dfaRepos->GetId( dests[ i].GetId());
+        for ( uint32_t k = 0; k < Sz; ++k)
+            dests[ k] =  dfaRepos->GetId( dests[ k].GetId());
+ 
         return true;
     }
 
@@ -613,7 +614,7 @@ struct  FsaDfaCnstr
 
     FsaElemRepos                        *m_ElemRepos; 
     FsaDfaRepos                         *m_DfaRepos;               
-    std::vector< FsaSupState *>         m_FsaStk;
+    std::vector< FsaId>                 m_FsaStk;
     FsaDfaStateMapCltn                  m_SupDfaCltn;
 
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)

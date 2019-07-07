@@ -55,6 +55,12 @@ struct Sg_DfaReposAtelier
 
     FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
+        uint32_t    types[] = { FsaCrate::template TypeOf< FsaDfaState>(), 
+                              FsaCrate::template TypeOf< FsaDfaByteState< 1> >(), 
+                              FsaCrate::template TypeOf< FsaDfaByteState< 2> >(),
+                              FsaCrate::template TypeOf< FsaDfaByteState< 3> >(),
+                              FsaCrate::template TypeOf< FsaDfaByteState< 4> >() }; 
+
         FsaDfaRepos::Id   nxState;
         switch ( state.GetType())
         {

@@ -99,10 +99,7 @@ public:
     Cv_CrateEntry( uint32_t id = CV_UINT32_MAX) 
     {} 
 
-    const char		*GetName( void) const { return "Entry"; }
- 
-
-    uint32_t 		GetCId( void) const { return 0; } 
+    const char		*GetName( void) const { return "Entry"; } 
      
 };  
 
@@ -246,10 +243,6 @@ template<typename X>
 
     uint32_t    Size( void) const { return uint32_t( m_Elems.size()); }
 
-template < typename Element>
-    static Id   ToId( Element *e) { return Id( e->GetCId(), Crate::template TypeOf< Element>()); }
-
-    static Id   ToId( Var v) { return Id( v.GetEntry()->GetCId(), v.GetType()); }
 
     Var			ToVar( Id id) { return Var( m_Elems[ id.GetId()], id.GetType()); }
 
