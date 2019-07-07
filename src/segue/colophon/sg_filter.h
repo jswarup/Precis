@@ -158,7 +158,7 @@ template < typename Elem>
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Store( m_TVar.GetType(), elm);
+        Id       id = Base::Store( FilterCrate::template TypeOf< Elem>(), elm);
         m_IdTbl.insert( id);
         return id;
     }
