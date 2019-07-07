@@ -488,12 +488,12 @@ template < typename CnstrIt>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, DistribCrate::TypeOf< Elem>());
+        m_TVar = Var( &elm, DistribCrate::TypeOf( &elm));
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Store( m_TVar.GetType(), elm);
+        Id       id = Base::Store( DistribCrate::TypeOf( &elm), elm);
         m_IdTbl.insert( id);
         return id;
     }
