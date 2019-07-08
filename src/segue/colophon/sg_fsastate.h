@@ -94,7 +94,7 @@ public:
     Cv_Seq< FsaId>     SubStates( void) { return Cv_Seq< FsaId>(); } 
 
     bool                CleanupDestIds( FsaRepos *dfaRepos) { return false; }
-    bool                WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) { return false; }
+    bool                WriteDot( Id id, void *, Cv_DotStream &strm) { return false; }
     bool                DumpDot( Id id, Cv_DotStream &strm) { return false; }
 
     FsaId               DfaTransition( FsaRepos *dfaRepos, uint8_t chr) { return FsaId(); }
@@ -126,6 +126,8 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
         {} 
 
         uint32_t        Size( void) const { return m_Elems.Size(); }
+        Id			    GetId( uint32_t k) { return Id( k, m_Types[ k]); } 
+
         Var             VarAt( uint32_t k) { return Var( m_Elems[ k].Value(),  m_Types[ k]) ; }
 
         Var     ToVar( const Id &id)  
@@ -217,6 +219,8 @@ struct  FsaElem   : public FsaState, public Cv_Shared
  
 
     bool                        WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
+
+    bool                        WriteDot( Id id, void *, Cv_DotStream &strm) { return false; }
 };
 
 //_____________________________________________________________________________________________________________________________ 

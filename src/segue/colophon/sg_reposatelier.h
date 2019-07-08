@@ -32,6 +32,15 @@ struct Sg_DfaReposAtelier
 
     Sg_ChSet                ChSet( uint8_t byteCode) const { return m_DfaRepos->m_DistribRepos.m_Base.ChSet( byteCode); }
 
+    Sg_ChSet                ChSetFromImage( const DistribCrate::Var &distrib, uint8_t imgCode) const 
+    { 
+        Sg_Partition    *baseDist = &m_DfaRepos->m_DistribRepos.m_Base;
+        return distrib( [imgCode, baseDist]( auto dist) { 
+            return baseDist->XForm( dist->ChSet( imgCode)); 
+        }); 
+    }
+
+ 
     const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
 
@@ -163,7 +172,7 @@ struct Sg_DfaReposAtelier
                 continue;
             FsaCrate::Var       si = m_DfaRepos->ToVar( id);
             si( [this, id, &strm]( auto k)  { 
-//                    k->WriteDot( id, this, strm); 
+                    k->WriteDot( id, this, strm); 
                 });
         }
         return true;

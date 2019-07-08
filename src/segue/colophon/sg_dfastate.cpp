@@ -2,6 +2,7 @@
 
 #include    "segue/tenor/sg_include.h"
 #include    "segue/colophon/sg_dfastate.h" 
+#include    "segue/colophon/sg_reposatelier.h" 
 
 using namespace Sg_RExp; 
  
@@ -87,27 +88,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
     return;
 }
 
-//_____________________________________________________________________________________________________________________________
 
-bool    FsaSupState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
-{ 
-    strm << id.GetTypeChar() << id.GetId() << " [ shape=oval";
-    strm << " color=purple label= <<FONT>" << id.GetTypeChar() << id.GetId() << "<BR />" << "<BR />" ; 
-    strm << " </FONT>>];\n "; 
-
-    FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
-    
-    Cv_Seq< FsaId>     subStates = SubStates(); 
-    for ( uint32_t k = 0; k < subStates.Size(); ++k)
-    {
-        FsaId           regex = subStates[ k];
-        if ( !regex.GetId())
-            continue;
-        strm << id.GetTypeChar() << id.GetId() << " -> " << regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
-        strm << "</FONT>>] ; \n" ;  
-    }
-    return false; 
-}
 //_____________________________________________________________________________________________________________________________
 
 FsaDfaStateMap::~FsaDfaStateMap( void)
@@ -131,36 +112,6 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
     return true;
 }
 
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaDfaState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
-{ 
-    strm << id.GetTypeChar() << id.GetId() << " [ shape=";
-
-    uint64_t        *toks = Tokens().Ptr();
-    if ( toks)
-        strm << "box";
-    else
-        strm << "ellipse";
-    strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId() << "<BR />" <<   "<BR />" ;
-    for ( uint32_t i = 0; i < m_TokSz; ++i)
-        strm << " T" << toks[ i];
-    strm << " </FONT>>];\n "; 
-
-    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos);
-    std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_DId);
-    Cv_Seq< FsaId>    dests = Dests(); 
-    for ( uint32_t k = 0; k < dests.Size(); ++k)
-    {
-        FsaId         regex = dests[ k];
-        if ( !regex.GetId())
-            continue;
-        strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
-        strm << "</FONT>>] ; \n" ;  
-    }
-    return true; 
-}
 //_____________________________________________________________________________________________________________________________
 
 bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm) 
@@ -213,29 +164,7 @@ bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
     return true;
 }
 
-//_____________________________________________________________________________________________________________________________
 
-bool    FsaDfaXByteState::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
-{ 
-    strm << id.GetTypeChar() << id.GetId() << " [ shape=";
-
-    uint64_t        *toks = Tokens().Ptr(); 
-    strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
-    strm << " </FONT>>];\n"; 
-
-    FsaDfaRepos                 *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
-    Cv_Seq< FsaId>              dests = Dests(); 
-    Cv_Seq< uint8_t>            bytes = Bytes(); 
-    for ( uint32_t k = 0; k < dests.Size(); ++k)
-    {
-        FsaId       regex =  dests[ k];
-        strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-        strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ k]).ToString());  
-        strm << "</FONT>>] ; \n" ;   
-    }
-    return true; 
-}
 
 //_____________________________________________________________________________________________________________________________
 
@@ -272,13 +201,8 @@ bool  FsaDfaXByteState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 
 bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
 {
-    for ( uint32_t i = 1; i < Size(); ++i)
-    {
-        Var     si = Get( i);
-        if (si)
-            si( [this, i, si, &strm]( auto k) { k->WriteDot( Cv_CrateId( i, si.GetType()), this, strm); });
-    }
-    return true;
+    Sg_DfaReposAtelier  atelier( this);
+    return atelier.WriteDot( strm);
 }
 
 //_____________________________________________________________________________________________________________________________

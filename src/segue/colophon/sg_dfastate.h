@@ -147,7 +147,25 @@ struct FsaSupState  : public FsaState
     } 
 
     void                    DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr);
-    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm); 
+
+
+    bool                    WriteDot( Id id, void *fsaRepos, Cv_DotStream &strm) 
+    { 
+        strm << id.GetTypeChar() << id.GetId() << " [ shape=oval";
+        strm << " color=purple label= <<FONT>" << id.GetTypeChar() << id.GetId() << "<BR />" << "<BR />" ; 
+        strm << " </FONT>>];\n "; 
+  
+        Cv_Seq< FsaId>     subStates = SubStates(); 
+        for ( uint32_t k = 0; k < subStates.Size(); ++k)
+        {
+            FsaId           regex = subStates[ k];
+            if ( !regex.GetId())
+                continue;
+            strm << id.GetTypeChar() << id.GetId() << " -> " << regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> ";   
+            strm << "</FONT>>] ; \n" ;  
+        }
+        return false; 
+    }
 
     struct ElemIt
     {
@@ -303,7 +321,37 @@ public:
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
-    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
+
+template < class Atelier>
+    bool                    WriteDot( Id id, Atelier *atelier, Cv_DotStream &strm)
+    { 
+        strm << id.GetTypeChar() << id.GetId() << " [ shape=";
+
+        uint64_t        *toks = Tokens().Ptr();
+        if ( toks)
+            strm << "box color=green";
+        else
+            strm << "ellipse color=Red";
+        strm << " label= <<FONT> " << id.GetTypeChar() << id.GetId() << "<BR />" <<   "<BR />" ;
+        for ( uint32_t i = 0; i < m_TokSz; ++i)
+            strm << " T" << toks[ i];
+        strm << " </FONT>>];\n "; 
+
+        DistribCrate::Var       distrib = atelier->FetchDistib( this); 
+        Cv_Seq< FsaId>          dests = Dests(); 
+        for ( uint32_t k = 0; k < dests.Size(); ++k)
+        {
+            FsaId         regex = dests[ k];
+            if ( !regex.GetId())
+                continue;
+            strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            strm << Cv_Aid::XmlEncode( atelier->ChSetFromImage( distrib, k).ToString());  
+            strm << "</FONT>>] ; \n" ;  
+        }
+        return true; 
+    }
+
     bool                    DumpDot( Id id, Cv_DotStream &strm); 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 
@@ -372,23 +420,25 @@ struct FsaDfaByteState  : public FsaState
     }
 
 
-    bool     WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm) 
+    bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
+
+template < class Atelier>
+    bool                    WriteDot( Id id, Atelier *atelier, Cv_DotStream &strm) 
     { 
         strm << id.GetTypeChar() << id.GetId() << " [ shape=";
 
         uint64_t        *toks = Tokens().Ptr(); 
-        strm << "diamond"; 
-        strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
+        strm << "diamond  color=Orange"; 
+        strm << " label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
         strm << " </FONT>>];\n";  
-
-        FsaDfaRepos         *dfaRepos = static_cast< FsaDfaRepos *>( fsaRepos); 
+ 
         uint8_t             *bytes = Bytes().Ptr();
         FsaId               *dests = Dests().Ptr(); 
         for ( uint32_t i = 0; i < Sz; ++i)
         {
             Id       regex = dests[ i]; 
-            strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-            strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( bytes[ i]).ToString());  
+            strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> ";  
+            strm << Cv_Aid::XmlEncode( atelier->ChSet( bytes[ i]).ToString());  
             strm << "</FONT>>] ; \n" ;   
         }
         return true; 
@@ -478,7 +528,30 @@ struct FsaDfaXByteState  : public FsaState
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
-    bool                    WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm);
+    bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
+
+template < class Atelier>
+    bool                    WriteDot( Id id, Atelier *atelier, Cv_DotStream &strm) 
+    { 
+        strm << id.GetTypeChar() << id.GetId() << " [ shape=";
+
+        uint64_t        *toks = Tokens().Ptr(); 
+        strm << "diamond"; 
+        strm << " color=Red label= <<FONT> " << id.GetTypeChar() << id.GetId(); 
+        strm << " </FONT>>];\n"; 
+ 
+        Cv_Seq< FsaId>              dests = Dests(); 
+        Cv_Seq< uint8_t>            bytes = Bytes(); 
+        for ( uint32_t k = 0; k < dests.Size(); ++k)
+        {
+            FsaId       regex =  dests[ k];
+            strm << id.GetTypeChar() << id.GetId() << " -> " <<  regex.GetTypeChar() << regex.GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
+            strm << Cv_Aid::XmlEncode( atelier->ChSet( bytes[ k]).ToString());  
+            strm << "</FONT>>] ; \n" ;   
+        }
+        return true; 
+    }
+
     bool                    DumpDot( Id id, Cv_DotStream &strm);
 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);

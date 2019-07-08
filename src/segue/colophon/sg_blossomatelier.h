@@ -36,6 +36,12 @@ struct Sg_DfaBlossomAtelier
 
     Sg_ChSet                ChSet( uint8_t byteCode) const { return m_Distribs.Base()->ChSet( byteCode); }
 
+    Sg_ChSet                ChSetFromImage( const DistribCrate::Var &distrib, uint8_t imgCode) const  
+    { 
+        Sg_Partition    *baseDist = m_Distribs.Base();
+        return distrib( [imgCode, baseDist]( auto dist) { return baseDist->XForm( dist->ChSet( imgCode)); }); 
+    }
+
     const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
     DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
@@ -198,23 +204,23 @@ struct Sg_DfaBlossomAtelier
         }
         return nxStates;
     }
-
-/*
+ 
     bool        WriteDot( Cv_DotStream &strm)
     {
         for ( uint32_t i = 1; i < m_States.Size(); ++i)
         {
+        
             FsaRepos::Id        id = m_States.GetId( i);
             if ( !id.IsValid())
                 continue;
-            FsaCrate::Var       si = m_DfaRepos->ToVar( id);
+            FsaCrate::Var       si = VarFromId( id);
             si( [this, id, &strm]( auto k)  { 
-                k->WriteDot( id, this, strm); 
+                    k->WriteDot( id, this, strm); 
                 });
         }
         return true;
     }
-*/
+ 
 };
 
   

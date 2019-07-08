@@ -35,13 +35,13 @@ bool  FsaElem::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)
     strm << id.GetTypeChar() << id.GetId() << " [ shape=";
 
     if ( m_Action)
-        strm << "box";
+        strm << "box  color=green";
     else
-        strm << "ellipse";
-    strm << " color=cyan label= <<FONT> " << id.GetTypeChar() << id.GetId() << "<BR />" << RefCount() << "<BR />" ;
+        strm << "ellipse  color=blue";
+    strm << " label= <<FONT> " << id.GetTypeChar() << id.GetId() /* << "<BR />" << RefCount() << "<BR/>"*/;
     for ( uint32_t i = 0; m_Action && ( i < m_Action->m_Values.size()); ++i)
-        strm << " T" << m_Action->m_Values[ i];
-    strm << " </FONT>>];\n "; 
+        strm << ": " << m_Action->m_Values[ i];
+    strm << " </FONT>>];\n"; 
 
     FsaElemRepos        *elemRepos = static_cast< FsaElemRepos *>( fsaRepos);
     Cv_Seq< FsaId>      dests = Dests(); 

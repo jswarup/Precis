@@ -220,6 +220,7 @@ struct CharDistribBase : public Cv_CrateEntry
 
     uint8_t                 Image( uint16_t t) const {  return 0; }
 
+    Sg_Bitset< 256>         ChSet( uint8_t byteCode) const  { return Sg_Bitset< 256>(); }
 
     int32_t                 Compare( const CharDistribBase *filt) const { return 0; }
     std::string             ToString( void) const { return std::string(); }
@@ -243,13 +244,15 @@ public:
     CharDistrib( void) 
     {} 
 
-    std::string		GetName( void) const { return "Distrib"; } 
+    std::string		    GetName( void) const { return "Distrib"; } 
 
-    uint8_t         Image( uint16_t chr) const {  return Sg_CharPartition< Bits>::Image( chr); }
+    uint8_t             Image( uint16_t chr) const {  return Sg_CharPartition< Bits>::Image( chr); }
 
-    int32_t         Compare( const CharDistrib *filt) const { return Sg_CharPartition< Bits>::Compare( *filt); }
-    std::string     ToString( void) const { return std::string(); }
-    bool            Dump( DistribRepos *, std::ostream &ostr) 
+    Sg_Bitset< Bits>    ChSet( uint8_t byteCode) const  { return Sg_CharPartition< Bits>::ChSet( byteCode); }
+
+    int32_t             Compare( const CharDistrib *filt) const { return Sg_CharPartition< Bits>::Compare( *filt); }
+    std::string         ToString( void) const { return std::string(); }
+    bool                Dump( DistribRepos *, std::ostream &ostr) 
     { 
         Sg_CharPartition< Bits>::Dump( ostr);; 
         return true; 
