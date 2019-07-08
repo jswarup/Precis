@@ -9,7 +9,7 @@
 #include    "segue/colophon/sg_fsaelemcnstr.h"
 #include    "segue/colophon/sg_dfastate.h"
 #include    "segue/epigraph/sg_partition.h" 
-#include    "segue/colophon/sg_atelier.h"
+#include    "segue/colophon/sg_reposatelier.h"
 #include    "segue/colophon/sg_bastion.h" 
 #include	"cove/flux/cv_cask.h"
 

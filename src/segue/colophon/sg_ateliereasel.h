@@ -1,7 +1,7 @@
 // sg_ateliereasel.h ___________________________________________________________________________________________________________________
 #pragma once
 
-#include    "segue/colophon/sg_atelier.h" 
+#include    "segue/colophon/sg_blossomatelier.h" 
 #include    "segue/colophon/sg_bastion.h" 
  
 //_____________________________________________________________________________________________________________________________
