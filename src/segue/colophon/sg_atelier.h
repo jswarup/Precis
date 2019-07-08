@@ -30,6 +30,8 @@ struct Sg_DfaReposAtelier
     
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
 
+    Sg_ChSet                ChSet( uint8_t byteCode) const { return m_DfaRepos->m_DistribRepos.m_Base.ChSet( byteCode); }
+
     const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
 
@@ -175,6 +177,8 @@ struct Sg_DfaBlossomAtelier
     FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States.VarId( id ); }
 
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_Distribs.Base()->Image( chr); }
+
+    Sg_ChSet                ChSet( uint8_t byteCode) const { return m_Distribs.Base()->ChSet( byteCode); }
 
     const FsaCrate::Var     &RootState( void) {  return m_Root; }
 

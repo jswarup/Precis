@@ -542,47 +542,10 @@ template < typename Elem>
                 return std::make_tuple( szSingle, uniList); 
             } ); 
     } 
-     
+ 
     Sg_ChSet        ChSet( uint8_t byteCode)
-    {
-        
-        uint32_t    szImg = m_Base.SzImage();
-        if ( szImg <= 8) 
-        { 
-            Sg_Bitset< 8>   bits;
-            bits.Set( byteCode, true);
-            return m_Base.XForm( bits);                                  
-        }
-        if ( szImg <= 16)  
-        { 
-            Sg_Bitset< 16>   bits;
-            bits.Set( byteCode, true);
-            return m_Base.XForm( bits);                                  
-        }                               
-
-        if ( szImg <= 32)                                      
-        { 
-            Sg_Bitset< 32>   bits;
-            bits.Set( byteCode, true);
-            return m_Base.XForm( bits);                                  
-        }                                
-
-        if ( szImg <= 64)  
-        { 
-            Sg_Bitset< 64>   bits;
-            bits.Set( byteCode, true);
-            return m_Base.XForm( bits);                                  
-        }                                  
-
-        if ( szImg <= 128)                                     
-        { 
-            Sg_Bitset< 128>   bits;
-            bits.Set( byteCode, true);
-            return m_Base.XForm( bits);                                  
-        }                                  
-        Sg_Bitset< 256>   bits;
-        bits.Set( byteCode, true);
-        return m_Base.XForm( bits);                                 
+    {  
+        return m_Base.ChSet( byteCode);                                 
     }
 
     bool            Dump( std::ostream &ostr) 

@@ -221,9 +221,17 @@ template < uint32_t  TSz>
             if ( biitset.Get( Image( i)))
                 chSet.Set( i, true); 
         return chSet; 
+    } 
+ 
+    Sg_Bitset< SzChBits>    ChSet( uint8_t byteCode) const 
+    { 
+        Sg_Bitset< SzChBits>      chSet; 
+        for ( uint32_t i = 0; i < SzChBits; ++i)
+            if ( byteCode == Image( i))
+                chSet.Set( i, true); 
+        return chSet; 
     }
 
-    
     class CCLImpressCntl
     {
         const Bitset    *m_CCLs;
