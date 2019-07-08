@@ -43,7 +43,10 @@ struct Sg_EaselVita : public Sg_BaseVita
     bool    DoInit( void)
     {
         if ( m_ImgFile.size())
+        {
             m_Atelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
+            m_Atelier->SauteStates();
+        }
         return true;
     }
 };
@@ -230,9 +233,9 @@ int     Sg_AtelierCmdProcessor::Execute(void)
         Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
         auto                    states = blossom.States();
         FsaDfaRepos::Id         rootId = blossom.RootId();
-        for ( uint32_t i = 0; i < states.Size(); ++i)
+        for ( uint32_t i = 0; i < states->Size(); ++i)
         {
-            auto        var = states.VarAt( i); 
+            auto        var = states->VarAt( i); 
             bool t = true;
             if (var)
                 var( [i, var, &fsaDotStrm]( auto k) { k->DumpDot( Cv_CrateId( i, var.GetType()), fsaDotStrm); });

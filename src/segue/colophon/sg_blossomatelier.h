@@ -17,20 +17,22 @@ struct Sg_DfaBlossomAtelier
     
     FsaDfaRepos::Blossom    m_DfaBlossom;
     DistribRepos::Blossom   m_Distribs;
-    FsaRepos::Blossom       m_States;
+    FsaRepos::Blossom       *m_States;
     FsaCrate::Var           m_Root;
     DistribCrate::Var       m_RootDistrib;
 
     Sg_DfaBlossomAtelier( void *dfaImage)
-        : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs()), m_States( m_DfaBlossom.States())
+        : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs())
     {
-        m_DfaBlossom.SauteStates();
-        m_Root = m_States.ToVar( m_DfaBlossom.RootId());
+        m_States = m_DfaBlossom.States();
+        m_Root = m_States->ToVar( m_DfaBlossom.RootId());
         if ( m_Root.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
             m_RootDistrib = FetchDistib( static_cast< FsaDfaState *>( m_Root.GetEntry()));
     }
+    
+    void                    SauteStates( void) { m_DfaBlossom.SauteStates(); }
 
-    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States.VarId( id ); }
+    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States->VarId( id ); }
 
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_Distribs.Base()->Image( chr); }
 
@@ -207,13 +209,14 @@ struct Sg_DfaBlossomAtelier
  
     bool        WriteDot( Cv_DotStream &strm)
     {
-        for ( uint32_t i = 1; i < m_States.Size(); ++i)
-        { 
-            FsaRepos::Id        id = m_States.GetId( i);
-            FsaCrate::Var       si = VarFromId( id);
+        for ( uint32_t i = 1; i < m_States->Size(); ++i)
+        {  
+            FsaCrate::Var       si = m_States->VarAt( i);
             if ( ! si.GetEntry())
                 continue;
             bool    t = true;
+
+            FsaRepos::Id        id( i, si.GetType());
             si( [this, id, &strm]( auto k)  { 
                     k->WriteDot( id, this, strm); 
                 });

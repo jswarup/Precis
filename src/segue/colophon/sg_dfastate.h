@@ -59,14 +59,15 @@ struct  FsaDfaRepos  : public FsaRepos
         typedef typename Cask::ContentType    ContentType; 
         typedef typename Cask::BaseContent    SubContent; 
 
-        ContentType                         *m_Root;   
+        ContentType             *m_Root;
+        FsaRepos::Blossom       m_States;   
         Blossom( void *arr)
-            : m_Root( ( ContentType *) arr)
+            : m_Root( ( ContentType *) arr), m_States( ( uint8_t *) &(( ContentType *) arr)->m_Value)
         {} 
         
-        auto    States( void) { return FsaRepos::Blossom( ( uint8_t *) &m_Root->m_Value); }
-        auto    RootId( void) { return m_Root->Base()->m_Value; }
-        auto    Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); } 
+        FsaRepos::Blossom   *States( void) { return &m_States; }
+        auto                RootId( void) { return m_Root->Base()->m_Value; }
+        auto                Distribs( void) { return DistribRepos::Blossom(  &m_Root->Base()->Base()->m_Value); } 
     
         void    SauteStates( void); 
     };
@@ -467,7 +468,7 @@ template < class Atelier>
     {
         FsaId       *dests = Dests().Ptr();
         for ( uint32_t i = 0; i < Sz; ++i)
-            bRepos->States().ConvertIdToVarId( &dests[ i]);
+            bRepos->States()->ConvertIdToVarId( &dests[ i]);
         return true;
     }
 

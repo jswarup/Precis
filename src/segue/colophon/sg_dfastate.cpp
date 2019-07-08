@@ -150,7 +150,7 @@ bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
     auto                states = bRepos->States();
     Cv_Seq< FsaId>      dests = Dests(); 
     for ( uint32_t i = 0; i < dests.Size(); ++i)        
-        states.ConvertIdToVarId( dests.PtrAt( i));
+        states->ConvertIdToVarId( dests.PtrAt( i));
     return true;
 }
 
@@ -194,7 +194,7 @@ bool  FsaDfaXByteState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 {
     Cv_Seq< FsaId>              dests = Dests(); 
     for ( uint32_t k = 0; k < dests.Size(); ++k) 
-        bRepos->States().ConvertIdToVarId( &dests[ k]);
+        bRepos->States()->ConvertIdToVarId( &dests[ k]);
     return true;
 }
 
@@ -218,12 +218,11 @@ bool        FsaDfaRepos::DumpDot( const char *path)
 //_____________________________________________________________________________________________________________________________
 
 void    FsaDfaRepos::Blossom::SauteStates( void)
-{
-    auto states = States();
-        
-    for ( uint32_t i = 1; i < states.Size(); ++i)
+{ 
+    m_States.m_SauteFLg = true;
+    for ( uint32_t i = 1; i < m_States.Size(); ++i)
     {
-        Var     si = states.VarAt( i);
+        Var     si = m_States.VarAt( i);
         if (si)
             si( [this]( auto k) { k->DoSaute( this); });
     }
@@ -270,7 +269,7 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
         
         Cv_Seq< uint8_t>       bytes;
         Cv_Seq< FsaId>         dests;
-        if ( false && ( sz == ( szSingles + ( discr.m_Inv != CV_UINT16_MAX))))
+        if ( true && ( sz == ( szSingles + ( discr.m_Inv != CV_UINT16_MAX))))
         {
             if ( szSingles == 1)    
             {

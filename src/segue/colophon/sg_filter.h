@@ -590,7 +590,7 @@ template < typename Elem>
         typedef typename Cv_CratePile< DistribCrate>::Blossom               BaseBlossom;
 
         ContentType     *m_Root;
-
+        
         Blossom( ContentType *arr)
             : m_Root( arr)
         {}

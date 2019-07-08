@@ -118,11 +118,12 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
         typedef typename Cask::SubContent    SubContent; 
 
         ContentType                         *m_Root;
-        Cv_Seq< SubContent>                m_Elems;
-        Cv_Seq< TypeStor>                  m_Types;
-        
+        Cv_Seq< SubContent>                 m_Elems;
+        Cv_Seq< TypeStor>                   m_Types;
+        bool                                m_SauteFLg;
+
         Blossom( uint8_t *arr)
-            : m_Root( ( ContentType *) arr), m_Elems( m_Root->Elems()), m_Types( m_Root->Types())
+            : m_Root( ( ContentType *) arr), m_Elems( m_Root->Elems()), m_Types( m_Root->Types()), m_SauteFLg( false)
         {} 
 
         uint32_t        Size( void) const { return m_Elems.Size(); }
@@ -130,7 +131,7 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 
         Var             VarAt( uint32_t k) { return Var( m_Elems[ k].Value(),  m_Types[ k]) ; }
 
-        Var     ToVar( const Id &id)  
+        Var             ToVar( const Id &id)  
         {          
             if ( !id.IsValid())
                 return Var();
@@ -156,6 +157,8 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
             Entry   *entry = ( Entry *) ((( uint8_t *) m_Root) + id.GetId());
             return Var( entry, id.GetType());
         }
+        
+        
     };
 };
 
