@@ -10,6 +10,7 @@
 #include    "segue/colophon/sg_dfastate.h"
 #include    "segue/epigraph/sg_partition.h" 
 #include    "segue/colophon/sg_atelier.h"
+#include    "segue/colophon/sg_bastion.h" 
 #include	"cove/flux/cv_cask.h"
 
 #include	<utility>
@@ -293,7 +294,9 @@ int     Sg_AnealCmdProcessor::Test(void)
             std::cerr << "Not Found : " << m_DataFile << '\n';
             return -1;
         }
+
         typedef Cv_Array< Sg_MatchData, 256>            MatchArr;
+
         Sg_DfaReposAtelier                              atelier( &dfaRepos);  
         MatchArr                                        matches;
         Sg_Citadel< Sg_DfaReposAtelier, MatchArr>  bulwark;  

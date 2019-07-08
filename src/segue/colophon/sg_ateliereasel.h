@@ -2,6 +2,7 @@
 #pragma once
 
 #include    "segue/colophon/sg_atelier.h" 
+#include    "segue/colophon/sg_bastion.h" 
  
 //_____________________________________________________________________________________________________________________________
 
