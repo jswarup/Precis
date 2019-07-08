@@ -208,12 +208,12 @@ struct Sg_DfaBlossomAtelier
     bool        WriteDot( Cv_DotStream &strm)
     {
         for ( uint32_t i = 1; i < m_States.Size(); ++i)
-        {
-        
+        { 
             FsaRepos::Id        id = m_States.GetId( i);
-            if ( !id.IsValid())
-                continue;
             FsaCrate::Var       si = VarFromId( id);
+            if ( ! si.GetEntry())
+                continue;
+            bool    t = true;
             si( [this, id, &strm]( auto k)  { 
                     k->WriteDot( id, this, strm); 
                 });

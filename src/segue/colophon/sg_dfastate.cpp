@@ -147,9 +147,10 @@ bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm)
 bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
 {
     bRepos->Distribs().ConvertIdToVarId( &m_DId);
-    Cv_Seq< FsaId>         dests = Dests(); 
-    for ( uint32_t i = 0; i < dests.Size(); ++i)
-        bRepos->States().ConvertIdToVarId( dests.PtrAt( i));
+    auto                states = bRepos->States();
+    Cv_Seq< FsaId>      dests = Dests(); 
+    for ( uint32_t i = 0; i < dests.Size(); ++i)        
+        states.ConvertIdToVarId( dests.PtrAt( i));
     return true;
 }
 
@@ -269,7 +270,7 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
         
         Cv_Seq< uint8_t>       bytes;
         Cv_Seq< FsaId>         dests;
-        if ( sz == ( szSingles + ( discr.m_Inv != CV_UINT16_MAX)))
+        if ( false && ( sz == ( szSingles + ( discr.m_Inv != CV_UINT16_MAX))))
         {
             if ( szSingles == 1)    
             {

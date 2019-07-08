@@ -10,6 +10,7 @@
 #include    "segue/colophon/sg_dfastate.h"
 #include    "segue/epigraph/sg_partition.h" 
 #include    "segue/colophon/sg_reposatelier.h"
+#include    "segue/colophon/sg_blossomatelier.h"
 #include    "segue/colophon/sg_bastion.h" 
 #include	"cove/flux/cv_cask.h"
 
@@ -264,25 +265,11 @@ int     Sg_AnealCmdProcessor::Test(void)
         {
             std::vector< uint8_t>   memArr;
             bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
-            FsaDfaRepos::Blossom    blossom(  &memArr[ 0]);  
+            Sg_DfaBlossomAtelier    blossomAtelier(  &memArr[ 0]);  
+
             std::ofstream           fsaOStrm( m_ImgDotFile.c_str());
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-            auto                    states = blossom.States();
-            FsaDfaRepos::Id         rootId = blossom.RootId();
-            for ( uint32_t i = 0; i < states.Size(); ++i)
-            {
-                auto        var = states.VarAt( i); 
-                bool t = true;
-                if (var)
-                    var( [ i, var, &fsaDotStrm]( auto k) { k->DumpDot( Cv_CrateId( i, var.GetType()), fsaDotStrm); });
-            }
-            bool t = true;
-           
-            DistribRepos::Blossom   distribs = blossom.Distribs();
-            auto                    dVar = distribs.ToVar( DistribRepos::Id( 0, 5));  
-            uint8_t                 chrId = 25;
-            uint8_t                 img = dVar( [ chrId]( auto k) { return k->Image( chrId); }); 
-            bool t1 = true;
+            blossomAtelier.WriteDot( fsaDotStrm); 
         }
     }
     if ( m_DataFile.size())
