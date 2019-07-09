@@ -44,8 +44,7 @@ struct Sg_EaselVita : public Sg_BaseVita
     {
         if ( m_ImgFile.size())
         {
-            m_Atelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]); 
-            m_Atelier->SauteStates();
+            m_Atelier = new Sg_DfaBlossomAtelier(  &m_MemArr[ 0]);  
         }
         return true;
     }
@@ -228,18 +227,10 @@ int     Sg_AtelierCmdProcessor::Execute(void)
     }
     if ( m_DotFile.size() && m_ImgFile.size()) 
     {  
-        FsaDfaRepos::Blossom    blossom(  &m_MemArr[ 0]);  
-        std::ofstream           fsaOStrm( m_DotFile);
-        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-        auto                    states = blossom.States();
-        FsaDfaRepos::Id         rootId = blossom.RootId();
-        for ( uint32_t i = 0; i < states->Size(); ++i)
-        {
-            auto        var = states->VarAt( i); 
-            bool t = true;
-            if (var)
-                var( [i, var, &fsaDotStrm]( auto k) { k->DumpDot( Cv_CrateId( i, var.GetType()), fsaDotStrm); });
-        }
+        Sg_DfaBaseBlossomAtelier    blossomAtelier(  &m_MemArr[ 0]);  
+        std::ofstream               fsaOStrm( m_DotFile);
+        Cv_DotStream			    fsaDotStrm( &fsaOStrm, true);  
+        blossomAtelier.WriteDot( fsaDotStrm); 
         bool t = true; 
     }
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();  

@@ -263,9 +263,9 @@ int     Sg_AnealCmdProcessor::Test(void)
         }        
         if ( m_ImgDotFile.size()) 
         {
-            std::vector< uint8_t>   memArr;
-            bool	                res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
-            Sg_DfaBlossomAtelier    blossomAtelier(  &memArr[ 0]);  
+            std::vector< uint8_t>       memArr;
+            bool	                    res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
+            Sg_DfaBaseBlossomAtelier    blossomAtelier(  &memArr[ 0]);  
 
             std::ofstream           fsaOStrm( m_ImgDotFile.c_str());
             Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  

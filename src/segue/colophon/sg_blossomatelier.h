@@ -10,29 +10,23 @@
 
 using namespace Sg_RExp;
  
+
 //_____________________________________________________________________________________________________________________________
 
-struct Sg_DfaBlossomAtelier
-{
-    
+struct Sg_DfaBaseBlossomAtelier
+{   
     FsaDfaRepos::Blossom    m_DfaBlossom;
     DistribRepos::Blossom   m_Distribs;
     FsaRepos::Blossom       *m_States;
-    FsaCrate::Var           m_Root;
-    DistribCrate::Var       m_RootDistrib;
 
-    Sg_DfaBlossomAtelier( void *dfaImage)
+    Sg_DfaBaseBlossomAtelier( void *dfaImage)
         : m_DfaBlossom( dfaImage), m_Distribs( m_DfaBlossom.Distribs())
     {
         m_States = m_DfaBlossom.States();
-        m_Root = m_States->ToVar( m_DfaBlossom.RootId());
-        if ( m_Root.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
-            m_RootDistrib = FetchDistib( static_cast< FsaDfaState *>( m_Root.GetEntry()));
-    }
-    
-    void                    SauteStates( void) { m_DfaBlossom.SauteStates(); }
+         
+    } 
 
-    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States->VarId( id ); }
+    DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.ToVar( dfaState->DistribId()); }
 
     uint8_t                 ByteCode( uint8_t chr ) const  { return m_Distribs.Base()->Image( chr); }
 
@@ -44,9 +38,45 @@ struct Sg_DfaBlossomAtelier
         return distrib( [imgCode, baseDist]( auto dist) { return baseDist->XForm( dist->ChSet( imgCode)); }); 
     }
 
+    bool        WriteDot( Cv_DotStream &strm)
+    {
+        for ( uint32_t i = 1; i < m_States->Size(); ++i)
+        {  
+            FsaCrate::Var       si = m_States->VarAt( i);
+            if ( ! si.GetEntry())
+                continue;
+            bool    t = true;
+
+            FsaRepos::Id        id( i, si.GetType());
+            si( [this, id, &strm]( auto k)  { 
+                k->WriteDot( id, this, strm); 
+                });
+        }
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________
+
+struct Sg_DfaBlossomAtelier : public Sg_DfaBaseBlossomAtelier
+{    
+    FsaCrate::Var           m_Root;
+    DistribCrate::Var       m_RootDistrib;
+
+    Sg_DfaBlossomAtelier( void *dfaImage)
+        : Sg_DfaBaseBlossomAtelier( dfaImage) 
+    {
+        m_Root = m_States->ToVar( m_DfaBlossom.RootId());
+        if ( m_Root.GetType() == FsaCrate::template TypeOf< FsaDfaState>())
+            m_RootDistrib = m_Distribs.ToVar(  static_cast< FsaDfaState *>( m_Root.GetEntry())->DistribId());
+        m_DfaBlossom.SauteStates();
+    }  
+
     const FsaCrate::Var     &RootState( void) {  return m_Root; }
 
-    DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return m_Distribs.VarId( dfaState->DistribId()); }
+    FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_States->VarId( id ); }
+
+    DistribCrate::Var       FetchDistib( FsaDfaState *dfaState) { return  m_Distribs.VarId( dfaState->DistribId()); }
 
     FsaDfaRepos::Id         DfaTransition( FsaDfaState  *dfaState, const DistribCrate::Var &dVar, uint8_t chrId)
     {
@@ -207,22 +237,7 @@ struct Sg_DfaBlossomAtelier
         return nxStates;
     }
  
-    bool        WriteDot( Cv_DotStream &strm)
-    {
-        for ( uint32_t i = 1; i < m_States->Size(); ++i)
-        {  
-            FsaCrate::Var       si = m_States->VarAt( i);
-            if ( ! si.GetEntry())
-                continue;
-            bool    t = true;
-
-            FsaRepos::Id        id( i, si.GetType());
-            si( [this, id, &strm]( auto k)  { 
-                    k->WriteDot( id, this, strm); 
-                });
-        }
-        return true;
-    }
+    
  
 };
 
