@@ -29,6 +29,9 @@ template < uint32_t>
 template < class X>    
     static constexpr const X    &Min( const X &x1, const X &x2) { return x1 < x2 ? x1 : x2; }
  
+template < class Elem, class Entry>    
+    static constexpr uint32_t   DerivOff( void) { return uint32_t( uint64_t( static_cast< Elem *>( static_cast< Entry  *>( reinterpret_cast< void *>(  0x8)))) -0x8); }
+
 template<typename T>
     constexpr auto IsFinalizeable(int) -> decltype(std::declval<T>().Finalize, bool())
     {

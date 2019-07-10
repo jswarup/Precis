@@ -33,7 +33,7 @@ template < typename Element>
     auto            operator->( void) { return m_Entry; }
 
 template < typename Lambda, typename... Args>
-	auto    operator()( const Lambda &lambda,  const Args&... args)  const   {
+    constexpr auto    operator()(  Lambda &&lambda,  Args &&... args)  const   {
 		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
@@ -45,17 +45,18 @@ template < typename Lambda, typename... Args>
 template < typename T, typename... Rest>
 struct Cv_Crate : public Cv_Crate< Rest...>
 {   
-    typedef Cv_Crate< T, Rest...>       Crate;
-    typedef Cv_Crate< Rest...>          CrateBase;
-    typedef T                           Elem;
-    typedef typename CrateBase::Entry   Entry; 
-	typedef  Cv_Var< Crate>		        Var; 
-	typedef typename CrateBase::TypeStor        TypeStor;  
+    typedef Cv_Crate< T, Rest...>           Crate;
+    typedef Cv_Crate< Rest...>              CrateBase;
+    typedef T                               Elem;
+    typedef typename CrateBase::Entry       Entry; 
+	typedef  Cv_Var< Crate>		            Var; 
+	typedef typename CrateBase::TypeStor    TypeStor;  
      
     enum { 
-        Sz = CrateBase::Sz +1
+        Sz = CrateBase::Sz +1         
     };
-     
+    
+    
     Cv_Crate( void) 
     { 
     }     
@@ -73,7 +74,7 @@ template < typename X, typename std::enable_if< !std ::is_base_of< Elem, X>::val
     } 
   
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, const Lambda &lambda,  const Args &... args)  
+    static constexpr auto    Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
     {
         switch ( typeStor)
 		{
@@ -117,7 +118,7 @@ template < typename X = void>
     }
 
 template <  typename Lambda, typename... Args>
-    static auto    Operate( Entry *entry, TypeStor typeStor, const Lambda &lambda,  const Args &... args)  
+    static constexpr auto       Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
     {
 		 return lambda( static_cast< Elem *>( entry), args...); 
     }
