@@ -51,9 +51,9 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
 
     DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt); 
     //discr.Dump( std::cout, &dfaRepos->m_DistribRepos);
-    descIt.DoSetup( discr.SzDescend()); 
+    descIt.DoSetup( discr.SzDescend(), m_Level +1); 
     
-    dfaRepos->m_DistribRepos.Classify( discr, &descIt);   
+    dfaRepos->m_DistribRepos.Classify( m_Level, discr, &descIt);   
     
     Action                  *action = DetachAction();  
 
@@ -70,19 +70,23 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
             continue;
         }
         Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
-        uint32_t                    ind = dfaStateMap->Find( subSupState);
-        if ( ind != CV_UINT32_MAX)
-        { 
-            destArr.Append(ind); 
-            delete subSupState;
-            continue;
+        if ( subSupState->m_Level >=  FsaDfaRepos::SzDenyFilter)
+        {
+            uint32_t                    ind = dfaStateMap->Find( subSupState);
+            if ( ind != CV_UINT32_MAX)
+            { 
+                destArr.Append( ind);  
+                delete subSupState;
+                continue;
+            }
         }
-
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_DfaStateMap = dfaStateMap;
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     } 
+    if ( m_Level <  FsaDfaRepos::SzDenyFilter)
+        dfaRepos->UpdateInvFilters( m_Level, discr.m_Inv, discr.m_DId);
     dfaCnstr->ConstructDfaStateAt( supId.GetId(), discr, action, destArr);   
     //m_DfaStateMap.Purge();
     return;
@@ -111,37 +115,7 @@ bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
         dests[ k] =  dfaRepos->GetId( dests[ k].GetId());
     return true;
 }
-
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaDfaState::DumpDot( Id id, Cv_DotStream &strm) 
-{ 
-    strm << id.GetId() << " [ shape=";
-
-    uint64_t        *toks = Tokens().Ptr();
-    if ( toks)
-        strm << "box";
-    else
-        strm << "ellipse";
-    strm << " color=Red label= <<FONT> " << id.GetId() << "<BR />" <<   "<BR />" ;
-    for ( uint32_t i = 0; i < m_TokSz; ++i)
-        strm << " T" << toks[ i];
-    strm << " </FONT>>];\n ";  
-    //std::vector< Sg_ChSet>      domain = dfaRepos->m_DistribRepos.Domain( m_Discr.m_DId);
-    Cv_Seq< FsaId>    dests = Dests(); 
-    for ( uint32_t k = 0; k < dests.Size(); ++k)
-    {
-   //     FsaClip         regex = fsaRepos->ToVar( dests[ k]);
-        if ( !dests[ k].GetId())
-            continue;
-        strm << id.GetId() << " -> " <<  dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-//        strm << Cv_Aid::XmlEncode( domain[ k].ToString());  
-        strm << "</FONT>>] ; \n" ;  
-    }
  
-    return false; 
-}
-
 //_____________________________________________________________________________________________________________________________
 
 bool  FsaDfaState::DoSaute( FsaDfaRepos::Blossom *bRepos)
@@ -165,29 +139,6 @@ bool FsaDfaXByteState::CleanupDestIds( FsaRepos *dfaRepos)
     return true;
 }
 
-
-
-//_____________________________________________________________________________________________________________________________
-
-bool    FsaDfaXByteState::DumpDot( Id id, Cv_DotStream &strm) 
-{ 
-    strm <<   id.GetId() << " [ shape=";
- 
-    strm << "diamond"; 
-    strm << " color=Red label= <<FONT> " <<  id.GetId(); 
-    strm << " </FONT>>];\n"; 
-
-    Cv_Seq< uint8_t>            bytes = Bytes(); 
-    Cv_Seq< FsaId>              dests = Dests(); 
-    for ( uint32_t k = 0; k < dests.Size(); ++k)
-    {
-        strm <<  id.GetId() << " -> " <<     dests[ k].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-        //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Byte).ToString());  
-        strm << "</FONT>>] ; \n" ;   
-    }
-    return true; 
-}
-
 //_____________________________________________________________________________________________________________________________
 
 bool  FsaDfaXByteState::DoSaute( FsaDfaRepos::Blossom *bRepos)
@@ -208,15 +159,6 @@ bool        FsaDfaRepos::WriteDot( Cv_DotStream &strm)
 
 //_____________________________________________________________________________________________________________________________
 
-bool        FsaDfaRepos::DumpDot( const char *path)
-{
-    std::ofstream           fsaOStrm( path);
-    Cv_DotStream			fsaDotStrm( &fsaOStrm, true); 
-    return WriteDot( fsaDotStrm);
-}
-
-//_____________________________________________________________________________________________________________________________
-
 void    FsaDfaRepos::Blossom::SauteStates( void)
 { 
     m_States.m_SauteFLg = true;
@@ -233,7 +175,7 @@ void    FsaDfaRepos::Blossom::SauteStates( void)
 
 void    FsaDfaCnstr::SubsetConstruction( void)
 {  
-    FsaSupState     *supRootState = new FsaSupState();
+    FsaSupState     *supRootState = new FsaSupState( 0);
     FsaId           rootId = m_DfaRepos->Store( supRootState); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);

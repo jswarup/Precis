@@ -42,6 +42,12 @@ struct Sg_Bit64
             m_ChSet[ i] |= src2.m_ChSet[ i];
     }
 
+    void            IntersectWith( const Sg_Bit64 &src2)
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            m_ChSet[ i] &= src2.m_ChSet[ i];
+    }
+
     int32_t         Compare( const Sg_Bit64 &chSet) const  
     {
         for ( uint32_t i = 0; i < Sz; ++i)
@@ -127,6 +133,7 @@ struct Sg_Bit64< 0>
     void            Negate( void) { ; }
     bool            IsIntersect( const Sg_Bit64 &chSet) const { return false; }
     void            UnionWith( const Sg_Bit64 &src2) {}
+    void            IntersectWith( const Sg_Bit64 &src2) {}
     int32_t         Compare( const Sg_Bit64 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
     bool            IsOnes( void) const { return true; }
@@ -177,6 +184,12 @@ struct Sg_Bit8
     {
         for ( uint32_t i = 0; i < Sz; ++i)
             m_ChSet[ i] |= chSet.m_ChSet[ i];
+    }
+    
+    void            IntersectWith( const Sg_Bit8 &chSet)
+    {
+        for ( uint32_t i = 0; i < Sz; ++i)
+            m_ChSet[ i] &= chSet.m_ChSet[ i];
     }
 
     int32_t         Compare( const Sg_Bit8 &chSet) const  
@@ -265,6 +278,7 @@ struct Sg_Bit8< 0>
     void            Negate( void) { ; }
     bool            IsIntersect( const Sg_Bit8 &chSet) const { return false; }
     void            UnionWith( const Sg_Bit8 &src2) {}
+    void            IntersectWith( const Sg_Bit8 &src2) {}
     int32_t         Compare( const Sg_Bit8 &cs) const   { return 0; }
     int             ListChars( int *list) const   { return 0; }
     bool            IsOnes( void) const { return true; }
@@ -321,6 +335,7 @@ struct Sg_Bitset
 
     bool        IsIntersect( const Sg_Bitset &chSet) const  { return m_Bits64.IsIntersect( chSet.m_Bits64) || m_Bits8.IsIntersect( chSet.m_Bits8) ; }
     void        UnionWith( const Sg_Bitset &chSet) { m_Bits64.UnionWith( chSet.m_Bits64);  m_Bits8.UnionWith( chSet.m_Bits8); }
+    void        IntersectWith( const Sg_Bitset &chSet) { m_Bits64.IntersectWith( chSet.m_Bits64);  m_Bits8.IntersectWith( chSet.m_Bits8); }
     int32_t     Compare( const Sg_Bitset &chSet) const 
     { 
         int32_t  res = m_Bits64.Compare( chSet.m_Bits64);  

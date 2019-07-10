@@ -94,8 +94,7 @@ public:
     Cv_Seq< FsaId>     SubStates( void) { return Cv_Seq< FsaId>(); } 
 
     bool                CleanupDestIds( FsaRepos *dfaRepos) { return false; }
-    bool                WriteDot( Id id, void *, Cv_DotStream &strm) { return false; }
-    bool                DumpDot( Id id, Cv_DotStream &strm) { return false; }
+    bool                WriteDot( Id id, void *, Cv_DotStream &strm) { return false; } 
 
     FsaId               DfaTransition( FsaRepos *dfaRepos, uint8_t chr) { return FsaId(); }
     bool                DoSaute( void *) { return false; }
@@ -108,9 +107,7 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
 {   
     typedef  Id         FsaId;
 
-    bool                WriteDot( Cv_DotStream &strm);
-    bool                DumpDot( const char *path);
-
+    bool                WriteDot( Cv_DotStream &strm);  
      
     struct Blossom
     {

@@ -11,23 +11,46 @@ namespace Sg_RExp
 
 struct  FsaDfaRepos  : public FsaRepos
 {    
+    enum  {
+        SzDenyFilter = 8
+    };
     FsaId               m_RootId;
     FsaElemRepos        *m_ElemRepos;
-    DistribRepos        m_DistribRepos;  
+    DistribRepos        m_DistribRepos;   
+    FilterRepos::Id     m_DenyFiterIds[ SzDenyFilter];               
+    Cv_CratePile< FilterCrate>         m_DenyRepos;
 
     FsaDfaRepos( void)
         : m_ElemRepos( NULL)
     {}
  
-    bool                WriteDot( Cv_DotStream &strm);
-    bool                DumpDot( const char *path);
-    
+    bool                WriteDot( Cv_DotStream &strm);  
+
     bool                DumpStats( std::ostream &ostr)
     {
         FsaRepos::DumpStats( ostr);
         m_DistribRepos.DumpStats( ostr);
         return true;
     }
+
+    void    UpdateInvFilters( uint32_t lev, uint16_t inv,  DistribRepos::Id dId)
+    {    
+        if ( lev < SzDenyFilter )
+            m_DistribRepos.ToVar( dId)( [ this, lev, inv]( auto distrib) {
+                    auto        df = distrib->ChSet( uint8_t( inv));
+                    typedef     std::remove_reference< decltype( df)>::type      BitSet; 
+                    DenyFilter( lev, inv != CV_UINT16_MAX ? df : BitSet()); 
+                });
+    }
+
+template < uint32_t BitSz> 
+    void        DenyFilter( uint32_t lev, const Sg_Bitset< BitSz> &df)
+    {   
+        if ( !m_DenyFiterIds[ lev].IsValid())
+            m_DenyFiterIds[ lev] = m_DenyRepos.Store( FilterCrate::template TypeOf< ChSetFilter< BitSz>>(), ChSetFilter< BitSz>( df));  
+        Sg_Bitset< BitSz>           *bitset = m_ElemRepos->m_FilterRepos.ToVar( m_DenyFiterIds[ lev]).Elem< ChSetFilter< BitSz>>();
+        bitset->IntersectWith( df);  
+    } 
 
     struct Cask : public Cv_MemberCask< FsaRepos, FsaId, DistribRepos>
     {  
@@ -40,7 +63,7 @@ struct  FsaDfaRepos  : public FsaRepos
                 : BaseContent( t2)
             {}
 
-            auto        GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
+            auto                GetM( void) { return ((BaseCask::BaseContent *) this)->m_Value; }
         };
 
         static uint32_t         ContentSize( const FsaDfaRepos &obj) { return  Cv_Cask< FsaRepos>::ContentSize( obj) 
@@ -80,9 +103,10 @@ struct FsaSupState  : public FsaState
     Cv_Slot< FsaDfaStateMap>        m_DfaStateMap;
     std::vector< FsaId>             m_SubStates;  
     Action                          *m_Action; 
+    uint32_t                        m_Level;
 
-    FsaSupState( void)
-        : m_Action( NULL)
+    FsaSupState( uint32_t level)
+        : m_Action( NULL), m_Level( level)
     {}
 
     ~FsaSupState( void)
@@ -213,12 +237,12 @@ struct FsaSupState  : public FsaState
                 FetchFilterElems(); 
         }
     
-        void                DoSetup( uint32_t szDescend)
+        void                DoSetup( uint32_t szDescend, uint32_t level)
         { 
             Reset();
             for ( uint32_t k = 0; k < szDescend; ++k)
             {
-                FsaSupState     *subSupState = new FsaSupState();
+                FsaSupState     *subSupState = new FsaSupState( level);
                 m_SubSupStates.push_back( subSupState);
             }
         } 
@@ -242,7 +266,7 @@ struct FsaSupState  : public FsaState
         void        FetchFilterElems( void);
 
     template < uint32_t BitSz> 
-        void        Classify( const CharDistrib< BitSz> &distrib)
+        void        Classify( uint32_t lev, const CharDistrib< BitSz> &distrib, uint16_t inv)
         {   
             while ( IsCurValid())
             { 
@@ -258,7 +282,7 @@ struct FsaSupState  : public FsaState
                     subSupState->PushAction( dest( []( auto elem) { return elem->Tokens(); })); 
                 }
                 Next();
-            }    
+            } 
             return;
         } 
 
@@ -352,8 +376,7 @@ template < class Atelier>
         }
         return true; 
     }
-
-    bool                    DumpDot( Id id, Cv_DotStream &strm); 
+ 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 
     struct Cask : public Cv_SerializeUtils 
@@ -444,26 +467,7 @@ template < class Atelier>
         }
         return true; 
     } 
-
-    bool    DumpDot( Id id, Cv_DotStream &strm) 
-    { 
-        strm <<   id.GetId() << " [ shape=";
-
-        strm << "diamond"; 
-        strm << " color=Red label= <<FONT> " <<  id.GetId(); 
-        strm << " </FONT>>];\n"; 
-        
-        uint8_t     *bytes = Bytes().Ptr();
-        FsaId       *dests = Dests().Ptr();
-        for ( uint32_t i = 0; i < Sz; ++i)
-        {
-            strm <<  id.GetId() << " -> " <<     dests[ i].GetId() << " [ arrowhead=normal color=black label=<<FONT> "; 
-            //strm << Cv_Aid::XmlEncode( dfaRepos->m_DistribRepos.ChSet( m_Bytes[ i]).ToString());  
-            strm << "</FONT>>] ; \n" ;   
-        }
-        return true; 
-    }
-
+ 
     bool   DoSaute( FsaDfaRepos::Blossom *bRepos)
     {
         FsaId       *dests = Dests().Ptr();
@@ -552,8 +556,6 @@ template < class Atelier>
         }
         return true; 
     }
-
-    bool                    DumpDot( Id id, Cv_DotStream &strm);
 
     bool                    DoSaute( FsaDfaRepos::Blossom *bRepos);
 

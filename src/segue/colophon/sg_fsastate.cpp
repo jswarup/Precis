@@ -18,16 +18,7 @@ bool        FsaRepos::WriteDot( Cv_DotStream &strm)
     }
     return true;
 }
-
-//_____________________________________________________________________________________________________________________________
-
-bool        FsaRepos::DumpDot( const char *path)
-{
-    std::ofstream           fsaOStrm( path);
-    Cv_DotStream			fsaDotStrm( &fsaOStrm, true); 
-    return WriteDot( fsaDotStrm);;
-}
-
+ 
 //_____________________________________________________________________________________________________________________________  
 
 bool  FsaElem::WriteDot( Id id, FsaRepos *fsaRepos, Cv_DotStream &strm)  

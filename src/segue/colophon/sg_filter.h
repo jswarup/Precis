@@ -19,6 +19,15 @@ struct      FilterRepos;
 
 typedef Cv_Crate< ChSetFilter< 256>, ChSetFilter< 128>, ChSetFilter< 64>, ChSetFilter< 32>, ChSetFilter< 16>, ChSetFilter< 8>, CharFilter, Filter>   FilterCrate; 
 
+//_____________________________________________________________________________________________________________________________  
+
+template < uint32_t N>
+struct      CharDistrib;
+struct      CharDistribBase;
+struct      DistribRepos;
+
+typedef Cv_Crate< CharDistrib< 256>, CharDistrib< 128>, CharDistrib< 64>, CharDistrib< 32>, CharDistrib< 16>, CharDistrib< 8>, CharDistribBase>   DistribCrate; 
+
 //_____________________________________________________________________________________________________________________________ 
  
 struct  Filter : public Cv_CrateEntry
@@ -153,12 +162,13 @@ template < uint32_t N>
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
-        m_TVar = Var( &elm, FilterCrate::template TypeOf< Elem>() );
+        uint8_t      type = FilterCrate::template TypeOf< Elem>() ;
+        m_TVar = Var( &elm, type);
         auto    it = m_IdTbl.find( Id());
         m_TVar = Var();
         if ( it != m_IdTbl.end())
             return *it;
-        Id       id = Base::Store( FilterCrate::template TypeOf< Elem>(), elm);
+        Id       id = Base::Store( type, elm);
         m_IdTbl.insert( id);
         return id;
     }
@@ -198,21 +208,14 @@ template < typename Elem>
 };
 
 
-//_____________________________________________________________________________________________________________________________  
 
-template < uint32_t N>
-struct      CharDistrib;
-struct      CharDistribBase;
-struct      DistribRepos;
-
-typedef Cv_Crate< CharDistrib< 256>, CharDistrib< 128>, CharDistrib< 64>, CharDistrib< 32>, CharDistrib< 16>, CharDistrib< 8>, CharDistribBase>   DistribCrate; 
 
 //_____________________________________________________________________________________________________________________________ 
 
 struct CharDistribBase : public Cv_CrateEntry
 {   
     typedef void                    Copiable;
-
+    
     CharDistribBase( void) 
     {} 
 
@@ -456,35 +459,35 @@ template < uint32_t Bits>
         {}
 
     template < typename CnstrIt>
-        void    Map( Discr discr,  CnstrIt *cnstrIt)
+        void    Map( uint32_t level, Discr discr,  CnstrIt *cnstrIt)
         {
             CV_ERROR_ASSERT( discr.m_DId.GetType() == DistribCrate::TypeOf< CharDistrib< Bits>>())
             const CharDistrib< Bits>    *distrib = static_cast< const CharDistrib< Bits> *>( m_DRepos->ToVar( discr.m_DId).GetEntry());
-            cnstrIt->Classify( *distrib); 
+            cnstrIt->Classify( level, *distrib, discr.m_Inv); 
             return;
         }
     };
 
 template < typename CnstrIt>
-    void    Classify( Discr discr, CnstrIt *cnstrIt) 
+    void    Classify( uint32_t level, Discr discr, CnstrIt *cnstrIt) 
     { 
         uint32_t    szImg = m_Base.SzImage();
         if ( szImg <= 8)  
-            return DescendHelper< 8>( this).Map( discr, cnstrIt);                                  
+            return DescendHelper< 8>( this).Map( level, discr, cnstrIt);                                  
 
         if ( szImg <= 16)  
-            return DescendHelper< 16>( this).Map( discr, cnstrIt);                                  
+            return DescendHelper< 16>( this).Map( level, discr, cnstrIt);                                  
 
         if ( szImg <= 32)                                      
-            return DescendHelper< 32>( this).Map( discr, cnstrIt);                                  
+            return DescendHelper< 32>( this).Map( level, discr, cnstrIt);                                  
 
         if ( szImg <= 64)  
-            return DescendHelper< 64>( this).Map( discr, cnstrIt);                                  
+            return DescendHelper< 64>( this).Map( level, discr, cnstrIt);                                  
 
         if ( szImg <= 128)                                     
-            return DescendHelper< 128>( this).Map( discr, cnstrIt);                                  
+            return DescendHelper< 128>( this).Map( level, discr, cnstrIt);                                  
 
-        return DescendHelper< 256>( this).Map( discr, cnstrIt);                                  
+        return DescendHelper< 256>( this).Map( level, discr, cnstrIt);                                  
     }
     
 
