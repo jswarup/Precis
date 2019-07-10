@@ -11,14 +11,9 @@ namespace Sg_RExp
 
 struct  FsaDfaRepos  : public FsaRepos
 {    
-    enum  {
-        SzDenyFilter = 8
-    };
     FsaId               m_RootId;
     FsaElemRepos        *m_ElemRepos;
     DistribRepos        m_DistribRepos;   
-    FilterRepos::Id     m_DenyFiterIds[ SzDenyFilter];               
-    Cv_CratePile< FilterCrate>         m_DenyRepos;
 
     FsaDfaRepos( void)
         : m_ElemRepos( NULL)
@@ -32,25 +27,7 @@ struct  FsaDfaRepos  : public FsaRepos
         m_DistribRepos.DumpStats( ostr);
         return true;
     }
-
-    void    UpdateInvFilters( uint32_t lev, uint16_t inv,  DistribRepos::Id dId)
-    {    
-        if ( lev < SzDenyFilter )
-            m_DistribRepos.ToVar( dId)( [ this, lev, inv]( auto distrib) {
-                    auto        df = distrib->ChSet( uint8_t( inv));
-                    typedef     std::remove_reference< decltype( df)>::type      BitSet; 
-                    DenyFilter( lev, inv != CV_UINT16_MAX ? df : BitSet()); 
-                });
-    }
-
-template < uint32_t BitSz> 
-    void        DenyFilter( uint32_t lev, const Sg_Bitset< BitSz> &df)
-    {   
-        if ( !m_DenyFiterIds[ lev].IsValid())
-            m_DenyFiterIds[ lev] = m_DenyRepos.Store( FilterCrate::template TypeOf< ChSetFilter< BitSz>>(), ChSetFilter< BitSz>( df));  
-        Sg_Bitset< BitSz>           *bitset = m_ElemRepos->m_FilterRepos.ToVar( m_DenyFiterIds[ lev]).Elem< ChSetFilter< BitSz>>();
-        bitset->IntersectWith( df);  
-    } 
+ 
 
     struct Cask : public Cv_MemberCask< FsaRepos, FsaId, DistribRepos>
     {  
@@ -319,6 +296,7 @@ public:
     uint16_t                DeadInd( void) { return m_Inv; }
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
 
+
     static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
     {
         uint32_t            sz = discr.SzDescend();
@@ -347,6 +325,17 @@ public:
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
 
     bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
+
+
+template < class Atelier>
+    FsaId         Eval( Atelier *atelier, uint8_t chrId)
+    {
+        DistribCrate::Var   distrib = atelier->FetchDistib( this); 
+        uint8_t             index = distrib( [ chrId]( auto k) { return k->Image( chrId); });
+        if ( index == m_Inv)
+            return FsaId();
+        return  DestAt( index);
+    }
 
 template < class Atelier>
     bool                    WriteDot( Id id, Atelier *atelier, Cv_DotStream &strm)
@@ -424,7 +413,8 @@ struct FsaDfaByteState  : public FsaState
         return dfaState;
     } 
 
-    FsaDfaRepos::Id         Eval( uint8_t chrId)
+template < class Atelier>
+    FsaId         Eval( Atelier *atelier, uint8_t chrId)
     {
         uint8_t     *bytes = Bytes().Ptr();
         FsaId       *dests = Dests().Ptr();
@@ -439,10 +429,8 @@ struct FsaDfaByteState  : public FsaState
         FsaId       *dests = Dests().Ptr();
         for ( uint32_t k = 0; k < Sz; ++k)
             dests[ k] =  dfaRepos->GetId( dests[ k].GetId());
- 
         return true;
     }
-
 
     bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
 
@@ -532,6 +520,17 @@ struct FsaDfaXByteState  : public FsaState
     } 
 
     bool                    CleanupDestIds( FsaRepos *dfaRepos);
+
+template < class Atelier>
+    FsaId       Eval( Atelier *atelier, uint8_t chrId)
+    { 
+        Cv_Seq< uint8_t>            bytes = Bytes();
+        Cv_Seq< FsaDfaRepos::Id>    dests = Dests(); 
+        for ( uint32_t i = 0; i < bytes.Size(); ++i)
+            if ( chrId == bytes[ i])
+                return  dests[ i];
+        return FsaDfaRepos::Id();
+    } 
 
     bool                    WriteDot( Id id, FsaRepos *, Cv_DotStream &strm) { return false; }
 

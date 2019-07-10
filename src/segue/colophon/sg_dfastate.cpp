@@ -70,23 +70,19 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
             continue;
         }
         Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
-        if ( subSupState->m_Level >=  FsaDfaRepos::SzDenyFilter)
-        {
-            uint32_t                    ind = dfaStateMap->Find( subSupState);
-            if ( ind != CV_UINT32_MAX)
-            { 
-                destArr.Append( ind);  
-                delete subSupState;
-                continue;
-            }
+        uint32_t                    ind = dfaStateMap->Find( subSupState);
+        if ( ind != CV_UINT32_MAX)
+        { 
+            destArr.Append( ind);  
+            delete subSupState;
+            continue;
         }
+
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_DfaStateMap = dfaStateMap;
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subId); 
-    } 
-    if ( m_Level <  FsaDfaRepos::SzDenyFilter)
-        dfaRepos->UpdateInvFilters( m_Level, discr.m_Inv, discr.m_DId);
+    }  
     dfaCnstr->ConstructDfaStateAt( supId.GetId(), discr, action, destArr);   
     //m_DfaStateMap.Purge();
     return;

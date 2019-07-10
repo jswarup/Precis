@@ -78,35 +78,35 @@ struct Sg_DfaReposAtelier
             case FsaCrate::template TypeOf< FsaDfaState>() :
             {
                 FsaDfaState             *dfaState = static_cast< FsaDfaState *>( state.GetEntry());
-                nxState =   DfaTransition( dfaState, FetchDistib( dfaState), chrId);
+                nxState =   dfaState->Eval( this, chrId);
                 break;
             }
             case FsaCrate::template TypeOf< FsaDfaByteState< 1> >() :
             {
 
                 FsaDfaByteState< 1>     *dfaState = static_cast< FsaDfaByteState< 1>  *>( state.GetEntry());
-                nxState = dfaState->Eval( chrId);
+                nxState = dfaState->Eval( this, chrId);
                 break;
             } 
             case FsaCrate::template TypeOf< FsaDfaByteState< 2> >() :
             {
 
                 FsaDfaByteState< 2>     *dfaState = static_cast< FsaDfaByteState< 2>  *>( state.GetEntry());
-                nxState = dfaState->Eval( chrId);
+                nxState = dfaState->Eval( this, chrId);
                 break;
             }
             case FsaCrate::template TypeOf< FsaDfaByteState< 3> >() :
             {
 
                 FsaDfaByteState< 3>     *dfaState = static_cast< FsaDfaByteState< 3>  *>( state.GetEntry());
-                nxState = dfaState->Eval( chrId);
+                nxState = dfaState->Eval( this, chrId);
                 break;
             }
             case FsaCrate::template TypeOf< FsaDfaByteState< 4> >() :
             {
 
                 FsaDfaByteState< 4>     *dfaState = static_cast< FsaDfaByteState< 4>  *>( state.GetEntry());
-                nxState = dfaState->Eval( chrId);
+                nxState = dfaState->Eval( this, chrId);
                 break;
             }/*
             case FsaCrate::template TypeOf< FsaDfaXByteState>() :

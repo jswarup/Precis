@@ -98,6 +98,8 @@ public:
 
     FsaId               DfaTransition( FsaRepos *dfaRepos, uint8_t chr) { return FsaId(); }
     bool                DoSaute( void *) { return false; }
+
+    FsaId               Eval( void *atelier, uint8_t chrId) { return FsaId(); } 
 };
 
 
