@@ -62,7 +62,7 @@ struct Sg_Parapet
         : m_CurState( state)
     {}
 
-    void                SetState( const FsaCrate::Var &rootState ) { m_CurState = rootState;  } 
+    void        SetState( const FsaCrate::Var &rootState ) { m_CurState = rootState;  } 
 
 template < typename Atelier>
     bool        Advance( Atelier *dfaAtelier, uint8_t chrId)

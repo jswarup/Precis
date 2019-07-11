@@ -149,15 +149,11 @@ struct  FsaRepos  : public Cv_CrateRepos< FsaCrate>
             CV_ERROR_ASSERT( var.GetType() == var1.GetType())
             return;
         }
+
         Var    VarId( const Id &id) const
         {
-            if ( ! id.IsValid())
-                return Var();
-            Entry   *entry = ( Entry *) ((( uint8_t *) m_Root) + id.GetId());
-            return Var( entry, id.GetType());
-        }
-        
-        
+            return  id.IsValid() ? Var( ( Entry *) ((( uint8_t *) m_Root) + id.GetId()), id.GetType()) :  Var();
+        } 
     };
 };
 

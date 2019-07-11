@@ -78,13 +78,7 @@ public:
 
     int     Execute( void);
     int     Test(void);
-
-    bool    ProcessProgArgs( std::istream &cmdStrm)
-    {
-        std::string             tok;
-        return !( cmdStrm >> tok) && tok.empty();
-    }
-
+ 
     bool    ParseArg( const std::string &key, const std::string &arg)
     {
         if ( "-iimg" == key)

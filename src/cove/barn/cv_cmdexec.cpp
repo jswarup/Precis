@@ -3,10 +3,21 @@
 
 #include    "cove/barn/cv_include.h"
 #include    "cove/barn/cv_cmdexec.h"
+#include    "cv_version.h"
 
 //_____________________________________________________________________________________________________________________________
 
 Cv_AppStack    Cv_AppStack::s_Instance;
+
+
+///_____________________________________________________________________________________________________________________________ 
+
+static Cv_CmdOption     s_MainOptions[] = 
+{         
+    { "-h",      0,  "help"},
+    { "-V",      0,  "version"},
+    { 0,         0,  0},
+};
 
 //_____________________________________________________________________________________________________________________________
 
@@ -94,7 +105,7 @@ int     Cv_CmdRunner::ParseRun( std::istream &cmdStrm)
             if ( !rslt)
                 PrintDoc( std::cout, 0);
             else
-                retVal = exe->Execute();
+                retVal = exe->ParseExecute( cmdStrm);
             break;
         }
     }
@@ -115,15 +126,48 @@ Cv_CmdRunner     *Cv_AppStack::FindRunner( const char *name)
 
 //_____________________________________________________________________________________________________________________________
 
-int Cv_AppStack::Main( std::istream &cmdStrm)
+bool  Cv_MainExecutor::ParseArg( const std::string &key, const std::string &arg)
 {
-    std::string         runnerName;
-    cmdStrm >> runnerName >> std::ws;
+    if ( "-V" == key)
+    { 
+        std::cout << "Version: " << Cv_Version().m_GITSHA1 << '\n';
+        return true;
+    }
+    if ( "-h" == key)
+    { 
+        for ( Cv_CmdRunner *cndtr =  Cv_AppStack::s_Instance.Top(); cndtr; cndtr = cndtr->GetBelow())
+            cndtr->PrintDoc( std::cout, 0);
+        return true;
+    }
 
-    Cv_CmdRunner    *runner = s_Instance.FindRunner( runnerName.c_str()); 
+    return false;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+bool  Cv_MainExecutor::ProcessProgArgs( std::istream &cmdStrm)
+{
+    cmdStrm >> m_RunnerName >> std::ws;
+    return !!m_RunnerName.size();
+}
+ 
+//_____________________________________________________________________________________________________________________________
+
+int  Cv_MainExecutor::ParseExecute( std::istream &cmdLine)
+{
+    Cv_CmdRunner    *runner = Cv_AppStack::s_Instance.FindRunner( m_RunnerName.c_str()); 
     if ( !runner)
         return -1; 
-    return runner->ParseRun( cmdStrm);
+
+    return runner->ParseRun( cmdLine);
+}
+
+//_____________________________________________________________________________________________________________________________
+
+int Cv_MainExecutor::Run( std::istream &cmdStrm)
+{
+    Cv_CmdProcessor< Cv_MainExecutor> mainExec( "Main", "Main", s_MainOptions);
+    return mainExec.ParseRun( cmdStrm);
 }
 
 //_____________________________________________________________________________________________________________________________

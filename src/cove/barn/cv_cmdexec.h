@@ -18,18 +18,13 @@ struct Cv_CmdOption
 //_____________________________________________________________________________________________________________________________
 
 class Cv_CmdExecutor
-{
-protected:
-    bool        m_ExecResult;
-
+{  
 public: 
-    Cv_CmdExecutor( void)
-        :   m_ExecResult( false)
-    {}
-
-    bool                    Result( void) const { return m_ExecResult; }    
+    Cv_CmdExecutor( void) 
+    {}    
     virtual bool            ProcessProgArgs( std::istream &cmdLine)  {  return true; }
     virtual bool            ParseArg( const std::string &key, const std::string &arg) {  return true;  } 
+    virtual int             ParseExecute( std::istream &cmdLine) { return Execute(); }
     virtual int             Execute( void) { return -1; }
 };
 
@@ -78,8 +73,23 @@ class Cv_AppStack : public Cv_Stack< Cv_CmdRunner>
 public:
     static Cv_AppStack    s_Instance;
 
-    Cv_CmdRunner        *FindRunner( const char *name);    
-    static int          Main( std::istream &cmdStrm);
+    Cv_CmdRunner        *FindRunner( const char *name);  
+};
+
+//_____________________________________________________________________________________________________________________________
+
+class Cv_MainExecutor :   public Cv_CmdExecutor
+{ 
+    std::string         m_RunnerName;
+
+public: 
+    Cv_MainExecutor( void) 
+    {}
+
+    bool            ParseArg( const std::string &key, const std::string &arg);
+    bool            ProcessProgArgs( std::istream &cmdLine);
+    int             ParseExecute( std::istream &cmdLine);  
+    static int      Run( std::istream &cmdStrm);
 };
 
 //_____________________________________________________________________________________________________________________________

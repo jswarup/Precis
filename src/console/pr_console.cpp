@@ -27,7 +27,7 @@ int main( int argc, char *argv[])
         cmdLine <<  argv[i];
         cmdLine << " ";
     } 
-    return Cv_AppStack::Main( cmdLine);
+    return Cv_MainExecutor::Run( cmdLine);
 }
 
 //_____________________________________________________________________________________________________________________________

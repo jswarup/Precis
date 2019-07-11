@@ -329,12 +329,9 @@ public:
 
 template < class Atelier>
     FsaId         Eval( Atelier *atelier, uint8_t chrId)
-    {
-        DistribCrate::Var   distrib = atelier->FetchDistib( this); 
-        uint8_t             index = distrib( [ chrId]( auto k) { return k->Image( chrId); });
-        if ( index == m_Inv)
-            return FsaId();
-        return  DestAt( index);
+    { 
+        uint8_t             index = atelier->FetchDistib( this)( [ chrId]( auto k) { return k->Image( chrId); });
+        return ( index != m_Inv) ? DestAt( index) : FsaId();
     }
 
 template < class Atelier>

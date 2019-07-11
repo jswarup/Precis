@@ -4,11 +4,18 @@
 #include    "cove/barn/cv_cexpr.h"
 #include    "cove/flux/cv_dotstream.h" 
 
+template < uint32_t>
+struct Cv_Typeitem 
+{};
+
 //_____________________________________________________________________________________________________________________________
 
 template < typename Crate>
 struct	Cv_Var 
 {
+
+
+
 	typedef typename Crate::TypeStor	TypeStor;
     typedef typename Crate::Entry		Entry;   
 
@@ -34,10 +41,30 @@ template < typename Element>
 
 template < typename Lambda, typename... Args>
     constexpr auto    operator()(  Lambda &&lambda,  Args &&... args)  const   {
-		return Crate::Operate( static_cast< Entry *>( m_Entry), m_Type, lambda, args...); }  
+		return Crate::Operate(  m_Entry, m_Type, lambda, args...); }  
 
     friend	bool    operator<( const Cv_Var &id1, const Cv_Var &id2)  { 
         return ( id1.m_Type != id2.m_Type) ? ( id1.m_Type < id2.m_Type) : ( id1.m_Entry < id2.m_Entry) ;  } 
+
+
+template < typename Lambda, typename... Args>
+    constexpr auto    Enact(  Lambda &&lambda,  Args &&... args)  const   
+    {
+        switch ( m_Type)
+        {   
+            case 1 :  return EnactCrate( Cv_Typeitem< 1>(), Crate(), m_Entry, lambda, args...); 
+            case 2 :  return EnactCrate( Cv_Typeitem< 2>(), Crate(), m_Entry, lambda, args...); 
+            case 3 :  return EnactCrate( Cv_Typeitem< 3>(), Crate(), m_Entry, lambda, args...); 
+            case 4 :  return EnactCrate( Cv_Typeitem< 4>(), Crate(), m_Entry, lambda, args...); 
+            case 5 :  return EnactCrate( Cv_Typeitem< 5>(), Crate(), m_Entry, lambda, args...); 
+            case 6 :  return EnactCrate( Cv_Typeitem< 6>(), Crate(), m_Entry, lambda, args...); 
+            case 7 :  return EnactCrate( Cv_Typeitem< 7>(), Crate(), m_Entry, lambda, args...); 
+            case 8 :  return EnactCrate( Cv_Typeitem< 8>(), Crate(), m_Entry, lambda, args...); 
+            case 9 :  return EnactCrate( Cv_Typeitem< 9>(), Crate(), m_Entry, lambda, args...); 
+//            default : return EnactCrate( Cv_Typeitem< 0>(), Crate(), m_Entry, lambda, args...); 
+        }
+    }  
+
 };
 
 //_____________________________________________________________________________________________________________________________
@@ -73,16 +100,6 @@ template < typename X, typename std::enable_if< !std ::is_base_of< Elem, X>::val
 		return CrateBase::TypeOf( obj);
     } 
   
-template <  typename Lambda, typename... Args>
-    static constexpr auto    Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
-    {
-        switch ( typeStor)
-		{
-			case Sz : return lambda( static_cast< Elem *>( entry), args...); 
-			default : return CrateBase::Operate( entry, typeStor, lambda, args...);
-		}
-    } 
-	 
 template <  typename Entity, typename std::enable_if< std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
@@ -94,6 +111,22 @@ template <  typename Entity, typename std::enable_if< !std ::is_same< Elem, Enti
 	{
 		return CrateBase::template TypeOf<Entity> ();
 	}
+
+template <  typename Lambda, typename... Args>
+    static constexpr auto    Operate( Entry *entry, const TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
+    {
+        switch ( typeStor)
+        {
+            case Sz : return lambda( static_cast< Elem *>( entry), args...); 
+            default : return CrateBase::Operate( entry, typeStor, lambda, args...);
+        }
+    } 
+
+template <  typename Lambda, typename... Args>
+    friend constexpr auto    EnactCrate( const Cv_Typeitem< Sz> &typeItem, const Crate &crate, Entry *entry, Lambda &&lambda,  Args &&... args)  
+    {
+        return lambda( static_cast< Elem *>( entry), args...); 
+    }
 }; 
 
 //_____________________________________________________________________________________________________________________________
@@ -117,12 +150,6 @@ template < typename X = void>
 		return Sz;
     }
 
-template <  typename Lambda, typename... Args>
-    static constexpr auto       Operate( Entry *entry, TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
-    {
-		 return lambda( static_cast< Elem *>( entry), args...); 
-    }
-
 template <  typename Entity, typename std::enable_if< std ::is_same< Elem, Entity>::value, void>::type * = nullptr>
 	static constexpr  TypeStor TypeOf( void)  
 	{
@@ -134,6 +161,19 @@ template <  typename Entity, typename std::enable_if< !std ::is_same< Elem, Enti
 	{
 		return 0;
 	}	
+
+
+template <  typename Lambda, typename... Args>
+    static constexpr auto       Operate( Entry *entry, const TypeStor typeStor, Lambda &&lambda,  Args &&... args)  
+    {
+        return lambda( static_cast< Elem *>( entry), args...); 
+    }
+
+template <  typename Lambda, typename... Args>
+    friend constexpr auto    EnactCrate( const Cv_Typeitem< Sz> &typeItem, const Crate &crate, Entry *entry, Lambda &&lambda,  Args &&... args)  
+    {
+        return lambda( static_cast< Elem *>( entry), args...); 
+    }
 }; 
 
 template<typename T>
