@@ -288,7 +288,7 @@ struct Sg_Bastion
 template <  typename TokenGram>
     auto            ScanRoot(  TokenGram  *tokenSet, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs, uint32_t curr, uint32_t *pLen, uint32_t *pSzDroppedToken)
     { 
-        uint32_t            i = 0; 
+        /*      uint32_t            i = 0; 
         FsaDfaRepos::Id     nxStateId;
         for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
             nxStateId = m_DfaAtelier->AdvanceRoot( chrs[ i]); 
@@ -296,6 +296,12 @@ template <  typename TokenGram>
         *pLen = i;
         if ( !nxStateId.IsValid())
             return false;
+ */
+        uint32_t            &i = *pLen; 
+        FsaDfaRepos::Id     nxStateId = m_DfaAtelier->AdvanceRoot(  chrs, &i);
+        if ( !nxStateId.IsValid())
+            return false; 
+
         Sg_Parapet      nxParapet = m_DfaAtelier->VarFromId( nxStateId); 
         m_BulWark.SetState( rootInd, nxStateId); 
         m_BulWark.SetStart( rootInd, curr +i -1);
@@ -325,7 +331,7 @@ template < typename TokenGram>
         while ( chrs.Size())
         {   
             uint32_t    rootInd = m_BulWark.FetchFree();
-            uint32_t    szScan = chrs.Size(); 
+            uint32_t    szScan = 0; 
             bool        injectFlg = ScanRoot(  tokenSet, rootInd, chrs, *pCurr, &szScan, &szDroppedToken);   
             if ( szAlloc)                                                                       // scan for root-match in the buffer.
                 szDroppedToken += m_BulWark.ScanCycle( m_DfaAtelier, tokenSet, *pCurr, chrs, szScan);                       // scan-sycle the rest upto the scan-Marker

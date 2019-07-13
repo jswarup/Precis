@@ -98,7 +98,7 @@ struct Sg_DfaBlossomAtelier : public Sg_DfaBaseBlossomAtelier
 
     FsaDfaRepos::Id         Advance( const FsaCrate::Var &state, uint8_t chrId)
     {
-        //return state( [ this, chrId]( auto curState) { return curState->Eval( this, chrId); } );
+        return state( [ this, chrId]( auto curState) { return curState->Eval( this, chrId); } );
 
         FsaDfaRepos::Id   nxState;
         switch ( state.GetType())
@@ -138,7 +138,7 @@ struct Sg_DfaBlossomAtelier : public Sg_DfaBaseBlossomAtelier
         }
         return nxState;
     }
-    
+
     FsaDfaRepos::Id         AdvanceRoot(  uint8_t chrId)
     {
         //return m_Root( [ this, chrId]( auto curState) { return curState->Eval( this, chrId); } );
@@ -182,8 +182,43 @@ struct Sg_DfaBlossomAtelier : public Sg_DfaBaseBlossomAtelier
         }
         return nxState;
     }
- 
- 
+
+    FsaDfaRepos::Id         AdvanceRoot(  const Cv_Seq< uint8_t> &chrs, uint32_t *pLen)
+    {
+        //return m_Root( [ this, chrId]( auto curState) { return curState->Eval( this, chrId); } );
+
+        FsaDfaRepos::Id   nxState; 
+        switch ( m_Root.GetType())
+        {
+            case FsaCrate::template TypeOf< FsaDfaState>() :
+            {
+                FsaDfaState         *dfaState = static_cast< FsaDfaState *>( m_Root.GetEntry());
+                uint16_t            deadInd = dfaState->DeadInd();
+                return  m_RootDistrib( [ &chrs,  pLen, deadInd, dfaState]( auto distrib) { 
+                    for ( uint32_t  &i = *pLen;  i < chrs.Size(); )
+                    { 
+                        uint16_t    index = distrib->Image( chrs[ i++]);
+                        if ( deadInd != index) 
+                            return dfaState->DestAt( index); 
+                    }
+                    return FsaDfaRepos::Id();
+                });
+
+            }
+            default :
+            {
+                return m_Root( [ this, &chrs,  pLen]( auto dfaState) {
+                        for ( uint32_t   &i = *pLen;  i < chrs.Size(); )
+                        {
+                            FsaDfaRepos::Id     nxState = dfaState->Eval( this, chrs[ i++]);
+                            if ( nxState.IsValid())
+                                return nxState; 
+                        }
+                        return FsaDfaRepos::Id();
+                });
+            }  
+        } 
+    }
 };
 
   
