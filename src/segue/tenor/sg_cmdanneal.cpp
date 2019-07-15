@@ -1,26 +1,26 @@
-// sg_cmdanneal.cpp ____________________________________________________________________________________________________________ 
+// sg_cmdanneal.cpp ____________________________________________________________________________________________________________
 
 
-#include    "segue/tenor/sg_include.h" 
-#include    "cove/barn/cv_cmdexec.h" 
+#include    "segue/tenor/sg_include.h"
+#include    "cove/barn/cv_cmdexec.h"
 #include    "cove/silo/cv_stash.h"
 #include    "segue/grammar/sg_rexpgrammar.h"
 #include    "segue/epigraph/sg_parser.h"
 #include    "segue/colophon/sg_fsaelemcnstr.h"
 #include    "segue/colophon/sg_dfastate.h"
-#include    "segue/epigraph/sg_partition.h" 
+#include    "segue/epigraph/sg_partition.h"
 #include    "segue/colophon/sg_reposatelier.h"
 #include    "segue/colophon/sg_blossomatelier.h"
-#include    "segue/colophon/sg_bastion.h" 
+#include    "segue/colophon/sg_bastion.h"
 #include	"cove/flux/cv_cask.h"
 
 #include	<utility>
 #include	<tuple>
 
-///_____________________________________________________________________________________________________________________________ 
+///_____________________________________________________________________________________________________________________________
 
-static Cv_CmdOption     s_AnnealIfcOptions[] = 
-{         
+static Cv_CmdOption     s_AnnealIfcOptions[] =
+{
     { "-irex",      "<input>",  "input rule-file"},
     { "-ilex",      "<input>",  "input rule-file"},
     { "-g",         0,          "debug"},
@@ -33,10 +33,10 @@ static Cv_CmdOption     s_AnnealIfcOptions[] =
     { 0,            0,          0},
 };
 
-//_____________________________________________________________________________________________________________________________ 
+//_____________________________________________________________________________________________________________________________
 
 class Sg_AnealCmdProcessor : public Cv_CmdExecutor
-{ 
+{
     std::string         m_LexInputFile;
     std::string         m_RexInputFile;
     std::string         m_DataFile;
@@ -49,13 +49,13 @@ class Sg_AnealCmdProcessor : public Cv_CmdExecutor
     std::string         m_OutputFile;
 
 public:
-    Sg_AnealCmdProcessor( void)  
+    Sg_AnealCmdProcessor( void)
         :  m_DebugFlg( false)
     {}
 
     int     Execute( void);
     int     Test(void);
- 
+
 
     bool    ParseArg( const std::string &key, const std::string &arg)
     {
@@ -73,17 +73,17 @@ public:
         {
             m_DebugFlg = true;
             return true;
-        }  
+        }
         if ("-delem" == key)
         {
             m_ElemDotFile = arg;
             return true;
-        }  
+        }
         if ("-dshard" == key)
         {
             m_ShardDotFile = arg;
             return true;
-        }  
+        }
         if ("-ddfa" == key)
         {
             m_DfaDotFile = arg;
@@ -103,7 +103,7 @@ public:
         {
             m_DataFile = arg;
             return true;
-        }  
+        }
         if ("-oimg" == key)
         {
             m_ImgFile = arg;
@@ -114,12 +114,12 @@ public:
 };
 
 
-//_____________________________________________________________________________________________________________________________ 
- 
+//_____________________________________________________________________________________________________________________________
+
 CV_CMD_DEFINE( Sg_AnealCmdProcessor, "anneal", "anneal", s_AnnealIfcOptions)
 
 using namespace Sg_Timbre;
-using namespace Sg_RExp; 
+using namespace Sg_RExp;
 
 class TestX
 {
@@ -134,30 +134,30 @@ public:
     void    Dump( std::ostream &ostr)
     {
         return;
-    } 
+    }
 
     friend std::ostream &operator<<( std::ostream &ostr, const RExpQuanta &TestX)
     {
         return ostr;
-    } 
+    }
 };
 
 template < typename TimbreShard>
 auto ProcessMatch( TimbreShard *shard, int k = 0) ->   decltype( std::declval<TimbreShard>().Dump( std::declval<std::ostream>()))
-{         
+{
     return ;
 }
- 
+
 template < typename TimbreShard>
 auto ProcessMatch( TimbreShard *shard, ...) -> void
-{         
+{
     return ;
 }
 
-//_____________________________________________________________________________________________________________________________ 
+//_____________________________________________________________________________________________________________________________
 
 int     Sg_AnealCmdProcessor::Test(void)
-{ 
+{
     int32_t	    apiErrCode = 0;
    // typedef Cv_Stash< Sg_CharPartition, 256, 4>     PartitionStash;
 
@@ -175,15 +175,15 @@ int     Sg_AnealCmdProcessor::Test(void)
     bool                    posizFlg = false;
     if ( m_RexInputFile.size())
 	{
-	    bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_RexInputFile.c_str()); 
+	    bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_RexInputFile.c_str());
         if ( !res)
         {
             std::cerr << "Not Found : " << m_RexInputFile << '\n';
             return -1;
         }
     } else if ( m_LexInputFile.size())
-    { 
-        bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_LexInputFile.c_str()); 
+    {
+        bool	                res = Cv_Aid::ReadVec( memVector.CharVec(), m_LexInputFile.c_str());
         if ( !res)
         {
             std::cerr << "Not Found : " << m_LexInputFile << '\n';
@@ -192,42 +192,42 @@ int     Sg_AnealCmdProcessor::Test(void)
         posizFlg = true;
     } else
         return 0;
-    
-    
-	Parser< StrInStream>	parser( &memVector);  
+
+    memVector.DoInit();
+	Parser< StrInStream>	parser( &memVector);
     if ( m_DebugFlg)
         parser.SetLogStream( &std::cout);
     RExpRepos				rexpRepos;
     rexpRepos.m_PosixFmt = posizFlg;
-    
-    RExpDoc					rexpDoc; 
-    RExpDoc::XAct           xact( &rexpRepos); 
+
+    RExpDoc					rexpDoc;
+    RExpDoc::XAct           xact( &rexpRepos);
     apiErrCode = parser.Match( &rexpDoc, &xact) ? 0 : -1;
-    
+
     if ( m_ShardDotFile.size())
     {
         std::ofstream							ostrm( m_ShardDotFile);
-        Cv_DotStream						    synDotStrm( &ostrm, false); 
+        Cv_DotStream						    synDotStrm( &ostrm, false);
         rexpRepos.OperateAll( [&synDotStrm]( auto k, uint32_t ind ){
-            return k->WriteDot( Cv_CrateId( ind, RExpCrate::TypeOf( k)), synDotStrm); 
+            return k->WriteDot( Cv_CrateId( ind, RExpCrate::TypeOf( k)), synDotStrm);
         });
-    } 
+    }
     //std::cout << rexpRepos.m_Base.ToString() << '\n';
 
     if ( !m_ElemDotFile.size() && !m_DfaDotFile.size() && !m_ImgFile.size() && !m_DataFile.size())
         return apiErrCode;
 
     FsaElemRepos            elemRepos;
-    FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos); 
-    automReposCnstr.Process(); 
+    FsaElemReposCnstr       automReposCnstr(  &rexpRepos, &elemRepos);
+    automReposCnstr.Process();
 
     //elemRepos.Dump( std::cout);
     if ( m_ElemDotFile.size())
     {
         std::ofstream       fsaOStrm( m_ElemDotFile);
-        Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);  
+        Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);
         elemRepos.WriteDot( fsaDotStrm);
-    }  
+    }
     elemRepos.DumpStats( std::cout);
     FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
@@ -242,35 +242,35 @@ int     Sg_AnealCmdProcessor::Test(void)
     if ( m_DfaDotFile.size())
     {
         std::ofstream           fsaOStrm( m_DfaDotFile);
-        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
+        Cv_DotStream			fsaDotStrm( &fsaOStrm, true);
         dfaRepos.WriteDot( fsaDotStrm);
     }
-    
+
     if ( m_ImgFile.size())
     {
         {
-            Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim); 
-            Cv_ValidationSpritz     valSpritz( &imgSpritz); 
+            Cv_FileSpritz           imgSpritz( m_ImgFile, Cv_FileSpritz::WriteTrim);
+            Cv_ValidationSpritz     valSpritz( &imgSpritz);
 
             Cv_Aid::Save( &valSpritz, dfaRepos);
             //Cv_Aid::Save( &valSpritz, &dfaRepos.m_DistribRepos);
             bool t = true;
-        }        
-        if ( m_ImgDotFile.size()) 
+        }
+        if ( m_ImgDotFile.size())
         {
             std::vector< uint8_t>       memArr;
-            bool	                    res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str()); 
-            Sg_DfaBaseBlossomAtelier    blossomAtelier(  &memArr[ 0]);  
+            bool	                    res = Cv_Aid::ReadVec( &memArr, m_ImgFile.c_str());
+            Sg_DfaBaseBlossomAtelier    blossomAtelier(  &memArr[ 0]);
 
             std::ofstream           fsaOStrm( m_ImgDotFile.c_str());
-            Cv_DotStream			fsaDotStrm( &fsaOStrm, true);  
-            blossomAtelier.WriteDot( fsaDotStrm); 
+            Cv_DotStream			fsaDotStrm( &fsaOStrm, true);
+            blossomAtelier.WriteDot( fsaDotStrm);
         }
     }
     if ( m_DataFile.size())
     {
         StrInStream			    dataMemVector;
-        bool	                res1 = Cv_Aid::ReadVec( dataMemVector.CharVec(), m_DataFile.c_str()); 
+        bool	                res1 = Cv_Aid::ReadVec( dataMemVector.CharVec(), m_DataFile.c_str());
         if ( !res1)
         {
             std::cerr << "Not Found : " << m_DataFile << '\n';
@@ -279,40 +279,40 @@ int     Sg_AnealCmdProcessor::Test(void)
 
         typedef Cv_Array< Sg_MatchData, 256>            MatchArr;
 
-        Sg_DfaReposAtelier                              atelier( &dfaRepos);  
+        Sg_DfaReposAtelier                              atelier( &dfaRepos);
         MatchArr                                        matches;
-        Sg_Citadel< Sg_DfaReposAtelier, MatchArr>  bulwark;  
+        Sg_Citadel< Sg_DfaReposAtelier, MatchArr>  bulwark;
         bulwark.Setup( &atelier);
         bulwark.m_TokenSet = &matches;
 
-        bulwark.Play( Cv_Seq( ( uint8_t *) ( void *) &dataMemVector.CharVec()->at( 0), ( uint32_t ) dataMemVector.CharVec()->size()));
+        bulwark.Play( Cv_Seq< uint8_t>( ( uint8_t *) ( void *) &dataMemVector.CharVec()->at( 0), ( uint32_t ) dataMemVector.CharVec()->size()));
         for ( uint32_t k = 0; k < matches.SzFill(); ++k)
             std::cout << matches[ k];
         matches = MatchArr();
 
 /*        for ( uint32_t i = 0; i < dataMemVector.CharVec()->size(); ++i)
         {
-            uint8_t     chrId = atelier.ByteCode(  ); 
-            
+            uint8_t     chrId = atelier.ByteCode(  );
+
         }*/
     }
 /*
     RExpRepos				                synCrate;
 	Cv_CrateConstructor< RExpCrate>		    synCnstr( &synCrate);
 	auto								    synElem = synCnstr.FetchElemId( &rexpDoc);
-    
+
 	std::ofstream							ostrm( "b.dot");
-	Cv_DotStream						    synDotStrm( &ostrm, false); 
+	Cv_DotStream						    synDotStrm( &ostrm, false);
 	synCrate.OperateAll( [&synDotStrm]( auto k ){
-		return k->WriteDot( synDotStrm); 
+		return k->WriteDot( synDotStrm);
 	});
 	synCrate.Clear();
-	bool                    t = true; 
+	bool                    t = true;
 */
     return apiErrCode;
 }
 
-//_____________________________________________________________________________________________________________________________ 
+//_____________________________________________________________________________________________________________________________
 
 int     Sg_AnealCmdProcessor::Execute( void)
 {
@@ -331,7 +331,7 @@ int     Sg_AnealCmdProcessor::Execute( void)
     bool    a1 = a.Get( 4);
 
     int     apiErrCode = 0;
-    //AC_API_BEGIN() 
+    //AC_API_BEGIN()
 	Test();
 	/*
 	StrInStream				strInstrm( "100");
@@ -339,15 +339,15 @@ int     Sg_AnealCmdProcessor::Execute( void)
 
 	auto					lmbda = []( auto ctxt) {
 		std::cout << ctxt.MatchStr() << "\n";
-		return true;  
+		return true;
 	};
 	auto				iprs = ParseInt< >()[ lmbda];
 
-	bool					a1 = parser.Match( &iprs);      
+	bool					a1 = parser.Match( &iprs);
 	*/
     //AC_API_END()
     return apiErrCode;
 }
 
-//_____________________________________________________________________________________________________________________________ 
+//_____________________________________________________________________________________________________________________________
 

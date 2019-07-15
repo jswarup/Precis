@@ -13,7 +13,7 @@ OPTION(PR_MALLOCDBG "Build Library with Malloc Debug option" OFF)
 OPTION(PR_TRACEDBG "enable tracing" OFF) 
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-	OPTION(PR_VISUALSTUDIO "Build with visual studio" ON) 
+ 	OPTION(PR_VISUALSTUDIO "Build with visual studio" ON) 
 endif()
  
 #------------------------------------------------------------------------------------------------------------------------------

@@ -111,9 +111,9 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
         uint32_t    curr = 0;
         for ( ; dInd < szBurst;  dInd++)
         {
-            bool        rootScanFlg = (m_AtelierEaselnd++ % m_AtelierEaseSz ) == 0;
-            Datagram    *datagram = wharf.Get( dInd);  
-            Cv_Seq      dataSeq( datagram->PtrAt( 0), datagram->SzFill());
+            bool                rootScanFlg = (m_AtelierEaselnd++ % m_AtelierEaseSz ) == 0;
+            Datagram            *datagram = wharf.Get( dInd);  
+            Cv_Seq< uint8_t>    dataSeq( datagram->PtrAt( 0), datagram->SzFill());
             m_Bytes += dataSeq.Size();
             szDroppedToken += rootScanFlg ? m_Bastion.Play( dataSeq, &curr, tokenSet) :  m_Bastion.PlayScan( dataSeq, &curr, tokenSet);
             if ( wharf.IsTail()) 

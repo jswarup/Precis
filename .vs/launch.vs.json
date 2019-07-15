@@ -9,8 +9,8 @@
       "name": "precis.exe (D:\\Jyoti\\Work\\Precis\\delivery\\Windows\\bin\\precis.exe)",
       "currentDir": "D:\\Jyoti\\Work\\Precis\\workbench",
       "args": [
-        //"anneal  -irex ip1.rex -idata data1.txt -oimg ip1.fsa -odfa a.dot"
-        "atelier -idata data1.txt  -iimg ip1.fsa"
+        "anneal  -ilex ip1.lex -dshard a.dot"
+        //"atelier -idata data1.txt  -iimg ip1.fsa"
         //"atelier -idata avro1.txt -iimg ip_1m.fsa  -ca 2  -otok b.tok"
         //"anneal -ilex ip2.lex  -idata data1.txt -oimg ip2.fsa -dimg d.dot"
         //"atelier -iimg ip_1m.fsa  -idata ipdata.txt",
