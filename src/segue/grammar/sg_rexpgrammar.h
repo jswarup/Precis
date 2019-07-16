@@ -868,7 +868,7 @@ struct RExpEntry : public Shard< RExpEntry>, public RExpPrimitive
 	auto          IndexListener(void) const {
 		return [this]( auto forge) {
  		    forge->template Pred< RExpEntry>()->m_Index = forge->num;
-            std::cout << forge->num << "\n";
+            //std::cout << forge->num << "\n";
 			return true;  }; }
 
 	auto          SeqListener(void) const {
@@ -896,7 +896,7 @@ template < typename Forge>
         forge->Push();
 
         auto        docWhorl = forge->template Bottom< RExpDoc>();
-        bool        succFlg = docWhorl->m_Repos->m_PosixFmt ? !LexLine().DoMatch(forge) : !RExpLine().DoMatch(forge);
+        bool        succFlg = docWhorl->m_Repos->m_PosixFmt ? LexLine().DoMatch(forge) : RExpLine().DoMatch(forge);
 
         if ( !succFlg)
         {

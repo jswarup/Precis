@@ -18,6 +18,26 @@
 
 //_____________________________________________________________________________________________________________________________
 
+struct Sg_Tokengram 
+{
+    uint64_t                            m_Origin;
+    Cv_Array< Sg_MatchData, 4096 * 4>       m_Tokens;
+
+    Sg_Tokengram( void)
+        :  m_Origin( 0)
+    {}
+
+    void    SetOrigin( uint64_t origin)  {   m_Origin = origin; }
+
+    uint32_t            SzFill( void) const { return m_Tokens.SzFill(); }   
+    uint32_t            SzVoid( void) const { return m_Tokens.SzVoid(); }     
+    const Sg_MatchData  &At( uint32_t k) const { return m_Tokens[ k]; } 
+    void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }   
+};
+
+
+//_____________________________________________________________________________________________________________________________
+
 struct Sg_EaselVita : public Sg_BaseVita
 {
     typedef Cv_Array< uint8_t, 4096>                Datagram; 

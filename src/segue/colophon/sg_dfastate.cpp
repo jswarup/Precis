@@ -237,14 +237,14 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } /*else 
+            } else if ( szSingles < 8)    
         	{
 	            FsaDfaXByteState             *dfaState = FsaDfaXByteState::Construct( szSingles);              
 	            m_DfaRepos->StoreAt( index, dfaState); 
 	            bytes = dfaState->Bytes();
 	            dests = dfaState->Dests();
 	            doneFlg = true;
-	        }*/
+	        }
         }
         for ( uint32_t i = 0, k = 0; doneFlg && ( i < sz); ++i)
         {

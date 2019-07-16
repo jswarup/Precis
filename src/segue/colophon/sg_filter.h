@@ -369,6 +369,30 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
         : m_IdTbl( LessOp( this))
     {}
 
+    struct DfaDistrib
+    {
+        Var         m_DVar;
+        uint16_t    m_Inv;
+        uint8_t     m_MxEqClass; 
+
+        DfaDistrib( void)
+            : m_Inv( 0), m_MxEqClass( uint8_t( -1))
+        { }
+
+        DfaDistrib( Var var, uint16_t inv, uint8_t mxEqClass)
+            :   m_DVar( var), m_Inv( inv), m_MxEqClass( mxEqClass)
+        { }
+
+        uint32_t    SzDescend( void) const { return m_MxEqClass +1; }
+
+        void        Dump( std::ostream &strm, DistribRepos *dRepos)
+        {
+            std::vector< Sg_ChSet>  domain = dRepos->Domain(  m_DVar);
+            for ( uint32_t k = 0; k < SzDescend(); ++k)
+                strm << Cv_Aid::XmlEncode( domain[ k].ToString()) << ' ';  
+            strm << m_Inv; 
+        }
+    };
     struct Discr
     {
         Id          m_DId;
@@ -404,12 +428,12 @@ template < uint32_t Bits>
         {}
 
     template < typename DescendIt>
-        Discr    Map( DescendIt *filtIt)
+        DfaDistrib    ConstructDfaDistrib( DescendIt *filtIt)
         {
             typedef typename CharDistrib< Bits>::CCLImpressor   CCLImpressor;
-            
-            CharDistrib< Bits>                  distrib;
-            CCLImpressor        intersector( &distrib);
+
+            CharDistrib< Bits>                  *distrib = new CharDistrib< Bits>();
+            CCLImpressor        intersector( distrib);
 
             while ( filtIt->IsCurValid())
             { 
@@ -420,34 +444,49 @@ template < uint32_t Bits>
             intersector.Over();
             auto            invalidCCL =  intersector.ValidCCL().Negative();
             uint32_t        invRep = invalidCCL.RepIndex();
-            uint16_t        invInd = ( invRep != CV_UINT32_MAX) ? distrib.Image( invRep) : CV_UINT16_MAX; 
+            uint16_t        invInd = ( invRep != CV_UINT32_MAX) ? distrib->Image( invRep) : CV_UINT16_MAX; 
+            DfaDistrib      dfaDistrib( Var( distrib, DistribCrate::TypeOf( distrib)), invInd, uint8_t( distrib->SzImage() -1)); 
+            return dfaDistrib;
+        }
+
+    template < typename DescendIt>
+        Discr    Map( DescendIt *filtIt)
+        {
+              
             Discr           discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1)); 
             return discr;
         }
     };  
   
 template < typename DescendIt>
-    Discr  FetchDiscr( DescendIt *filtit)
+    DfaDistrib     ConstructDfaDistrib( DescendIt *filtit)
     { 
         uint32_t    szImg = m_Base.SzImage();
         if ( szImg <= 8)  
-            return DiscrHelper< 8>( this).Map( filtit);                                  
+            return DiscrHelper< 8>( this).ConstructDfaDistrib( filtit);                                  
 
         if ( szImg <= 16)  
-            return DiscrHelper< 16>( this).Map( filtit);                                  
+            return DiscrHelper< 16>( this).ConstructDfaDistrib( filtit);                                  
         
         if ( szImg <= 32)                                      
-            return DiscrHelper< 32>( this).Map( filtit);                                  
+            return DiscrHelper< 32>( this).ConstructDfaDistrib( filtit);                                  
 
         if ( szImg <= 64)  
-            return DiscrHelper< 64>( this).Map( filtit);                                  
+            return DiscrHelper< 64>( this).ConstructDfaDistrib( filtit);                                  
 
         if ( szImg <= 128)                                     
-            return DiscrHelper< 128>( this).Map( filtit);                                  
+            return DiscrHelper< 128>( this).ConstructDfaDistrib( filtit);                                  
 
-        return DiscrHelper< 256>( this).Map( filtit);                                  
+        return DiscrHelper< 256>( this).ConstructDfaDistrib( filtit);                                  
     }
 
+template < typename DescendIt>
+    Discr  FetchDiscr( DescendIt *filtit)
+    {
+        DfaDistrib   dDist = ConstructDfaDistrib( filtit);
+        Discr        discr = dDist.m_DVar( [&dDist, this]( auto distrib) {  return Discr(  Store( *distrib), dDist.m_Inv, dDist.m_MxEqClass); });;
+        return discr;
+    }
 
 template < uint32_t Bits>
     struct DescendHelper
@@ -510,10 +549,9 @@ template < typename Elem>
             return Base::ToVar( id); 
         return m_TVar;
     }
-
-    std::vector< Sg_ChSet>  Domain( Id dId)
-    {
-        DistribCrate::Var       dVar = ToVar( dId);
+    
+    std::vector< Sg_ChSet>  Domain( Var dVar)
+    { 
         std::vector< Sg_ChSet>  domain = dVar( [this]( auto dist) {
             typedef decltype(dist)  Distrib;
             auto                    distDomain = dist->Domain();
@@ -523,6 +561,8 @@ template < typename Elem>
             return dom; } );
         return domain;
     }
+
+    std::vector< Sg_ChSet>  Domain( Id dId) { return Domain( ToVar( dId)); }
    
     auto    SingleChars( Id dId, uint16_t invInd)
     {

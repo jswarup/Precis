@@ -12,10 +12,7 @@ struct Cv_Typeitem
 
 template < typename Crate>
 struct	Cv_Var 
-{
-
-
-
+{  
 	typedef typename Crate::TypeStor	TypeStor;
     typedef typename Crate::Entry		Entry;   
 
