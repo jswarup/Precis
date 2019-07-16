@@ -148,13 +148,12 @@ struct FsaSupState  : public FsaState
         return act;
     } 
 
-    void                    DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr);
-
+    void                    DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr); 
 
     bool                    WriteDot( Id id, void *fsaRepos, Cv_DotStream &strm) 
     { 
         strm << id.GetTypeChar() << id.GetId() << " [ shape=oval";
-        strm << " color=purple label= <<FONT>" << id.GetTypeChar() << id.GetId() << "<BR />" << "<BR />" ; 
+        strm << " color=purple label= <<FONT>" << id.GetTypeChar() << id.GetId(); 
         strm << " </FONT>>];\n "; 
   
         Cv_Seq< FsaId>     subStates = SubStates(); 
@@ -242,6 +241,8 @@ struct FsaSupState  : public FsaState
         
         void        FetchFilterElems( void);
 
+        void        Classify( uint32_t lev, const CharDistribBase &distrib, uint16_t inv) {} 
+
     template < uint32_t BitSz> 
         void        Classify( uint32_t lev, const CharDistrib< BitSz> &distrib, uint16_t inv)
         {   
@@ -277,8 +278,8 @@ private:
     uint8_t                 m_TokSz;   
     uint16_t                m_Inv;
     
-    FsaDfaState( const DistribRepos::Discr &discr, uint8_t tokSz) 
-        : m_DId( discr.m_DId), m_MxEqClass( discr.m_MxEqClass),  m_TokSz( tokSz), m_Inv( discr.m_Inv)
+    FsaDfaState( Id dId, uint16_t inv, uint8_t mxClass, uint8_t tokSz) 
+        : m_DId( dId), m_MxEqClass( mxClass),  m_TokSz( tokSz), m_Inv( inv)
     {}
 
 public:
@@ -297,12 +298,12 @@ public:
     uint8_t                 *PastPtr( void) { return reinterpret_cast< uint8_t *>( this) +sizeof( FsaDfaState); }
 
 
-    static FsaDfaState      *Construct( const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
+    static FsaDfaState      *Construct( Id dId, uint16_t inv, uint8_t mxClass, Action *action, const Cv_Array< uint32_t, 256> &destArr)
     {
-        uint32_t            sz = discr.SzDescend();
+        uint32_t            sz = uint32_t( mxClass) +1;;
         uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;
         auto                memSz = sizeof( FsaDfaState) + sz * sizeof( FsaId) +  szTok * sizeof( uint64_t);
-        FsaDfaState         *dfaState = new ( new uint8_t[ memSz]) FsaDfaState( discr, szTok); 
+        FsaDfaState         *dfaState = new ( new uint8_t[ memSz]) FsaDfaState( dId, inv, mxClass, szTok); 
         for ( uint32_t k = 0; k < sz; ++k) 
             dfaState->SetDest( k, Id( destArr[ k], 0)); 
         uint64_t            *toks = dfaState->Tokens().Ptr();
@@ -344,7 +345,9 @@ template < class Atelier>
             strm << "box color=green";
         else
             strm << "ellipse color=Red";
-        strm << " label= <<FONT> " << id.GetTypeChar() << id.GetId() << "<BR />" <<   "<BR />" ;
+        strm << " label= <<FONT> " << id.GetTypeChar() << id.GetId();
+        if ( m_TokSz)
+            strm << "<BR />";
         for ( uint32_t i = 0; i < m_TokSz; ++i)
             strm << " T" << toks[ i];
         strm << " </FONT>>];\n "; 
@@ -699,7 +702,7 @@ struct  FsaDfaCnstr
     void        SubsetConstruction( void);
     bool        DumpDot( const char *path);
 
-    void        ConstructDfaStateAt( uint32_t index, const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr);
+    void        ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &distrib, Action *action, const Cv_Array< uint32_t, 256> &destArr);
 };
 
 

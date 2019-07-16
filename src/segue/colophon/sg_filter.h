@@ -392,31 +392,7 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
                 strm << Cv_Aid::XmlEncode( domain[ k].ToString()) << ' ';  
             strm << m_Inv; 
         }
-    };
-    struct Discr
-    {
-        Id          m_DId;
-        uint16_t    m_Inv;
-        uint8_t     m_MxEqClass; 
-
-        Discr( void)
-            : m_Inv( 0), m_MxEqClass( uint8_t( -1))
-        { }
-
-        Discr( Id id, uint16_t inv, uint8_t mxEqClass)
-            :   m_DId( id), m_Inv( inv), m_MxEqClass( mxEqClass)
-        { }
-
-        uint32_t    SzDescend( void) const { return m_MxEqClass +1; }
-        
-        void        Dump( std::ostream &strm, DistribRepos *dRepos)
-        {
-            std::vector< Sg_ChSet>  domain = dRepos->Domain(  m_DId);
-            for ( uint32_t k = 0; k < SzDescend(); ++k)
-                strm << Cv_Aid::XmlEncode( domain[ k].ToString()) << ' ';  
-            strm << m_Inv; 
-        }
-    };
+    }; 
   
 template < uint32_t Bits>
     struct DiscrHelper
@@ -448,14 +424,7 @@ template < uint32_t Bits>
             DfaDistrib      dfaDistrib( Var( distrib, DistribCrate::TypeOf( distrib)), invInd, uint8_t( distrib->SzImage() -1)); 
             return dfaDistrib;
         }
-
-    template < typename DescendIt>
-        Discr    Map( DescendIt *filtIt)
-        {
-              
-            Discr           discr( m_DRepos->Store( distrib), invInd, uint8_t( distrib.SzImage() -1)); 
-            return discr;
-        }
+ 
     };  
   
 template < typename DescendIt>
@@ -479,57 +448,22 @@ template < typename DescendIt>
 
         return DiscrHelper< 256>( this).ConstructDfaDistrib( filtit);                                  
     }
-
-template < typename DescendIt>
-    Discr  FetchDiscr( DescendIt *filtit)
+ 
+    Id  StoreDistrib( const Var &dVar)
     {
-        DfaDistrib   dDist = ConstructDfaDistrib( filtit);
-        Discr        discr = dDist.m_DVar( [&dDist, this]( auto distrib) {  return Discr(  Store( *distrib), dDist.m_Inv, dDist.m_MxEqClass); });;
-        return discr;
+        return dVar( [ this]( auto distrib) {  return  Store( *distrib); });
     }
+ 
 
-template < uint32_t Bits>
-    struct DescendHelper
-    {
-        DistribRepos        *m_DRepos;
-
-        DescendHelper( DistribRepos *dRepos)
-            : m_DRepos( dRepos)
-        {}
-
-    template < typename CnstrIt>
-        void    Map( uint32_t level, Discr discr,  CnstrIt *cnstrIt)
-        {
-            CV_ERROR_ASSERT( discr.m_DId.GetType() == DistribCrate::TypeOf< CharDistrib< Bits>>())
-            const CharDistrib< Bits>    *distrib = static_cast< const CharDistrib< Bits> *>( m_DRepos->ToVar( discr.m_DId).GetEntry());
-            cnstrIt->Classify( level, *distrib, discr.m_Inv); 
-            return;
-        }
-    };
-
-template < typename CnstrIt>
-    void    Classify( uint32_t level, Discr discr, CnstrIt *cnstrIt) 
+template < typename CnstrIt> 
+    void    Classify( uint32_t level, const DfaDistrib  &dDist, CnstrIt *cnstrIt) 
     { 
-        uint32_t    szImg = m_Base.SzImage();
-        if ( szImg <= 8)  
-            return DescendHelper< 8>( this).Map( level, discr, cnstrIt);                                  
-
-        if ( szImg <= 16)  
-            return DescendHelper< 16>( this).Map( level, discr, cnstrIt);                                  
-
-        if ( szImg <= 32)                                      
-            return DescendHelper< 32>( this).Map( level, discr, cnstrIt);                                  
-
-        if ( szImg <= 64)  
-            return DescendHelper< 64>( this).Map( level, discr, cnstrIt);                                  
-
-        if ( szImg <= 128)                                     
-            return DescendHelper< 128>( this).Map( level, discr, cnstrIt);                                  
-
-        return DescendHelper< 256>( this).Map( level, discr, cnstrIt);                                  
-    }
-    
-
+        uint16_t    inv = dDist.m_Inv;
+        dDist.m_DVar( [ cnstrIt, level, inv]( auto distrib) {
+                cnstrIt->Classify( level, *distrib, inv); 
+            } );
+    }   
+ 
 template < typename Elem>
     Id          Store(  Elem &&elm) 
     {
@@ -564,29 +498,28 @@ template < typename Elem>
 
     std::vector< Sg_ChSet>  Domain( Id dId) { return Domain( ToVar( dId)); }
    
-    auto    SingleChars( Id dId, uint16_t invInd)
-    {
-        DistribCrate::Var           dVar = ToVar( dId);
+    auto    SingleChars( Var dVar, uint16_t invInd)
+    { 
         return   dVar( [this, invInd]( auto dist) { 
-                uint32_t                    szSingle = 0;
-                auto                        distDomain = dist->Domain(); 
-                Cv_Array< uint16_t, 256>    uniList;
-                std::fill_n( &uniList[ 0], distDomain.size(), CV_UINT16_MAX);
-                uniList.MarkFill( uint32_t( distDomain.size()));
-                for ( uint16_t  i = 0; i < distDomain.size(); ++i)
+            uint32_t                    szSingle = 0;
+            auto                        distDomain = dist->Domain(); 
+            Cv_Array< uint16_t, 256>    uniList;
+            std::fill_n( &uniList[ 0], distDomain.size(), CV_UINT16_MAX);
+            uniList.MarkFill( uint32_t( distDomain.size()));
+            for ( uint16_t  i = 0; i < distDomain.size(); ++i)
+            {
+                if ( invInd != i)
                 {
-                    if ( invInd != i)
+                    uint8_t         pcnt = distDomain[ i].PopCount();
+                    if ( pcnt == 1)
                     {
-                        uint8_t         pcnt = distDomain[ i].PopCount();
-                        if ( pcnt == 1)
-                        {
-                            uniList[ i] = distDomain[ i].Index( true);
-                            szSingle++;
-                        }
+                        uniList[ i] = distDomain[ i].Index( true);
+                        szSingle++;
                     }
                 }
-                return std::make_tuple( szSingle, uniList); 
-            } ); 
+            }
+            return std::make_tuple( szSingle, uniList); 
+        } ); 
     } 
  
     Sg_ChSet        ChSet( uint8_t byteCode)

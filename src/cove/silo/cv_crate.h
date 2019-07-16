@@ -33,6 +33,8 @@ struct	Cv_Var
 template < typename Element>    
     Element         *Elem( void) { return m_Type == Crate::template TypeOf< Element>() ? static_cast<Element *>( m_Entry) : NULL; }
 
+    void            Delete( void) { SELF( [] ( auto obj) { delete obj; }); }
+   
     operator        bool( void) const { return !!m_Entry; }
     auto            operator->( void) { return m_Entry; }
 

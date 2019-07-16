@@ -41,25 +41,26 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
 { 
     FsaDfaRepos                     *dfaRepos = dfaCnstr->m_DfaRepos;
     FsaElemRepos                    *elemRepos = dfaCnstr->m_ElemRepos;
-    Cv_Seq< FsaId>                 subStates = SubStates();
+    Cv_Seq< FsaId>                  subStates = SubStates();
     if ( !subStates.Size())
     {
         dfaRepos->Destroy( supId.GetId());
         return;
     } 
-    DescendIt               descIt( elemRepos, dfaRepos, this);
+    DescendIt                   descIt( elemRepos, dfaRepos, this);
 
-    DistribRepos::Discr     discr =  dfaRepos->m_DistribRepos.FetchDiscr( &descIt); 
-    //discr.Dump( std::cout, &dfaRepos->m_DistribRepos);
-    descIt.DoSetup( discr.SzDescend(), m_Level +1); 
+    DistribRepos::DfaDistrib    dDist = dfaRepos->m_DistribRepos.ConstructDfaDistrib( &descIt); 
+
+    dDist.Dump( std::cout, &dfaRepos->m_DistribRepos);
+    descIt.DoSetup( dDist.SzDescend(), m_Level +1); 
     
-    dfaRepos->m_DistribRepos.Classify( m_Level, discr, &descIt);   
+    dfaRepos->m_DistribRepos.Classify( m_Level, dDist, &descIt);   
     
     Action                  *action = DetachAction();  
 
     m_DfaStateMap->Insert( this, supId.GetId());
     Cv_Array< uint32_t, 256>        destArr;
-    for ( uint32_t k = 0; k < discr.SzDescend(); ++k)
+    for ( uint32_t k = 0; k < dDist.SzDescend(); ++k)
     {
         FsaSupState                 *subSupState = descIt.m_SubSupStates[ k];
         subSupState->Freeze();
@@ -83,8 +84,9 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
-    dfaCnstr->ConstructDfaStateAt( supId.GetId(), discr, action, destArr);   
+    dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr);   
     //m_DfaStateMap.Purge();
+    dDist.m_DVar.Delete();
     return;
 }
 
@@ -194,20 +196,20 @@ void    FsaDfaCnstr::SubsetConstruction( void)
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Discr &discr, Action *action, const Cv_Array< uint32_t, 256> &destArr)
+void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &dDistrib, Action *action, const Cv_Array< uint32_t, 256> &destArr)
 {
-    uint32_t            sz = discr.SzDescend();
+    uint32_t            sz = dDistrib.SzDescend();
     uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;    
     bool                doneFlg = false;
     if ( !doneFlg && !szTok)
     { 
         uint32_t                    szSingles = 0;
         Cv_Array< uint16_t, 256>    byteValues;
-        std::tie( szSingles, byteValues) = m_DfaRepos->m_DistribRepos.SingleChars( discr.m_DId, discr.m_Inv);  
+        std::tie( szSingles, byteValues) = m_DfaRepos->m_DistribRepos.SingleChars( dDistrib.m_DVar, dDistrib.m_Inv);  
         
         Cv_Seq< uint8_t>       bytes;
         Cv_Seq< FsaId>         dests;
-        if ( true && ( sz == ( szSingles + ( discr.m_Inv != CV_UINT16_MAX))))
+        if ( szSingles && ( sz == ( szSingles + ( dDistrib.m_Inv != CV_UINT16_MAX))))
         {
             if ( szSingles == 1)    
             {
@@ -258,7 +260,8 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Di
     }
     if ( !doneFlg)
     {
-        FsaDfaState             *dfaState = FsaDfaState::Construct( discr, action, destArr);  
+        DistribRepos::Id        dId = m_DfaRepos->m_DistribRepos.StoreDistrib( dDistrib.m_DVar); 
+        FsaDfaState             *dfaState = FsaDfaState::Construct( dId, dDistrib.m_Inv, dDistrib.m_MxEqClass, action, destArr);  
         m_DfaRepos->StoreAt( index, dfaState); 
     }
     return;
