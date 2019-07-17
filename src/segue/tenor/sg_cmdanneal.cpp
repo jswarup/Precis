@@ -228,7 +228,7 @@ int     Sg_AnealCmdProcessor::Test(void)
         Cv_DotStream	    fsaDotStrm( &fsaOStrm, true);
         elemRepos.WriteDot( fsaDotStrm);
     }
-    elemRepos.DumpStats( std::cout);
+    //elemRepos.DumpStats( std::cout);
     FsaDfaRepos             dfaRepos;
     FsaDfaCnstr             dfaCnstr( &elemRepos, &dfaRepos);
 
@@ -236,7 +236,7 @@ int     Sg_AnealCmdProcessor::Test(void)
         return apiErrCode;
 
     dfaCnstr.SubsetConstruction();
-    dfaRepos.DumpStats( std::cout);
+    //dfaRepos.DumpStats( std::cout);
     dfaRepos.m_DistribRepos.Dump( std::cout);
 
     if ( m_DfaDotFile.size())

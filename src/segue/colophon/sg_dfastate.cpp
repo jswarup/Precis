@@ -51,7 +51,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
 
     DistribRepos::DfaDistrib    dDist = dfaRepos->m_DistribRepos.ConstructDfaDistrib( &descIt); 
 
-    dDist.Dump( std::cout, &dfaRepos->m_DistribRepos);
+    //dDist.Dump( std::cout, &dfaRepos->m_DistribRepos);
     descIt.DoSetup( dDist.SzDescend(), m_Level +1); 
     
     dfaRepos->m_DistribRepos.Classify( m_Level, dDist, &descIt);   
