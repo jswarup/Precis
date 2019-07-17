@@ -16,37 +16,23 @@
 #include    <utility>
 #include    <tuple> 
 
-//_____________________________________________________________________________________________________________________________
-
-struct Sg_Tokengram 
-{
-    uint64_t                            m_Origin;
-    Cv_Array< Sg_MatchData, 4096 * 4>       m_Tokens;
-
-    Sg_Tokengram( void)
-        :  m_Origin( 0)
-    {}
-
-    void    SetOrigin( uint64_t origin)  {   m_Origin = origin; }
-
-    uint32_t            SzFill( void) const { return m_Tokens.SzFill(); }   
-    uint32_t            SzVoid( void) const { return m_Tokens.SzVoid(); }     
-    const Sg_MatchData  &At( uint32_t k) const { return m_Tokens[ k]; } 
-    void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }   
-};
-
 
 //_____________________________________________________________________________________________________________________________
 
 struct Sg_EaselVita : public Sg_BaseVita
 {
-    typedef Cv_Array< uint8_t, 4096>                Datagram; 
-    typedef Sg_DataSink< Datagram, 64, 1024, 1024>  OutPort; 
-    typedef Sg_DataSource< OutPort>                 InPort;
+    enum {
+        SzData = 2048,
+        SzCarousal = 4096
+    };
+
+    typedef Cv_Array< uint8_t, SzData>                          Datagram; 
+    typedef Sg_DataSink< Datagram, 64, SzCarousal, SzCarousal>  OutPort; 
+    typedef Sg_DataSource< OutPort>                             InPort;
     
-    typedef Sg_Tokengram                            TokenGram;
-    typedef Sg_DataSink< TokenGram, 64, 1024, 1024> OutTokPort; 
-    typedef Sg_DataSource< OutTokPort>              InTokPort;
+    typedef Sg_TokenArray< SzData * 4>                          TokenGram;
+    typedef Sg_DataSink< TokenGram, 64, SzCarousal, SzCarousal>             OutTokPort; 
+    typedef Sg_DataSource< OutTokPort>                          InTokPort;
 
     std::string                                     m_ImgFile;
     std::string                                     m_InputFile;

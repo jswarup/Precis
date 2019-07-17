@@ -31,6 +31,26 @@ template < uint32_t Sz>
 
 //_____________________________________________________________________________________________________________________________
 
+template < uint32_t Sz>
+struct Sg_TokenArray
+{
+    uint64_t                            m_Origin;
+    Cv_Array< Sg_MatchData, Sz>         m_Tokens;
+
+    Sg_TokenArray( void)
+        :  m_Origin( 0)
+    {}
+
+    void    SetOrigin( uint64_t origin)  {   m_Origin = origin; }
+
+    uint32_t            SzFill( void) const { return m_Tokens.SzFill(); }   
+    uint32_t            SzVoid( void) const { return m_Tokens.SzVoid(); }     
+    const Sg_MatchData  &At( uint32_t k) const { return m_Tokens[ k]; } 
+    void                Append( const Sg_MatchData &x) { m_Tokens.Append( x); }   
+};
+
+//_____________________________________________________________________________________________________________________________
+
 struct Sg_Parapet
 {
     FsaClip         m_CurState;
@@ -210,8 +230,7 @@ public:
 
 template < typename Atelier, typename TokenGram>
     uint32_t        ScanCycle( Atelier *atelier, TokenGram  *tokenSet, uint32_t curr, const Cv_Seq< uint8_t> &chrs, uint32_t sz)
-    {
-        std::array< uint8_t, Sz>        allocInds;
+    { 
         uint16_t                        szAlloc = 0;
         uint32_t                        szDroppedToken = 0;
         for ( uint16_t  q = 0; q < m_AllocSz; ++q)
@@ -231,13 +250,12 @@ template < typename Atelier, typename TokenGram>
             }
             if ( nxStateId.IsValid())
             {
-                allocInds[ szAlloc++] = ( uint8_t) ind;  
+                m_AllocInds[ szAlloc++] = ( uint8_t) ind;  
                 SetState( ind, nxStateId);
             }
             else
                 MarkFree( ind);
-        }
-        std::copy( &allocInds[ 0],  &allocInds[ szAlloc],  &m_AllocInds[ 0]);
+        } 
         m_AllocSz = szAlloc;
         return szDroppedToken;
     }
@@ -267,16 +285,7 @@ struct Sg_Bastion
 
 template <  typename TokenGram>
     auto            ScanRoot(  TokenGram  *tokenSet, uint32_t rootInd, const Cv_Seq< uint8_t> &chrs, uint32_t curr, uint32_t *pLen, uint32_t *pSzDroppedToken)
-    { 
-        /*      uint32_t            i = 0; 
-        FsaDfaRepos::Id     nxStateId;
-        for ( ;  !nxStateId.IsValid() && i < chrs.Size(); ++i)
-            nxStateId = m_DfaAtelier->AdvanceRoot( chrs[ i]); 
-
-        *pLen = i;
-        if ( !nxStateId.IsValid())
-            return false;
- */
+    {          
         uint32_t            &i = *pLen; 
         FsaDfaRepos::Id     nxStateId = m_DfaAtelier->AdvanceRoot(  chrs, &i);
         if ( !nxStateId.IsValid())

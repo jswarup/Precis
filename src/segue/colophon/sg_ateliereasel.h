@@ -102,6 +102,7 @@ struct Sg_AtelierEasel : public Sg_WorkEasel< Sg_AtelierEasel< Vita, Atelier>, V
             tokWharf.SetSize( 0);
             return;
         }  
+        
         uint32_t    dInd = 0;
         uint32_t    tokInd = 0; 
         uint32_t    szDroppedToken = 0;
