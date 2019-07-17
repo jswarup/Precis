@@ -232,14 +232,42 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Df
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } else if ( szSingles == 4)    
+            }  else if ( szSingles == 4)   
             {
                 FsaDfaByteState< 4>             *dfaState = FsaDfaByteState< 4>::Construct();              
                 m_DfaRepos->StoreAt( index, dfaState); 
                 bytes = dfaState->Bytes();
                 dests = dfaState->Dests();
                 doneFlg = true;
-            } else if ( szSingles < 8)    
+            } else if ( szSingles == 5)    
+            {
+                FsaDfaByteState< 5>             *dfaState = FsaDfaByteState< 5>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            }  else if ( szSingles == 6)    
+            {
+                FsaDfaByteState< 6>             *dfaState = FsaDfaByteState< 6>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            }  else if ( szSingles == 7)    
+            {
+                FsaDfaByteState< 7>             *dfaState = FsaDfaByteState< 7>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            }  else if ( szSingles == 8)    
+            {
+                FsaDfaByteState< 8>             *dfaState = FsaDfaByteState< 8>::Construct();              
+                m_DfaRepos->StoreAt( index, dfaState); 
+                bytes = dfaState->Bytes();
+                dests = dfaState->Dests();
+                doneFlg = true;
+            }     else if ( szSingles < 8)    
         	{
 	            FsaDfaXByteState             *dfaState = FsaDfaXByteState::Construct( szSingles);              
 	            m_DfaRepos->StoreAt( index, dfaState); 

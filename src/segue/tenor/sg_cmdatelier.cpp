@@ -30,7 +30,7 @@ struct Sg_EaselVita : public Sg_BaseVita
     typedef Sg_DataSink< Datagram, 64, SzCarousal, SzCarousal>  OutPort; 
     typedef Sg_DataSource< OutPort>                             InPort;
     
-    typedef Sg_TokenArray< SzData * 4>                          TokenGram;
+    typedef Sg_TokenArray< SzData * 8>                          TokenGram;
     typedef Sg_DataSink< TokenGram, 64, SzCarousal, SzCarousal>             OutTokPort; 
     typedef Sg_DataSource< OutTokPort>                          InTokPort;
 
