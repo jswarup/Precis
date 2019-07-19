@@ -696,7 +696,7 @@ struct  FsaDfaCnstr
         : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_SupDfaCltn( this)
     {
         dfaRepos->m_ElemRepos = elemRepos;
-        dfaRepos->m_DistribRepos.m_Base = elemRepos->m_FilterRepos.m_Base;
+        dfaRepos->m_DistribRepos.SetBaseDistrib( elemRepos->m_FilterRepos.BaseDistrib());
     }
 
     void        SubsetConstruction( void);

@@ -73,7 +73,7 @@ struct FsaElemReposCnstr
     { 
         m_Cnstrs.push_back( NULL);
         m_ElemRepos->m_RuleIdSzList.resize( m_RexpRepos->m_RuleSz, 0);
-        m_ElemRepos->m_FilterRepos.m_Base = rexpRepos->m_Base;
+        m_ElemRepos->m_FilterRepos.SetBaseDistrib(  rexpRepos->m_Base);
     } 
 
     ElemSlot   ConstructCnstr( void)

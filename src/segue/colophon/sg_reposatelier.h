@@ -28,13 +28,13 @@ struct Sg_DfaReposAtelier
 
     FsaCrate::Var           VarFromId( const FsaDfaRepos::Id &id) const { return m_DfaRepos->ToVar( id ); }
     
-    uint8_t                 ByteCode( uint8_t chr ) const  { return m_DfaRepos->m_DistribRepos.m_Base.Image( chr); }
+    uint8_t                 ByteCode( uint8_t chr ) const  { return m_DfaRepos->m_DistribRepos.BaseDistrib().Image( chr); }
 
-    Sg_ChSet                ChSet( uint8_t byteCode) const { return m_DfaRepos->m_DistribRepos.m_Base.ChSet( byteCode); }
+    Sg_ChSet                ChSet( uint8_t byteCode) const { return m_DfaRepos->m_DistribRepos.BaseDistrib().ChSet( byteCode); }
 
     Sg_ChSet                ChSetFromImage( const DistribCrate::Var &distrib, uint8_t imgCode) const 
     { 
-        Sg_Partition    *baseDist = &m_DfaRepos->m_DistribRepos.m_Base;
+        const Sg_Partition    *baseDist = &m_DfaRepos->m_DistribRepos.BaseDistrib();
         return distrib( [imgCode, baseDist]( auto dist) { 
             return baseDist->XForm( dist->ChSet( imgCode)); 
         }); 

@@ -143,14 +143,23 @@ template < uint32_t N>
         } 
     };
 
+private:
     std::set< Id, LessOp>       m_IdTbl; 
     FilterCrate::Var            m_TVar;
     Sg_Partition                m_Base;
- 
+    uint16_t                    m_SzImg;
+
+public:
     FilterRepos( void) 
-        : m_IdTbl( LessOp( this))
+        : m_IdTbl( LessOp( this)), m_SzImg( 0)
     {}
-       
+
+    const Sg_Partition          &BaseDistrib( void) const { return m_Base; }
+    void                        SetBaseDistrib( const Sg_Partition &base) 
+    { 
+        m_Base = base; 
+        m_SzImg = m_Base.SzImage();
+    } 
 
     FilterCrate::Var    ToVar( const Id &id)  
     {  
@@ -174,17 +183,16 @@ template < typename Elem>
     }
     
     Id  FetchId( const Sg_ChSet &chSet)
-    {
-        uint32_t    szImg = m_Base.SzImage();
-        if ( szImg <= 8)                                       
+    { 
+        if ( m_SzImg <= 8)                                       
             return Store( BitsetMapper< 8>( &m_Base).Map( chSet));  
-        if ( szImg <= 16)                                      
+        if ( m_SzImg <= 16)                                      
             return Store( BitsetMapper< 16>( &m_Base).Map( chSet));  
-        if ( szImg <= 32)                                      
+        if ( m_SzImg <= 32)                                      
             return Store( BitsetMapper< 32>( &m_Base).Map( chSet));  
-        if ( szImg <= 64)                                      
+        if ( m_SzImg <= 64)                                      
             return Store( BitsetMapper< 64>( &m_Base).Map( chSet));  
-        if ( szImg <= 128)                                     
+        if ( m_SzImg <= 128)                                     
             return Store( BitsetMapper< 128>( &m_Base).Map( chSet));  
         return Store( ChSetFilter< 256>( chSet)); 
     }
@@ -360,15 +368,25 @@ struct DistribRepos  : public Cv_CratePile< DistribCrate>
         } 
     };
 
-
+private:
     std::set< Id, LessOp>       m_IdTbl; 
     DistribCrate::Var           m_TVar;
     Sg_Partition                m_Base; 
+    uint16_t                    m_SzImg;
 
+public:
     DistribRepos( void) 
-        : m_IdTbl( LessOp( this))
+        : m_IdTbl( LessOp( this)), m_SzImg( 0)
     {}
 
+
+    const Sg_Partition          &BaseDistrib( void) const { return m_Base; }
+
+    void                        SetBaseDistrib( const Sg_Partition &base) 
+    { 
+        m_Base = base; 
+        m_SzImg = m_Base.SzImage();
+    } 
     struct DfaDistrib
     {
         Var         m_DVar;
@@ -429,21 +447,20 @@ template < uint32_t Bits>
   
 template < typename DescendIt>
     DfaDistrib     ConstructDfaDistrib( DescendIt *filtit)
-    { 
-        uint32_t    szImg = m_Base.SzImage();
-        if ( szImg <= 8)  
+    {  
+        if ( m_SzImg <= 8)  
             return DiscrHelper< 8>( this).ConstructDfaDistrib( filtit);                                  
 
-        if ( szImg <= 16)  
+        if ( m_SzImg <= 16)  
             return DiscrHelper< 16>( this).ConstructDfaDistrib( filtit);                                  
         
-        if ( szImg <= 32)                                      
+        if ( m_SzImg <= 32)                                      
             return DiscrHelper< 32>( this).ConstructDfaDistrib( filtit);                                  
 
-        if ( szImg <= 64)  
+        if ( m_SzImg <= 64)  
             return DiscrHelper< 64>( this).ConstructDfaDistrib( filtit);                                  
 
-        if ( szImg <= 128)                                     
+        if ( m_SzImg <= 128)                                     
             return DiscrHelper< 128>( this).ConstructDfaDistrib( filtit);                                  
 
         return DiscrHelper< 256>( this).ConstructDfaDistrib( filtit);                                  

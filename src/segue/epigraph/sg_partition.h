@@ -25,7 +25,7 @@ template < uint32_t SzChBits>
 class Sg_CharPartition  
 {
 protected:
-    uint8_t        m_MxEqClass;
+    //uint8_t        m_MxEqClass;
     uint8_t        m_EqClassIds[  SzChBits];         
     
 public: 
@@ -37,13 +37,20 @@ public:
     uint8_t         Image( uint16_t t) const {  return m_EqClassIds[ t]; }
     void            SetImage( uint32_t k, uint8_t grId) {  m_EqClassIds[ k] = grId; }
 
-    uint32_t        SzImage( void) const { return uint32_t( m_MxEqClass) +1; }
-    void            SetSzImage( uint32_t sz) { m_MxEqClass = uint8_t( sz -1); }
+    uint32_t        SzImage( void) const 
+    {
+        uint8_t    mxEq = 0;
+        for ( uint32_t i = 0; i < SzChBits; i++)  
+            if ( mxEq < m_EqClassIds[ i] )
+                mxEq = m_EqClassIds[ i];
+        return uint32_t( mxEq) +1; 
+    }
+    //void            SetSzImage( uint32_t sz) { /* m_MxEqClass = uint8_t( sz -1) */; }
 
     // k is Representative if not instance of same Equivalence class is encountered before.
     bool            IsRep( uint32_t k) const            
     {
-        for ( uint8_t i = 0; i < k; i++)  
+        for ( uint32_t i = 0; i < k; i++)  
             if ( m_EqClassIds[ i] == m_EqClassIds[ k])
                 return false; 
         return true;
@@ -51,14 +58,14 @@ public:
 
     int32_t         Compare( const Sg_CharPartition &cd) const
     {
-        if  ( m_MxEqClass != cd.m_MxEqClass)
-            return m_MxEqClass < cd.m_MxEqClass ? -1 : 1;
+       // if  ( m_MxEqClass != cd.m_MxEqClass)
+       //     return m_MxEqClass < cd.m_MxEqClass ? -1 : 1;
         return memcmp ( m_EqClassIds, cd.m_EqClassIds, sizeof( m_EqClassIds));
     }
     
     void            MergeClass( uint8_t eq1, uint8_t eq2)
     {
-        CV_ERROR_ASSERT(( eq1 != eq2) && ( eq1 < eq2) && ( eq2 <= m_MxEqClass))
+        //CV_ERROR_ASSERT(( eq1 != eq2) && ( eq1 < eq2) && ( eq2 <= m_MxEqClass))
         for ( uint32_t i = 0; i < SzChBits; i++) 
         {
             if ( m_EqClassIds[ i] < eq2)
@@ -68,13 +75,13 @@ public:
             else
                 --m_EqClassIds[ i];
         }
-        --m_MxEqClass;
+        //--m_MxEqClass;
         return;
     }
 
     void            MakeUniversal( void)
     {
-        m_MxEqClass = 0;
+        // m_MxEqClass = 0;
         for ( uint32_t i = 0; i < SzChBits; i++) 
             m_EqClassIds[ i] = 0;
         return;
@@ -82,8 +89,8 @@ public:
 
     void            MakeDiscrete(  void)
     {  
-        m_MxEqClass = uint8_t( SzChBits -1);
-        for ( uint16_t i = 0; i < SzChBits; i++) 
+        //m_MxEqClass = uint8_t( SzChBits -1);
+        for ( uint32_t i = 0; i < SzChBits; i++) 
             m_EqClassIds[ i] = i;
         return;
     }
@@ -93,7 +100,7 @@ public:
         std::bitset< SzChBits>          eqClassEnc;              // whether a equivalence class was encountered
         std::bitset< SzChBits>          eqClassInCCL;            // whether a equivalence class is in CCL
 
-        for ( uint16_t i = 0; i < SzChBits; ++i) 
+        for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
             uint32_t            curEC = m_EqClassIds[ i];
             bool                curCCL = ccl.Get( i);
@@ -116,7 +123,7 @@ public:
         std::bitset< SzChBits>          eqClassInCCL;            // whether a equivalence class is in CCL
         Cv_Array< uint8_t, SzChBits>    ImgIndices;
 
-        for ( uint16_t i = 0; i < SzChBits; ++i) 
+        for ( uint32_t i = 0; i < SzChBits; ++i) 
         {
             bool                curCCL = ccl.Get( i);
             if ( !curCCL)
@@ -134,7 +141,7 @@ public:
     Bitset    EqClassCCL( uint8_t grId) const 
     {
         Bitset      ccl;
-        for ( uint16_t i = 0; i < SzChBits; ++i) 
+        for ( uint32_t i = 0; i < SzChBits; ++i) 
             if ( grId ==  m_EqClassIds[ i])
                 ccl.Set( i, true);
         return ccl;
@@ -164,7 +171,7 @@ public:
             }
             m_EqClassIds[ i] = grId;          
         }
-        m_MxEqClass = grId;
+        // m_MxEqClass = grId;
         return;
     }
 
@@ -206,9 +213,13 @@ public:
 
     std::vector< Bitset >    Domain( void) const
     {
-        std::vector< Bitset>    ccls( SzImage());
-        for ( uint16_t i = 0; i < SzChBits; ++i) 
+        std::vector< Bitset>    ccls;
+        for ( uint32_t i = 0; i < SzChBits; ++i) 
+        {
+            if ( !( m_EqClassIds[ i] < ccls.size()))
+                ccls.resize( m_EqClassIds[ i] +1);
             ccls[ m_EqClassIds[ i] ].SetChar( i);
+        }
 
         return ccls;
     }
@@ -255,7 +266,7 @@ template < uint32_t  TSz>
             uint8_t                     grMap[ SzChBits << N];                   // keep a map if the group has been encountered.
             
             uint8_t     mxId = -1;
-            for ( uint16_t i = 0; i < SzChBits; ++i) 
+            for ( uint32_t i = 0; i < SzChBits; ++i) 
             {
                 uint8_t     *pEqClassId = &distrib->m_EqClassIds[ i]; 
                 uint64_t    eqClassCode = ( uint64_t( *pEqClassId) << N) | EqClassCode< N>( i);     
@@ -268,7 +279,7 @@ template < uint32_t  TSz>
                 }
                 *pEqClassId = *pGrId;     
             }
-            distrib->m_MxEqClass = mxId;
+            //distrib->m_MxEqClass = mxId;
             return;
         }
     }; 
@@ -337,7 +348,6 @@ template < typename FilterIt>
 template < uint32_t N>
     Sg_Bitset< N>     Map( const Bitset &chSet) 
     { 
-        CV_ERROR_ASSERT( N >= SzImage())
         Sg_Bitset< N>     mappedFilt;
         for ( uint32_t i = 0; i < Bitset::SzChBits; ++i)
             if ( chSet.Get( i))
@@ -348,7 +358,7 @@ template < uint32_t N>
     bool                Dump( std::ostream &ostr, uint32_t lev = 0)
     {
         ostr << "[ ";   
-        for ( uint8_t i = 0; i < SzChBits; i++)  
+        for ( uint32_t i = 0; i < SzChBits; i++)  
         {
             ostr << uint32_t( m_EqClassIds[ i]);
             if ( i != SzChBits)
