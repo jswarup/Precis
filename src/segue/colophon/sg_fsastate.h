@@ -24,8 +24,8 @@ template < uint32_t Sz>
 struct    FsaDfaByteState;
 struct    FsaDfaXByteState;
 struct    FsaDfaCnstr;
-struct    FsaDfaStateMap;
-struct    FsaDfaStateMapCltn;
+struct    FsaRuleLump;
+struct    FsaRuleLumpRepos;
 
 typedef Cv_Crate< FsaDfaXByteState, FsaDfaByteState< 8>, FsaDfaByteState< 7>, FsaDfaByteState< 6>, FsaDfaByteState< 5>, FsaDfaByteState< 4>, FsaDfaByteState< 3>, FsaDfaByteState< 2>, FsaDfaByteState< 1>, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 

@@ -354,4 +354,26 @@ template < class Anchor, typename Method>
 };
 
 //_____________________________________________________________________________________________________________________________ 
+
+template < typename X>
+struct Cv_AuxRepos
+{
+    std::vector< X>     m_AuxData;
+    
+    Cv_AuxRepos( void)
+    {
+        m_AuxData.resize( 1);
+    }
+
+    X       *Fetch( uint32_t id)
+    {
+        if ( id >= m_AuxData.size())
+            m_AuxData.resize( id +1);
+        return &m_AuxData[ id];
+    } 
+    
+    X       *At( uint32_t id) { return &m_AuxData[ id];} 
+};
+
+//_____________________________________________________________________________________________________________________________ 
  

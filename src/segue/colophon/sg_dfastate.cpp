@@ -58,7 +58,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
     
     Action                  *action = DetachAction();  
 
-    m_DfaStateMap->Insert( this, supId.GetId());
+    dfaCnstr->m_SupDfaCltn.Insert( this, supId.GetId());
     Cv_Array< uint32_t, 256>        destArr;
     for ( uint32_t k = 0; k < dDist.SzDescend(); ++k)
     {
@@ -70,8 +70,8 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
             delete subSupState;
             continue;
         }
-        Cv_Slot< FsaDfaStateMap>    dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
-        uint32_t                    ind = dfaStateMap->Find( subSupState);
+        FsaRuleLump                 *dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
+        uint32_t                    ind = dfaCnstr->m_SupDfaCltn.Find( subSupState);
         if ( ind != CV_UINT32_MAX)
         { 
             destArr.Append( ind);  
@@ -80,7 +80,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         }
 
         auto            subId = dfaRepos->Store( subSupState);
-        subSupState->m_DfaStateMap = dfaStateMap;
+        subSupState->m_RuleLumpId = dfaStateMap->GetId();
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
@@ -89,21 +89,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
     dDist.m_DVar.Delete();
     return;
 }
-
-
-//_____________________________________________________________________________________________________________________________
-
-FsaDfaStateMap::~FsaDfaStateMap( void)
-{
-    if ( m_Cltn)
-    {
-        m_Cltn->Erase( this);
-        FsaRepos    *dfaRepos = m_Cltn->m_DfaCnstr->m_DfaRepos;
-        for ( auto it = m_SupDfaMap.begin(); it != m_SupDfaMap.end(); ++it) 
-            delete it->first; 
-    }
-}
-
+ 
 //_____________________________________________________________________________________________________________________________
 
 bool FsaDfaState::CleanupDestIds( FsaRepos *dfaRepos)
@@ -176,7 +162,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     FsaSupState     *supRootState = new FsaSupState( 0);
     FsaId           rootId = m_DfaRepos->Store( supRootState); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
-    supRootState->m_DfaStateMap = m_SupDfaCltn.Locate( m_ElemRepos, supRootState);
+    supRootState->m_RuleLumpId = m_SupDfaCltn.Locate( m_ElemRepos, supRootState)->GetId();
     m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {
