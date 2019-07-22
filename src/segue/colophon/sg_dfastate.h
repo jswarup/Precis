@@ -77,7 +77,7 @@ struct  FsaDfaRepos  : public FsaRepos
 
 struct FsaSupState  : public FsaState
 {   
-    Cv_Slot< FsaRuleLump>        m_DfaStateMap;
+    FsaRuleLump                     *m_RuleLump;
     std::vector< FsaId>             m_SubStates;  
     Action                          *m_Action; 
     uint32_t                        m_Level;
@@ -612,19 +612,17 @@ struct FsaClip  : public FsaCrate::Var
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  FsaRuleLump : public Cv_ReposEntry, public Cv_Shared
-{   
-    typedef std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >     SupDfaMap;
-
-    FsaRuleLumpSet          *m_LumpSet; 
-    std::set< uint32_t>     m_Ruleset;
-    SupDfaMap               m_SupDfaIdMap;
+struct  FsaRuleLump : public Cv_ReposEntry 
+{    
+    std::vector< uint32_t>                                  m_Ruleset;
+    std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >  m_SupDfaIdMap;
 
     FsaRuleLump(  const std::set< uint32_t> &ruleset)
-        : m_LumpSet( NULL), m_Ruleset( ruleset)
+        : m_Ruleset( ruleset.begin(), ruleset.end())
     {}
 
-    ~FsaRuleLump( void);
+    ~FsaRuleLump( void)
+    {}
 
     int32_t                 Compare( const FsaRuleLump &dsMap) const
     {
@@ -666,26 +664,26 @@ struct  FsaRuleLump : public Cv_ReposEntry, public Cv_Shared
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  FsaRuleLumpSet
+struct  FsaRuleLumpSet : public Cv_Repos< FsaRuleLump>
 { 
-    std::set< FsaRuleLump *, Cv_TPtrLess< void> >       m_Maps;
+    std::set< FsaRuleLump *, Cv_TPtrLess< void> >       m_LumpSet;
 
     FsaRuleLumpSet( FsaDfaCnstr *cnstr) 
     {}
 
     void    Erase( FsaRuleLump  *dsMap)
     {
-        m_Maps.erase( dsMap);
+        m_LumpSet.erase( dsMap);
     }
 
-    Cv_Slot< FsaRuleLump>    Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
+    FsaRuleLump     *Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
     {
         FsaRuleLump     *dfaStatemap = new FsaRuleLump( supState->RuleIds( elemRepos));
-        auto            it =  m_Maps.lower_bound( dfaStatemap);
-        if (( it == m_Maps.end())  || m_Maps.key_comp()( dfaStatemap, *it))
+        auto            it =  m_LumpSet.lower_bound( dfaStatemap);
+        if (( it == m_LumpSet.end())  || m_LumpSet.key_comp()( dfaStatemap, *it))
         {   
-            m_Maps.insert( it, dfaStatemap);
-            dfaStatemap->m_LumpSet = this;         
+            m_LumpSet.insert( it, dfaStatemap);
+            Store( dfaStatemap);        
             return dfaStatemap;
         }
         delete dfaStatemap;
@@ -693,7 +691,7 @@ struct  FsaRuleLumpSet
     } 
     bool            Dump( std::ostream &ostr) 
     { 
-        for ( auto it = m_Maps.begin(); it != m_Maps.end(); ++it)
+        for ( auto it = m_LumpSet.begin(); it != m_LumpSet.end(); ++it)
         {
             FsaRuleLump     *si = *it;  
             si->Dump( ostr);
