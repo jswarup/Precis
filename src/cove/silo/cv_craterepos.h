@@ -271,15 +271,15 @@ template<  class Object>
     }
 
 template<  class Object>
-    Id    StoreAt( uint32_t ind, Object *x)
+    Var    StoreAt( uint32_t ind, Object *x)
     {
         TypeStor	typeVal = Crate::TypeOf( x); 
-        Id   id;
+        Var         elemVar;
         if ( m_Elems[ ind])
-            id = Id( ind, m_Types[ ind]);
+            elemVar = Var( m_Elems[ ind], m_Types[ ind]);
         m_Elems[ ind] = x; 
         m_Types[ ind] = typeVal; 
-        return id;
+        return elemVar;
     }
 
 template<  class Object>

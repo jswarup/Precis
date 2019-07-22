@@ -237,8 +237,8 @@ int     Sg_AnealCmdProcessor::Test(void)
 
     dfaCnstr.SubsetConstruction();
     //dfaRepos.DumpStats( std::cout);
-    dfaRepos.m_DistribRepos.Dump( std::cout);
-
+    //dfaRepos.m_DistribRepos.Dump( std::cout);
+    dfaCnstr.m_RuleLumpRepos.Dump(  std::cout);
     if ( m_DfaDotFile.size())
     {
         std::ofstream           fsaOStrm( m_DfaDotFile);

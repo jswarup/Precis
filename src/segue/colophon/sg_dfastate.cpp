@@ -58,7 +58,7 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
     
     Action                  *action = DetachAction();  
 
-    dfaCnstr->m_SupDfaCltn.Insert( this, supId.GetId());
+    dfaCnstr->m_RuleLumpRepos.Insert( this, supId.GetId());
     Cv_Array< uint32_t, 256>        destArr;
     for ( uint32_t k = 0; k < dDist.SzDescend(); ++k)
     {
@@ -70,8 +70,8 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
             delete subSupState;
             continue;
         }
-        FsaRuleLump                 *dfaStateMap =  dfaCnstr->m_SupDfaCltn.Locate( elemRepos, subSupState);
-        uint32_t                    ind = dfaCnstr->m_SupDfaCltn.Find( subSupState);
+        FsaRuleLump                 *dfaStateMap =  dfaCnstr->m_RuleLumpRepos.Locate( elemRepos, subSupState);
+        uint32_t                    ind = dfaCnstr->m_RuleLumpRepos.Find( subSupState);
         if ( ind != CV_UINT32_MAX)
         { 
             destArr.Append( ind);  
@@ -162,7 +162,8 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     FsaSupState     *supRootState = new FsaSupState( 0);
     FsaId           rootId = m_DfaRepos->Store( supRootState); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
-    supRootState->m_RuleLumpId = m_SupDfaCltn.Locate( m_ElemRepos, supRootState)->GetId();
+    supRootState->m_RuleLumpId = m_RuleLumpRepos.Locate( m_ElemRepos, supRootState)->GetId(); 
+
     m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {
@@ -276,7 +277,8 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Df
     {
         DistribRepos::Id        dId = m_DfaRepos->m_DistribRepos.StoreDistrib( dDistrib.m_DVar); 
         FsaDfaState             *dfaState = FsaDfaState::Construct( dId, dDistrib.m_Inv, dDistrib.m_MxEqClass, action, destArr);  
-        m_DfaRepos->StoreAt( index, dfaState); 
+        FsaCrate::Var           supState = m_DfaRepos->StoreAt( index, dfaState); 
+        supState.Delete();
     }
     return;
 }
