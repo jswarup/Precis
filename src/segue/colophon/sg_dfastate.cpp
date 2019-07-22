@@ -81,11 +81,15 @@ void    FsaSupState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
 
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_RuleLump = ruleLump;
+        subSupState->m_RuleLump->RaiseRef(); 
         destArr.Append( subId.GetId()); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
     dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr);   
-    //m_RuleLump.Purge();
+    if ( !m_RuleLump->LowerRef())
+    {
+    //    dfaCnstr->m_RuleLumpSet.Destroy( m_RuleLump->GetId());
+    }
     dDist.m_DVar.Delete();
     return;
 } 
@@ -163,6 +167,8 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     FsaId           rootId = m_DfaRepos->Store( supRootState); 
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     supRootState->m_RuleLump = m_RuleLumpSet.Locate( m_ElemRepos, supRootState);
+    supRootState->m_RuleLump->RaiseRef();
+
     m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {

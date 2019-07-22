@@ -612,7 +612,7 @@ struct FsaClip  : public FsaCrate::Var
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  FsaRuleLump : public Cv_ReposEntry 
+struct  FsaRuleLump : public Cv_ReposEntry, public Cv_Shared
 {    
     std::vector< uint32_t>                                  m_Ruleset;
     std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >  m_SupDfaIdMap;
@@ -623,6 +623,12 @@ struct  FsaRuleLump : public Cv_ReposEntry
 
     ~FsaRuleLump( void)
     {}
+    
+    void    Purge( void)
+    {
+        for ( auto it = m_SupDfaIdMap.begin(); it != m_SupDfaIdMap.end(); ++it)
+            delete it->first;
+    }
 
     int32_t                 Compare( const FsaRuleLump &dsMap) const
     {
@@ -678,17 +684,18 @@ struct  FsaRuleLumpSet : public Cv_Repos< FsaRuleLump>
 
     FsaRuleLump     *Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
     {
-        FsaRuleLump     *dfaStatemap = new FsaRuleLump( supState->RuleIds( elemRepos));
-        auto            it =  m_LumpSet.lower_bound( dfaStatemap);
-        if (( it == m_LumpSet.end())  || m_LumpSet.key_comp()( dfaStatemap, *it))
+        FsaRuleLump     *ruleLump = new FsaRuleLump( supState->RuleIds( elemRepos));
+        auto            it =  m_LumpSet.lower_bound( ruleLump);
+        if (( it == m_LumpSet.end())  || m_LumpSet.key_comp()( ruleLump, *it))
         {   
-            m_LumpSet.insert( it, dfaStatemap);
-            Store( dfaStatemap);        
-            return dfaStatemap;
+            m_LumpSet.insert( it, ruleLump);
+            Store( ruleLump);        
+            return ruleLump;
         }
-        delete dfaStatemap;
+        delete ruleLump;
         return *it;           
     } 
+
     bool            Dump( std::ostream &ostr) 
     { 
         for ( auto it = m_LumpSet.begin(); it != m_LumpSet.end(); ++it)
