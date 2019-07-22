@@ -77,13 +77,13 @@ struct  FsaDfaRepos  : public FsaRepos
 
 struct FsaSupState  : public FsaState
 {   
-    uint32_t                        m_RuleLumpId;
+    Cv_Slot< FsaRuleLump>        m_DfaStateMap;
     std::vector< FsaId>             m_SubStates;  
     Action                          *m_Action; 
     uint32_t                        m_Level;
 
     FsaSupState( uint32_t level)
-        : m_RuleLumpId( 0), m_Action( NULL), m_Level( level)
+        : m_Action( NULL), m_Level( level)
     {}
 
     ~FsaSupState( void)
@@ -492,6 +492,7 @@ template < class Atelier>
         }
     };
 };
+
  
 
 //_____________________________________________________________________________________________________________________________ 
@@ -611,32 +612,20 @@ struct FsaClip  : public FsaCrate::Var
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct FsaNfaSet :  std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >
-{
-    void                    Insert(  FsaSupState *supState, uint32_t stateId)
-    {
-        insert( std::make_pair( supState, stateId));
-    }
+struct  FsaRuleLump : public Cv_ReposEntry, public Cv_Shared
+{   
+    typedef std::map< FsaSupState*, uint32_t, Cv_TPtrLess< void> >     SupDfaMap;
 
-    uint32_t    Find( FsaSupState *supState)
-    {
-        auto            it = find( supState);
-        if ( it != end())
-            return it->second;
-        return CV_UINT32_MAX;
-    }
-};
-
-//_____________________________________________________________________________________________________________________________ 
-
-struct  FsaRuleLump : public Cv_ReposEntry 
-{    
-    std::vector< uint32_t>      m_Ruleset;
+    FsaRuleLumpSet          *m_LumpSet; 
+    std::set< uint32_t>     m_Ruleset;
+    SupDfaMap               m_SupDfaIdMap;
 
     FsaRuleLump(  const std::set< uint32_t> &ruleset)
-        :  m_Ruleset( ruleset.begin(), ruleset.end())
+        : m_LumpSet( NULL), m_Ruleset( ruleset)
     {}
-  
+
+    ~FsaRuleLump( void);
+
     int32_t                 Compare( const FsaRuleLump &dsMap) const
     {
         if ( m_Ruleset.size() != dsMap.m_Ruleset.size())
@@ -645,9 +634,23 @@ struct  FsaRuleLump : public Cv_ReposEntry
             if ( *it1 != *it2)
                 return *it1 < *it2  ? 1 : -1;
         return 0;
-    }    
+    }   
 
-    bool            Dump( std::ostream &ostr) 
+    void                    Register(  FsaSupState *supState, uint32_t stateId)
+    {
+        m_SupDfaIdMap.insert( std::make_pair( supState, stateId));
+    }
+
+    uint32_t                Find( FsaSupState *supState)
+    {
+        auto            it = m_SupDfaIdMap.find( supState);
+        if ( it != m_SupDfaIdMap.end())
+            return it->second;
+        return CV_UINT32_MAX;
+    }
+	
+	
+    bool                    Dump( std::ostream &ostr) 
     {
         ostr << "[ ";  
         for ( auto it = m_Ruleset.begin(); it != m_Ruleset.end(); )
@@ -659,61 +662,44 @@ struct  FsaRuleLump : public Cv_ReposEntry
         ostr << "]\n";  
         return true; 
     }
-};  
+};
 
 //_____________________________________________________________________________________________________________________________ 
 
-struct  FsaRuleLumpRepos : public Cv_Repos< FsaRuleLump>
-{
-    Cv_AuxRepos< FsaNfaSet>                             m_NfaMapRepos;     
+struct  FsaRuleLumpSet
+{ 
     std::set< FsaRuleLump *, Cv_TPtrLess< void> >       m_Maps;
 
-    FsaRuleLumpRepos( FsaDfaCnstr *cnstr) 
+    FsaRuleLumpSet( FsaDfaCnstr *cnstr) 
     {}
 
-    void            Erase( FsaRuleLump  *dsMap)
+    void    Erase( FsaRuleLump  *dsMap)
     {
-        FsaNfaSet   *nfaSet = m_NfaMapRepos.At( dsMap->GetId());
-        for ( auto it = nfaSet->begin(); it != nfaSet->end(); ++it) 
-            delete it->first;
         m_Maps.erase( dsMap);
     }
 
-    FsaRuleLump     *Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
+    Cv_Slot< FsaRuleLump>    Locate( FsaElemRepos *elemRepos, FsaSupState *supState)
     {
         FsaRuleLump     *dfaStatemap = new FsaRuleLump( supState->RuleIds( elemRepos));
         auto            it =  m_Maps.lower_bound( dfaStatemap);
         if (( it == m_Maps.end())  || m_Maps.key_comp()( dfaStatemap, *it))
         {   
             m_Maps.insert( it, dfaStatemap);
-            Store( dfaStatemap);          
+            dfaStatemap->m_LumpSet = this;         
             return dfaStatemap;
         }
         delete dfaStatemap;
         return *it;           
-    }
-
-    void            Insert(  FsaSupState *supState, uint32_t stateId)
-    {
-        m_NfaMapRepos.Fetch( supState->m_RuleLumpId)->Insert( supState, stateId);
     } 
-
-    uint32_t        Find( FsaSupState *supState)
-    {
-        return m_NfaMapRepos.Fetch( supState->m_RuleLumpId)->Find( supState);
-    }
-
     bool            Dump( std::ostream &ostr) 
     { 
-        for ( uint32_t i = 0; i < Size(); ++i)
+        for ( auto it = m_Maps.begin(); it != m_Maps.end(); ++it)
         {
-            FsaRuleLump     *si = m_Elems[ i]; 
-            if ( si)
-                si->Dump( ostr);
+            FsaRuleLump     *si = *it;  
+            si->Dump( ostr);
         }
         return true;
     }
-
 };
 
 //_____________________________________________________________________________________________________________________________ 
@@ -725,10 +711,10 @@ struct  FsaDfaCnstr
     FsaElemRepos                        *m_ElemRepos; 
     FsaDfaRepos                         *m_DfaRepos;               
     std::vector< FsaId>                 m_FsaStk;
-    FsaRuleLumpRepos                    m_RuleLumpRepos;
+    FsaRuleLumpSet                      m_RuleLumpSet;
 
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)
-        : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_RuleLumpRepos( this)
+        : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_RuleLumpSet( this)
     {
         dfaRepos->m_ElemRepos = elemRepos;
         dfaRepos->m_DistribRepos.SetBaseDistrib( elemRepos->m_FilterRepos.BaseDistrib());

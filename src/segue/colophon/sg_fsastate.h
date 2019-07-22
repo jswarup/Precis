@@ -25,7 +25,7 @@ struct    FsaDfaByteState;
 struct    FsaDfaXByteState;
 struct    FsaDfaCnstr;
 struct    FsaRuleLump;
-struct    FsaRuleLumpRepos;
+struct    FsaRuleLumpSet;
 
 typedef Cv_Crate< FsaDfaXByteState, FsaDfaByteState< 8>, FsaDfaByteState< 7>, FsaDfaByteState< 6>, FsaDfaByteState< 5>, FsaDfaByteState< 4>, FsaDfaByteState< 3>, FsaDfaByteState< 2>, FsaDfaByteState< 1>, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
 
