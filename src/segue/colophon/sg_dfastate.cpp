@@ -80,6 +80,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     supRootState->m_SubStates.push_back( m_ElemRepos->m_RootId);
     FsaRuleLump     *ruleLump = m_RuleLumpSet.Locate( m_ElemRepos, supRootState);
     supRootState->m_RuleLump = ruleLump;
+    ruleLump->Register( supRootState, rootId.GetId());
     ruleLump->m_ActiveRef.RaiseRef();
 
     m_FsaStk.push_back( rootId);
@@ -101,7 +102,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &dDistrib, Action *action, const Cv_Array< uint32_t, 256> &destArr)
+void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &dDistrib, Action *action, const Cv_Array< FsaId, 256> &destArr)
 {
     uint32_t            sz = dDistrib.SzDescend();
     uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;    
@@ -187,7 +188,7 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Df
                 continue;
             
             bytes[ k] = uint8_t( byteValues[ i]);
-            dests[ k] = FsaId( destArr[ i], 0);
+            dests[ k] = destArr[ i];
             ++k;
         }
     }

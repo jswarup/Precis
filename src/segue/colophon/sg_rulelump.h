@@ -82,6 +82,8 @@ struct  FsaRuleLumpSet : public Cv_Repos< FsaRuleLump>
 
     FsaRuleLump     *Locate( FsaElemRepos *elemRepos, FsaCfaState *supState)
     {
+        if ( IsAt( 1))
+            return At( 1);
         FsaRuleLump     *ruleLump = new FsaRuleLump( supState->RuleIds( elemRepos));
         auto            it =  m_LumpSet.lower_bound( ruleLump);
         if (( it == m_LumpSet.end())  || m_LumpSet.key_comp()( ruleLump, *it))

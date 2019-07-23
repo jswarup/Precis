@@ -57,17 +57,16 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
 
     dfaRepos->m_DistribRepos.Classify( m_Level, dDist, &descIt);   
 
-    Action                  *action = DetachAction();  
-
-    m_RuleLump->Register( this, supId.GetId());
-    Cv_Array< uint32_t, 256>        destArr;
+    Action                      *action = DetachAction();   
+    
+    Cv_Array< FsaId, 256>       destArr;
     for ( uint32_t k = 0; k < dDist.SzDescend(); ++k)
     {
         FsaCfaState                 *subSupState = descIt.m_SubSupStates[ k];
         subSupState->Freeze();
         if ( ! subSupState->SubStates().Size())
         {
-            destArr.Append( 0); 
+            destArr.Append( FsaId()); 
             delete subSupState;
             continue;
         }
@@ -75,15 +74,16 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         uint32_t                    ind = ruleLump->Find( subSupState);
         if ( ind != CV_UINT32_MAX)
         { 
-            destArr.Append( ind);  
+            destArr.Append( dfaRepos->GetId( ind));  
             delete subSupState;
             continue;
         }
 
         auto            subId = dfaRepos->Store( subSupState);
         subSupState->m_RuleLump = ruleLump;
+        ruleLump->Register( subSupState, subId.GetId());
         ruleLump->m_ActiveRef.RaiseRef(); 
-        destArr.Append( subId.GetId()); 
+        destArr.Append( subId ); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
     dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr);   
