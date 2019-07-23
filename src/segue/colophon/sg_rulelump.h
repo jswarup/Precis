@@ -20,9 +20,6 @@ struct  FsaRuleLump : public Cv_ReposEntry
     {}
 
     ~FsaRuleLump( void)
-    {}
-
-    void    Purge( void)
     {
         for ( auto it = m_SupDfaIdMap.begin(); it != m_SupDfaIdMap.end(); ++it)
             delete it->first;

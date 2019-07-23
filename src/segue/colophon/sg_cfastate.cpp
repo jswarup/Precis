@@ -87,10 +87,8 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
     dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr);   
-    if ( !m_RuleLump->m_ActiveRef.LowerRef())
-    {
-        //dfaCnstr->m_RuleLumpSet.Destroy( m_RuleLump->GetId());
-    }
+    if ( !m_RuleLump->m_ActiveRef.LowerRef()) 
+        dfaCnstr->m_RuleLumpSet.Destroy( m_RuleLump->GetId()); 
     dDist.m_DVar.Delete();
     return;
 } 
