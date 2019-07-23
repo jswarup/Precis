@@ -18,7 +18,7 @@ namespace Sg_RExp
 struct    FsaRepos;
 struct    FsaState;
 struct    FsaElem;
-struct    FsaSupState;
+struct    FsaCfaState;
 struct     FsaDfaState;
 template < uint32_t Sz>
 struct    FsaDfaByteState;
@@ -27,7 +27,7 @@ struct    FsaDfaCnstr;
 struct    FsaRuleLump;
 struct    FsaRuleLumpSet;
 
-typedef Cv_Crate< FsaDfaXByteState, FsaDfaByteState< 8>, FsaDfaByteState< 7>, FsaDfaByteState< 6>, FsaDfaByteState< 5>, FsaDfaByteState< 4>, FsaDfaByteState< 3>, FsaDfaByteState< 2>, FsaDfaByteState< 1>, FsaDfaState, FsaSupState, FsaElem, FsaState>              FsaCrate;  
+typedef Cv_Crate< FsaDfaXByteState, FsaDfaByteState< 8>, FsaDfaByteState< 7>, FsaDfaByteState< 6>, FsaDfaByteState< 5>, FsaDfaByteState< 4>, FsaDfaByteState< 3>, FsaDfaByteState< 2>, FsaDfaByteState< 1>, FsaDfaState, FsaCfaState, FsaElem, FsaState>              FsaCrate;  
 
 //_____________________________________________________________________________________________________________________________ 
 
