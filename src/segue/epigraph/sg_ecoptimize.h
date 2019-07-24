@@ -2,17 +2,17 @@
 #pragma once
  
 #include    "cove/silo/cv_repos.h"
-#include    "segue/epigraph/sg_distrib.h" 
+#include    "segue/epigraph/sg_spine.h" 
 
 //_____________________________________________________________________________________________________________________________ 
 
 class Sg_ECDistribSteward : public Cv_ReposEntry
 {
-    Sg_ECDistrib            *m_ECDistrib;           // utimately we will have updated it.
-    Sg_BaseDistrib          *m_Base;                // current base
+    Sg_ECSpine            *m_ECDistrib;           // utimately we will have updated it.
+    Sg_BaseSpine          *m_Base;                // current base
     uint16_t                m_ImgSize;              // what is size of its image, least destinations to be encoded. Computational Intensive => save 
-    Sg_CharDistrib          m_CharDistrib;          // our current partition
-    Sg_BaseDistrib         *m_DreamBase;
+    Sg_CharSpine          m_CharDistrib;          // our current partition
+    Sg_BaseSpine         *m_DreamBase;
     uint16_t                m_WasteOnDream;
     
 public:
@@ -26,13 +26,13 @@ public:
             m_WasteOnDream( CV_UINT16_MAX)
     {}
     
-    void    Init( Sg_ECDistrib *ecd, Sg_BaseDistrib *base);
+    void    Init( Sg_ECSpine *ecd, Sg_BaseSpine *base);
 
-    Sg_CharDistrib          *CharDistrib( void) { return &m_CharDistrib; }
-    Sg_BaseDistrib          *CurrentBase( void) const { return m_Base; }
-    Sg_BaseDistrib          *DreamBase( void) const { return m_DreamBase; }
+    Sg_CharSpine          *CharDistrib( void) { return &m_CharDistrib; }
+    Sg_BaseSpine          *CurrentBase( void) const { return m_Base; }
+    Sg_BaseSpine          *DreamBase( void) const { return m_DreamBase; }
 
-    void            UpdateDream( Sg_BaseDistrib *base);
+    void            UpdateDream( Sg_BaseSpine *base);
     void            RecomputeJiltedBase( void);
     uint32_t        CurrentCost( void) const { return ( m_Base->SzImage()  * m_ECDistrib->SzRef()); }
     uint32_t        BestCost( void) const { return ( m_ImgSize  * m_ECDistrib->SzRef()); }
@@ -51,7 +51,7 @@ public:
         }
     };
 
-    void            Migrate( Sg_BaseDistrib *sBase);
+    void            Migrate( Sg_BaseSpine *sBase);
     bool            TestAndMigrateToDream( void);
     void            SwitchECBase( void);
 };
@@ -60,7 +60,7 @@ public:
 
 class Sg_ECTableOptimize
 {
-    std::vector< Sg_BaseDistrib*>           m_BaseDistribs;
+    std::vector< Sg_BaseSpine*>           m_BaseDistribs;
     std::vector< Sg_ECDistribSteward *>     m_ECStewards;
 
 public:
@@ -76,9 +76,9 @@ public:
     bool            OptimizeOnce( uint32_t round);
     void            DoOptimize( uint32_t SzBlut);
     void            DoOptimizeFull( uint32_t SzBlut);
-    void            Seed( const std::vector< Sg_ECDistrib *> &flexECs);
+    void            Seed( const std::vector< Sg_ECSpine *> &flexECs);
     
-    const std::vector< Sg_BaseDistrib*> &BaseDistribs( void) const { return m_BaseDistribs; }
+    const std::vector< Sg_BaseSpine*> &BaseDistribs( void) const { return m_BaseDistribs; }
 
 };
 //_____________________________________________________________________________________________________________________________ 

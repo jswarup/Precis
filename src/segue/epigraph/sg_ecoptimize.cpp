@@ -6,7 +6,7 @@
   
 //_____________________________________________________________________________________________________________________________ 
 
-void Sg_ECDistribSteward::Init( Sg_ECDistrib *ecd, Sg_BaseDistrib *base)
+void Sg_ECDistribSteward::Init( Sg_ECSpine *ecd, Sg_BaseSpine *base)
 {
     m_ECDistrib = ecd; 
     m_Base = base;
@@ -20,7 +20,7 @@ void Sg_ECDistribSteward::Init( Sg_ECDistrib *ecd, Sg_BaseDistrib *base)
 //_____________________________________________________________________________________________________________________________ 
 // this base changed, how am it affected
 
-void    Sg_ECDistribSteward::UpdateDream( Sg_BaseDistrib *base)
+void    Sg_ECDistribSteward::UpdateDream( Sg_BaseSpine *base)
 {
     if (( base == m_Base) || m_ECDistrib->IsLock())
         return;
@@ -32,7 +32,7 @@ void    Sg_ECDistribSteward::UpdateDream( Sg_BaseDistrib *base)
             return;
     }
 
-    Sg_CharDistrib          dist( m_CharDistrib.Impression( *base));
+    Sg_CharSpine          dist( m_CharDistrib.Impression( *base));
 
     uint32_t    wasteOnBase =  ( dist.SzImage() -m_ImgSize) * m_ECDistrib->SzRef();
     if ( wasteOnBase < m_WasteOnDream)
@@ -55,7 +55,7 @@ void    Sg_ECDistribSteward::RecomputeJiltedBase( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_ECDistribSteward::Migrate( Sg_BaseDistrib *sBase)
+void    Sg_ECDistribSteward::Migrate( Sg_BaseSpine *sBase)
 {
     CV_ERROR_ASSERT( m_DreamBase == sBase)
     sBase->ImpressWith( m_CharDistrib);
@@ -111,9 +111,9 @@ Sg_ECTableOptimize::~Sg_ECTableOptimize( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_ECTableOptimize::Seed( const std::vector< Sg_ECDistrib *> &flexECs)
+void    Sg_ECTableOptimize::Seed( const std::vector< Sg_ECSpine *> &flexECs)
 {
-    m_BaseDistribs.push_back( new Sg_BaseDistrib( *flexECs [ 0]->BaseDistrib()));
+    m_BaseDistribs.push_back( new Sg_BaseSpine( *flexECs [ 0]->BaseDistrib()));
 
     m_ECStewards.resize( flexECs.size());
     for ( uint32_t i = 0; i < flexECs.size(); ++i)
@@ -155,8 +155,8 @@ uint32_t    Sg_ECTableOptimize::CurrentWaste( void) const
 bool    Sg_ECTableOptimize::MigrateWinner( void)
 {
     Sg_ECDistribSteward        *winner = m_ECStewards.front();
-    Sg_BaseDistrib              *cBase = winner->CurrentBase();
-    Sg_BaseDistrib              *dBase = winner->DreamBase();
+    Sg_BaseSpine              *cBase = winner->CurrentBase();
+    Sg_BaseSpine              *dBase = winner->DreamBase();
     if (( cBase == dBase) ||( winner->ProjectedSavings() <= 0))
         return false;
 
@@ -185,7 +185,7 @@ void    Sg_ECTableOptimize::CleanJilted( void)
 {
     for ( uint32_t i = 0; i < m_BaseDistribs.size(); ++i)
     {
-        Sg_BaseDistrib          *bds = m_BaseDistribs[ i];
+        Sg_BaseSpine          *bds = m_BaseDistribs[ i];
         bds->MakeUniversal();
     }
     for ( uint32_t i = 0; i < m_ECStewards.size(); ++i)
@@ -193,7 +193,7 @@ void    Sg_ECTableOptimize::CleanJilted( void)
 
     for ( uint32_t i = 0; i < m_BaseDistribs.size(); ++i)
     {
-        Sg_BaseDistrib          *bds = m_BaseDistribs[ i];
+        Sg_BaseSpine          *bds = m_BaseDistribs[ i];
         bds->Freeze();
         for ( uint32_t j = 0; j < m_ECStewards.size(); ++j)
             m_ECStewards[ j]->UpdateDream( bds);
@@ -234,7 +234,7 @@ void    Sg_ECTableOptimize::DoOptimize( uint32_t SzBlut)
 //    AX_TRACE(( "BeginCost : %d\n", CurrentCost()))
     for ( uint32_t k = 1; k < SzBlut; ++k)
     {
-        Sg_BaseDistrib      *newBase = new Sg_BaseDistrib( k);
+        Sg_BaseSpine      *newBase = new Sg_BaseSpine( k);
         newBase->MakeUniversal();
         m_BaseDistribs.push_back( newBase);
 
@@ -269,7 +269,7 @@ void    Sg_ECTableOptimize::DoOptimizeFull( uint32_t SzBlut)
     uint32_t        round = 0;
     for ( uint32_t k = 1; k < SzBlut; ++k)
     {
-        Sg_BaseDistrib      *newBase = new Sg_BaseDistrib( k);
+        Sg_BaseSpine      *newBase = new Sg_BaseSpine( k);
         newBase->MakeUniversal();
         m_BaseDistribs.push_back( newBase);
 

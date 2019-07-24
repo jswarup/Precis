@@ -1,19 +1,19 @@
-// sg_ecdistribdb.cpp ______________________________________________________________________________________________________________ 
+// sg_ecsspinedb.cpp ______________________________________________________________________________________________________________ 
 
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/epigraph/sg_ecdistribdb.h" 
+#include    "segue/epigraph/sg_ecsspinedb.h" 
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrbDB::Sg_ECDistrbDB( void)
+Sg_ECSpineDB::Sg_ECSpineDB( void)
 {
 
 }
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrbDB::~Sg_ECDistrbDB( void)
+Sg_ECSpineDB::~Sg_ECSpineDB( void)
 {
     for ( uint32_t k = 0; k < m_BaseDistribs.size(); ++k)
         delete m_BaseDistribs[ k];
@@ -24,11 +24,11 @@ Sg_ECDistrbDB::~Sg_ECDistrbDB( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_ECDistrbDB::Setup( void)
+void    Sg_ECSpineDB::Setup( void)
 {
     m_FlexBase.MakeUniversal();
     
-    Sg_CharDistrib::CCLImpressor  prtnIntersector( &m_FlexBase);
+    Sg_CharSpine::CCLImpressor  prtnIntersector( &m_FlexBase);
    /*
     for ( uint32_t  i = 1; i < stateChart->Size(); ++i)
     {
@@ -48,12 +48,12 @@ void    Sg_ECDistrbDB::Setup( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::vector< Sg_ECDistrib*>     Sg_ECDistrbDB::ComputeECDistribs( void) 
+std::vector< Sg_ECSpine*>     Sg_ECSpineDB::ComputeECDistribs( void) 
 {
-    std::vector< Sg_ECDistrib*>     ecDistribs;
+    std::vector< Sg_ECSpine*>     ecDistribs;
 
 /*
-    std::vector< Sg_ECDistrib*>     ecDistribs( stateChart->Size(), NULL);
+    std::vector< Sg_ECSpine*>     ecDistribs( stateChart->Size(), NULL);
     
     
     for ( uint32_t  i = 1; i < stateChart->Size(); ++i)
@@ -79,7 +79,7 @@ std::vector< Sg_ECDistrib*>     Sg_ECDistrbDB::ComputeECDistribs( void)
         std::vector< uint32_t>      destList( destSet.begin(), destSet.end());  // list of unique destinations
         std::vector< uint32_t>      destLocs( destSet.size(), 0);
         std::vector< uint32_t>      destIds;
-        Sg_ECDistrib                ecDistrib( &m_FlexBase);
+        Sg_ECSpine                ecDistrib( &m_FlexBase);
         uint32_t                    szBaseCCLs = 0;
 
         for ( uint32_t j = 0; j < ( outEdges.size() +hasFail); ++j)
@@ -114,7 +114,7 @@ std::vector< Sg_ECDistrib*>     Sg_ECDistrbDB::ComputeECDistribs( void)
         uint32_t                    th = ecDistrib.Thickness();
         if ( dfaState->StartIfc() || ( th < 3))
             ecDistrib.SetLock( true);
-        Sg_ECDistrib                *ecd = FetchDistrib( &ecDistrib);
+        Sg_ECSpine                *ecd = FetchDistrib( &ecDistrib);
         ecDistribs[ i] = ecd; 
     }
 */
@@ -123,12 +123,12 @@ std::vector< Sg_ECDistrib*>     Sg_ECDistrbDB::ComputeECDistribs( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrib    *Sg_ECDistrbDB::FetchDistrib(  Sg_ECDistrib *ecDistrib)
+Sg_ECSpine    *Sg_ECSpineDB::FetchDistrib(  Sg_ECSpine *ecDistrib)
 {
     auto    ecdIt = m_ECDB.find( ecDistrib);
     if ( ecdIt == m_ECDB.end())
     {
-        Sg_ECDistrib    *ecd = new Sg_ECDistrib( *ecDistrib);
+        Sg_ECSpine    *ecd = new Sg_ECSpine( *ecDistrib);
         m_ECDB.insert( ecd);
         m_FlexECs.push_back( ecd);
     }
@@ -138,7 +138,7 @@ Sg_ECDistrib    *Sg_ECDistrbDB::FetchDistrib(  Sg_ECDistrib *ecDistrib)
 
 //_____________________________________________________________________________________________________________________________ 
 
-void       Sg_ECDistrbDB::RemoveDistrib( Sg_ECDistrib *ecDistrib)
+void       Sg_ECSpineDB::RemoveDistrib( Sg_ECSpine *ecDistrib)
 {
     if ( ecDistrib->LowerRef())
         m_ECDB.erase( ecDistrib);
@@ -146,7 +146,7 @@ void       Sg_ECDistrbDB::RemoveDistrib( Sg_ECDistrib *ecDistrib)
 
 //_____________________________________________________________________________________________________________________________ 
 
-void        Sg_ECDistrbDB::OptimizeBasis( uint32_t szBluts)
+void        Sg_ECSpineDB::OptimizeBasis( uint32_t szBluts)
 {   
     Sg_ECTableOptimize      ecLookupTable;
     ecLookupTable.Seed( m_FlexECs);
@@ -160,7 +160,7 @@ void        Sg_ECDistrbDB::OptimizeBasis( uint32_t szBluts)
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::string     Sg_ECDistrbDB::ToString( void) const
+std::string     Sg_ECSpineDB::ToString( void) const
 {
     std::stringstream   sstrm;
     sstrm << "BaseDistrib : " << m_FlexBase.ToString() << "\n";

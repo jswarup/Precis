@@ -7,8 +7,7 @@
 #include 	"cove/barn/cv_ptrslot.h" 
 #include 	"cove/barn/cv_compare.h" 
 #include    "segue/colophon/sg_filter.h"
-#include    "cove/silo/cv_craterepos.h"
-#include    "segue/epigraph/sg_distrib.h"  
+#include    "cove/silo/cv_craterepos.h" 
 
 //_____________________________________________________________________________________________________________________________  
 

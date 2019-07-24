@@ -1,17 +1,17 @@
-// sg_distrib.cpp ______________________________________________________________________________________________________________ 
+// sg_spine.cpp ______________________________________________________________________________________________________________ 
  
 
 #include    "segue/tenor/sg_include.h"
-#include    "segue/epigraph/sg_distrib.h" 
+#include    "segue/epigraph/sg_spine.h" 
                                                                                                                    
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_Distrib::~Sg_Distrib( void)
+Sg_Spine::~Sg_Spine( void)
 {}
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::string     Sg_Distrib::ToString( void) const
+std::string     Sg_Spine::ToString( void) const
 {
     std::stringstream       strStrm;
     strStrm << "[ ";
@@ -24,7 +24,7 @@ std::string     Sg_Distrib::ToString( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_CharDistrib::Sg_CharDistrib( void)
+Sg_CharSpine::Sg_CharSpine( void)
     :   m_SzEqClass( 0)
 {
     memset( m_EqClassIds, 0, sizeof( m_EqClassIds));
@@ -32,7 +32,7 @@ Sg_CharDistrib::Sg_CharDistrib( void)
  
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_CharDistrib::MergeClass( uint16_t eq1, uint16_t eq2)
+void    Sg_CharSpine::MergeClass( uint16_t eq1, uint16_t eq2)
 {
     CV_ERROR_ASSERT(( eq1 != eq2) && ( eq1 < eq2) && ( eq2 < m_SzEqClass))
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; i++) 
@@ -51,7 +51,7 @@ void    Sg_CharDistrib::MergeClass( uint16_t eq1, uint16_t eq2)
 //_____________________________________________________________________________________________________________________________ 
 // k is Representative if not instance of same Equivalence class is encountered before.
 
-bool    Sg_CharDistrib::IsRep( uint32_t k) const
+bool    Sg_CharSpine::IsRep( uint32_t k) const
 {
     for ( uint16_t i = 0; i < k; i++) 
     {
@@ -64,7 +64,7 @@ bool    Sg_CharDistrib::IsRep( uint32_t k) const
 //_____________________________________________________________________________________________________________________________ 
 // Makes record into trivial partition (single subset)
 
-void Sg_CharDistrib::MakeUniversal( void) 
+void Sg_CharSpine::MakeUniversal( void) 
 {
     //AX_TRACEPOST(())
     
@@ -77,7 +77,7 @@ void Sg_CharDistrib::MakeUniversal( void)
 //_____________________________________________________________________________________________________________________________ 
 // Makes record into discrete partition (maximum subsets)
 
-void Sg_CharDistrib::MakeDiscrete( void) 
+void Sg_CharSpine::MakeDiscrete( void) 
 {  
     m_SzEqClass = Sg_ChSet::SzChBits;
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; i++) 
@@ -87,7 +87,7 @@ void Sg_CharDistrib::MakeDiscrete( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-int32_t     Sg_CharDistrib::Compare( const Sg_CharDistrib &cd) const
+int32_t     Sg_CharSpine::Compare( const Sg_CharSpine &cd) const
 {
     if  ( m_SzEqClass != cd.m_SzEqClass)
         return m_SzEqClass < cd.m_SzEqClass ? -1 : 1;
@@ -96,7 +96,7 @@ int32_t     Sg_CharDistrib::Compare( const Sg_CharDistrib &cd) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-uint16_t    Sg_CharDistrib::NumRealSubsets( void)  const
+uint16_t    Sg_CharSpine::NumRealSubsets( void)  const
 {
     return m_SzEqClass  ;
 }
@@ -104,7 +104,7 @@ uint16_t    Sg_CharDistrib::NumRealSubsets( void)  const
 //_____________________________________________________________________________________________________________________________ 
 // Tests if any partition subset intersects nontrivially with the given Sg_ChSet
 
-bool    Sg_CharDistrib::IsCutByCCL( const Sg_ChSet &ccl) const
+bool    Sg_CharSpine::IsCutByCCL( const Sg_ChSet &ccl) const
 {
     std::bitset< Sg_ChSet::SzChBits>      eqClassEnc;              // whether a equivalence class was encountered
     std::bitset< Sg_ChSet::SzChBits>      eqClassInCCL;            // whether a equivalence class is in CCL
@@ -130,7 +130,7 @@ bool    Sg_CharDistrib::IsCutByCCL( const Sg_ChSet &ccl) const
 //_____________________________________________________________________________________________________________________________ 
 // Tests if any partition subset intersects nontrivially with the given Sg_ChSet
 
-bool    Sg_CharDistrib::IsCutByCCL( const Sg_ChSet &ccl, uint32_t first, uint32_t wt) const
+bool    Sg_CharSpine::IsCutByCCL( const Sg_ChSet &ccl, uint32_t first, uint32_t wt) const
 {
     uint8_t             eqClassEnc[ 264];              // whether a equivalence class was encountered
     uint8_t             eqClassInCCL[ 264];            // whether a equivalence class is in CCL
@@ -171,7 +171,7 @@ bool    Sg_CharDistrib::IsCutByCCL( const Sg_ChSet &ccl, uint32_t first, uint32_
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ChSet  Sg_CharDistrib::EqClassCCL( uint16_t grId) const
+Sg_ChSet  Sg_CharSpine::EqClassCCL( uint16_t grId) const
 {
    Sg_ChSet      ccl;
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; ++i) 
@@ -184,7 +184,7 @@ Sg_ChSet  Sg_CharDistrib::EqClassCCL( uint16_t grId) const
 // Constructs the intersection of two partitions.  The destination may be NULL,
 // in which case it will be allocated.  It may also optionally match one of the sources.
 
-void Sg_CharDistrib::ImpressWith( const Sg_CharDistrib &q) 
+void Sg_CharSpine::ImpressWith( const Sg_CharSpine &q) 
 {
     //AX_TRACEPOST(())
     
@@ -217,9 +217,9 @@ void Sg_CharDistrib::ImpressWith( const Sg_CharDistrib &q)
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_CharDistrib  Sg_CharDistrib::Impression( const Sg_CharDistrib &q) const
+Sg_CharSpine  Sg_CharSpine::Impression( const Sg_CharSpine &q) const
 {
-    Sg_CharDistrib  cdist( SELF);
+    Sg_CharSpine  cdist( SELF);
     cdist.ImpressWith( q);
     return cdist;
 
@@ -227,7 +227,7 @@ Sg_CharDistrib  Sg_CharDistrib::Impression( const Sg_CharDistrib &q) const
     
 //_____________________________________________________________________________________________________________________________ 
 
-bool     Sg_CharDistrib::TestFiner( const Sg_CharDistrib &q, int *sampleChar) const
+bool     Sg_CharSpine::TestFiner( const Sg_CharSpine &q, int *sampleChar) const
 {
     uint16_t            mapToQSubsets[ Sg_ChSet::SzChBits];              // whether a group was encountered
     memset( mapToQSubsets, -1, sizeof( mapToQSubsets));
@@ -250,7 +250,7 @@ bool     Sg_CharDistrib::TestFiner( const Sg_CharDistrib &q, int *sampleChar) co
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::vector< Sg_ChSet>    Sg_CharDistrib::Domain( void) const
+std::vector< Sg_ChSet>    Sg_CharSpine::Domain( void) const
 {
     std::vector< Sg_ChSet>    ccls( m_SzEqClass);
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; ++i) 
@@ -261,35 +261,35 @@ std::vector< Sg_ChSet>    Sg_CharDistrib::Domain( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_CharDistrib::CCLImpressor::CCLImpressor( Sg_CharDistrib *distrib)
+Sg_CharSpine::CCLImpressor::CCLImpressor( Sg_CharSpine *distrib)
     :   m_Distrib( distrib), m_Ind( 0)
 {}
 
 //_____________________________________________________________________________________________________________________________ 
 
-bool    Sg_CharDistrib::CCLImpressor::Process( const Sg_ChSet &ccl)
+bool    Sg_CharSpine::CCLImpressor::Process( const Sg_ChSet &ccl)
 {
     m_ValidCCL.UnionWith( ccl );
     m_CCLs[ m_Ind++] = ccl;
     if ( m_Ind < 7)
         return false;
-    Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
+    Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 7>( m_Distrib);
     m_Ind = 0;
     return true;
 }
     
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_CharDistrib::CCLImpressor::Over( void)
+void    Sg_CharSpine::CCLImpressor::Over( void)
 {
     switch ( m_Ind)
     { 
-        case 1: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
-        case 2: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
-        case 3: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
-        case 4: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
-        case 5: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
-        case 6: Sg_CharDistrib::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
+        case 1: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 1>( m_Distrib); break;
+        case 2: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 2>( m_Distrib); break;
+        case 3: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 3>( m_Distrib); break;
+        case 4: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 4>( m_Distrib); break;
+        case 5: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 5>( m_Distrib); break;
+        case 6: Sg_CharSpine::CCLImpressCntl( &m_CCLs[ 0]).ImpressWith< 6>( m_Distrib); break;
     }
     m_Ind = 0;
     return;
@@ -297,7 +297,7 @@ void    Sg_CharDistrib::CCLImpressor::Over( void)
 
 //_____________________________________________________________________________________________________________________________ 
 
-bool  Sg_CharDistrib::CCLIdImpressor::Process( const Sg_ChSet &ccl, uint32_t id)
+bool  Sg_CharSpine::CCLIdImpressor::Process( const Sg_ChSet &ccl, uint32_t id)
 { 
     if ( id == CV_UINT32_MAX)
         return CCLImpressor::Process( ccl);
@@ -312,7 +312,7 @@ bool  Sg_CharDistrib::CCLIdImpressor::Process( const Sg_ChSet &ccl, uint32_t id)
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrib::Sg_ECDistrib( const Sg_BaseDistrib *distrib)
+Sg_ECSpine::Sg_ECSpine( const Sg_BaseSpine *distrib)
     :   m_RefCount( 0), m_BaseDistrib( distrib), m_Hashval( 0), m_LockFlg( false), m_ZeroFailFlg( false)
 {
     m_Map = new uint16_t[ m_BaseDistrib->SzImage()];
@@ -321,7 +321,7 @@ Sg_ECDistrib::Sg_ECDistrib( const Sg_BaseDistrib *distrib)
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrib::Sg_ECDistrib( const Sg_ECDistrib &ecd)
+Sg_ECSpine::Sg_ECSpine( const Sg_ECSpine &ecd)
     :   m_RefCount( ecd.m_RefCount), m_BaseDistrib( ecd.m_BaseDistrib), m_Hashval( ecd.m_Hashval), 
         m_LockFlg( ecd.m_LockFlg), m_ZeroFailFlg( ecd.m_ZeroFailFlg)
 {
@@ -331,14 +331,14 @@ Sg_ECDistrib::Sg_ECDistrib( const Sg_ECDistrib &ecd)
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_ECDistrib::~Sg_ECDistrib( void)
+Sg_ECSpine::~Sg_ECSpine( void)
 {
     delete [] m_Map;
 }
 
 //_____________________________________________________________________________________________________________________________ 
 
-uint32_t    Sg_ECDistrib::SzImage( void) const
+uint32_t    Sg_ECSpine::SzImage( void) const
 {
     uint32_t    mx = 0;
     for ( uint16_t i = 0; i < Size(); ++i) 
@@ -350,7 +350,7 @@ uint32_t    Sg_ECDistrib::SzImage( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-uint32_t   Sg_ECDistrib::Thickness( void) const
+uint32_t   Sg_ECSpine::Thickness( void) const
 {
     uint32_t        th = 0;
     for ( uint16_t i = 0; i < Size(); ++i) 
@@ -361,7 +361,7 @@ uint32_t   Sg_ECDistrib::Thickness( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-bool    Sg_ECDistrib::IsEqual( const Sg_ECDistrib &ecd) const
+bool    Sg_ECSpine::IsEqual( const Sg_ECSpine &ecd) const
 {
     if ( m_BaseDistrib != ecd.m_BaseDistrib)
         return false;
@@ -376,7 +376,7 @@ bool    Sg_ECDistrib::IsEqual( const Sg_ECDistrib &ecd) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-bool Sg_ECDistrib::operator<( const Sg_ECDistrib &s2) const
+bool Sg_ECSpine::operator<( const Sg_ECSpine &s2) const
 {
     if ( m_BaseDistrib != s2.m_BaseDistrib)
         return m_BaseDistrib < s2.m_BaseDistrib;
@@ -391,7 +391,7 @@ bool Sg_ECDistrib::operator<( const Sg_ECDistrib &s2) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::vector< Sg_ChSet>    Sg_ECDistrib::Domain( void) const
+std::vector< Sg_ChSet>    Sg_ECSpine::Domain( void) const
 {
     std::vector< Sg_ChSet>    dom = m_BaseDistrib->Domain();
     std::vector< Sg_ChSet>    ccls; 
@@ -407,9 +407,9 @@ std::vector< Sg_ChSet>    Sg_ECDistrib::Domain( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-Sg_CharDistrib  Sg_ECDistrib::CharDistrib( void) const
+Sg_CharSpine  Sg_ECSpine::CharDistrib( void) const
 {
-    Sg_CharDistrib          charDistrib( *m_BaseDistrib);
+    Sg_CharSpine          charDistrib( *m_BaseDistrib);
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; ++i) 
         charDistrib.SetImage( i, m_Map[ charDistrib.Image( i)]);
     charDistrib.SetSzImage( SzImage());
@@ -418,9 +418,9 @@ Sg_CharDistrib  Sg_ECDistrib::CharDistrib( void) const
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_ECDistrib::SwitchBase( Sg_BaseDistrib *base)
+void    Sg_ECSpine::SwitchBase( Sg_BaseSpine *base)
 {
-    //Sg_CharDistrib      charDistrib = CharDistrib();
+    //Sg_CharSpine      charDistrib = CharDistrib();
     uint16_t            *tMap = new uint16_t[ base->SzImage()];
     for ( uint16_t i = 0; i < Sg_ChSet::SzChBits; ++i) 
         tMap[ base->Image( i)] = Image( i);
@@ -428,25 +428,25 @@ void    Sg_ECDistrib::SwitchBase( Sg_BaseDistrib *base)
     delete [] m_Map;
     m_Map = tMap;
 
-    //Sg_CharDistrib      tCharDistrib = CharDistrib();
+    //Sg_CharSpine      tCharDistrib = CharDistrib();
     //CV_ERROR_ASSERT( charDistrib.IsEqual( tCharDistrib))
     return;
 }
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_BaseDistrib::Freeze( void)
+void    Sg_BaseSpine::Freeze( void)
 {
-    m_Domain = Sg_CharDistrib::Domain();
+    m_Domain = Sg_CharSpine::Domain();
     return;
 }
 
 //_____________________________________________________________________________________________________________________________ 
 
-void    Sg_BaseDistrib::MergeClass( uint16_t eq1, uint16_t eq2)
+void    Sg_BaseSpine::MergeClass( uint16_t eq1, uint16_t eq2)
 {
     CV_ERROR_ASSERT(( eq1 != eq2) && ( eq1 < eq2) && ( eq2 < m_SzEqClass))
-    Sg_CharDistrib::MergeClass( eq1, eq2);
+    Sg_CharSpine::MergeClass( eq1, eq2);
     m_Domain[ eq1].UnionWith( m_Domain[ eq2]);
     m_Domain.erase( m_Domain.begin() +eq2);
     return;
@@ -454,7 +454,7 @@ void    Sg_BaseDistrib::MergeClass( uint16_t eq1, uint16_t eq2)
 
 //_____________________________________________________________________________________________________________________________ 
 
-std::vector< Sg_ChSet>    Sg_BaseDistrib::Domain( void) const
+std::vector< Sg_ChSet>    Sg_BaseSpine::Domain( void) const
 {
     return m_Domain;
 }
