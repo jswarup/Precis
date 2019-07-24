@@ -2,6 +2,7 @@
 #pragma once
 
 #include    "segue/colophon/sg_fsastate.h" 
+#include    "segue/colophon/sg_distrib.h" 
 
 //_____________________________________________________________________________________________________________________________  
 
