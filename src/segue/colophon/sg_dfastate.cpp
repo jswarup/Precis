@@ -83,6 +83,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     ruleLump->Register( supRootState, rootId.GetId());
     ruleLump->m_ActiveRef.RaiseRef();
 
+    uint32_t        tyid = FsaCrate::TypeOf< FsaCfaState>();
     m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {

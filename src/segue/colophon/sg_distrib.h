@@ -429,23 +429,22 @@ struct DistribOptimize
   
     DistribOptimize( DistribRepos *dRepos)
         : m_DRepos( dRepos)
-    {/*
-        m_DRepos->Iterate( [ this]( const DVar &dVar) {
-            dVar( [this]( auto distrib) {
-                uint32_t    szImg = distrib->SzImage();
-                if ( szImg <= 8)  
-                    m_Distribs[ 1].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
-                if ( szImg <= 16)  
-                    m_Distribs[ 2].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
-                if ( szImg <= 32)  
-                    m_Distribs[ 3].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
-                if ( szImg <= 64)  
-                    m_Distribs[ 4].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
-                if ( szImg <= 128)  
-                    m_Distribs[ 5].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+    {
+        m_DRepos->Iterate( [ this]( auto distrib, uint32_t i) {
+            uint32_t    szImg = distrib->SzImage();
+            if ( szImg <= 8)  
+                m_Distribs[ 1].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+            else if ( szImg <= 16)  
+                m_Distribs[ 2].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+            else if ( szImg <= 32)  
+                m_Distribs[ 3].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+            else if ( szImg <= 64)  
+                m_Distribs[ 4].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+            else if ( szImg <= 128)  
+                m_Distribs[ 5].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+            else
                 m_Distribs[ 6].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));                    
-            });
-        }); */
+        });
     }  
     
     bool            Dump( std::ostream &ostr) 

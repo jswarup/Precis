@@ -75,7 +75,7 @@ struct Cv_Crate : public Cv_Crate< Rest...>
     typedef Cv_Crate< Rest...>              CrateBase;
     typedef T                               Elem;
     typedef typename CrateBase::Entry       Entry; 
-	typedef  Cv_Var< Crate>		            Var; 
+	typedef Cv_Var< Crate>		            Var; 
 	typedef typename CrateBase::TypeStor    TypeStor;  
      
     enum { 

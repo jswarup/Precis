@@ -303,8 +303,7 @@ template < typename Lambda, typename... Args>
     void        Iterate(  Lambda &&lambda,  Args&&... args)  
     {   
         for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
-            lambda( Var( &m_Elems[ i], Crate::Sz), i, args...);
-        return Base::Iterate( lambda, args...);
+            lambda(  &m_Elems[ i], i, args...); 
     }
 
 template < typename Lambda, typename... Args>
@@ -481,7 +480,7 @@ template < typename Lambda, typename... Args>
     void        Iterate(  Lambda &&lambda,  Args&&... args)  
     {   
         for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
-            lambda( Var( &m_Elems[ i], Crate::Sz),  args...);
+            lambda( &m_Elems[ i], i, args...);
         Base::Iterate( lambda, args...); 
     }
 
@@ -509,7 +508,6 @@ template < typename Lambda, typename... Args>
 template<typename Crate>
 struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem, typename Crate::Entry>::Note>  
 { 
-
     typedef typename Crate::Entry       Entry;
     typedef typename Crate::Elem        Elem;
     typedef typename Entry::Id          Id;
@@ -587,7 +585,7 @@ template < typename Lambda, typename... Args>
     void        Iterate(  Lambda &&lambda,  Args&&... args)  
     {   
         for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
-            lambda( Var( &m_Elems[ i], Crate::Sz), args...);
+            lambda( &m_Elems[ i], i, args...);
     }
 
 template < typename Lambda, typename... Args>
