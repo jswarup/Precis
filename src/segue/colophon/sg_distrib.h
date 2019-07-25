@@ -30,6 +30,7 @@ struct CharDistribBase : public Cv_CrateEntry
     std::string		        GetName( void) const { return "Filter"; } 
 
     uint8_t                 Image( uint16_t t) const {  return 0; }
+    uint32_t                SzImage( void) const {  return 0; }
 
     Sg_Bitset< 256>         ChSet( uint8_t byteCode) const  { return Sg_Bitset< 256>(); }
 
@@ -58,6 +59,7 @@ public:
     std::string		    GetName( void) const { return "Distrib"; } 
 
     uint8_t             Image( uint16_t chr) const {  return Sg_CharPartition< Bits>::Image( chr); }
+    uint32_t            SzImage( void) const {  return Sg_CharPartition< Bits>::SzImage(); }
 
     Sg_Bitset< Bits>    ChSet( uint8_t byteCode) const  { return Sg_CharPartition< Bits>::ChSet( byteCode); }
 
@@ -418,6 +420,45 @@ public:
 
 //_____________________________________________________________________________________________________________________________ 
 
+
+struct DistribOptimize
+{
+    typedef DistribCrate::Var           DVar;
+    DistribRepos                        *m_DRepos;
+    std::vector< DVar>                  m_Distribs[ DistribCrate::Sz +1];
+  
+    DistribOptimize( DistribRepos *dRepos)
+        : m_DRepos( dRepos)
+    {/*
+        m_DRepos->Iterate( [ this]( const DVar &dVar) {
+            dVar( [this]( auto distrib) {
+                uint32_t    szImg = distrib->SzImage();
+                if ( szImg <= 8)  
+                    m_Distribs[ 1].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+                if ( szImg <= 16)  
+                    m_Distribs[ 2].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+                if ( szImg <= 32)  
+                    m_Distribs[ 3].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+                if ( szImg <= 64)  
+                    m_Distribs[ 4].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+                if ( szImg <= 128)  
+                    m_Distribs[ 5].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));    
+                m_Distribs[ 6].push_back( DVar( distrib, DistribCrate::TypeOf( distrib)));                    
+            });
+        }); */
+    }  
+    
+    bool            Dump( std::ostream &ostr) 
+    { 
+        for ( uint32_t i = 0; i <= DistribCrate::Sz; ++i)
+        {
+            ostr << i << ": " << m_Distribs[ i].size() << '\n';
+        }
+        return true;
+    }
+};
+
+//_____________________________________________________________________________________________________________________________  
 };
 
 //_____________________________________________________________________________________________________________________________  

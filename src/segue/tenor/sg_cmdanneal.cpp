@@ -236,6 +236,8 @@ int     Sg_AnealCmdProcessor::Test(void)
         return apiErrCode;
 
     dfaCnstr.SubsetConstruction();
+    DistribOptimize     distribOpt( &dfaRepos.m_DistribRepos);
+    distribOpt.Dump( std::cout);
     //dfaRepos.DumpStats( std::cout);
     //dfaRepos.m_DistribRepos.Dump( std::cout);
     //dfaCnstr.m_RuleLumpSet.Dump(  std::cout);

@@ -300,6 +300,14 @@ template<  class Object>
     }
 
 template < typename Lambda, typename... Args>
+    void        Iterate(  Lambda &&lambda,  Args&&... args)  
+    {   
+        for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
+            lambda( Var( &m_Elems[ i], Crate::Sz), i, args...);
+        return Base::Iterate( lambda, args...);
+    }
+
+template < typename Lambda, typename... Args>
     auto    OperateAll(  Lambda &&lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda( static_cast<Entry *>( nullptr), uint32_t( 0), args...))>     Accum;
@@ -470,6 +478,14 @@ struct Cv_CratePile : public Cv_CratePile< typename Crate::CrateBase>
     }
 
 template < typename Lambda, typename... Args>
+    void        Iterate(  Lambda &&lambda,  Args&&... args)  
+    {   
+        for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
+            lambda( Var( &m_Elems[ i], Crate::Sz),  args...);
+        Base::Iterate( lambda, args...); 
+    }
+
+template < typename Lambda, typename... Args>
     auto    OperateAll( const Lambda &lambda,  Args&&... args)  
     {   
         typedef Cv_CrateLambdaAccum< decltype( lambda(  static_cast<Entry *>( nullptr), uint32_t( 0), args...))>     Accum;
@@ -565,6 +581,13 @@ struct  Cv_CratePile< Crate, typename  Cv_TypeEngage::Same< typename Crate::Elem
     Var         ToVar( const Id &id)  
     {  
         return Var(  &m_Elems[ id.GetId()], id.GetType()); 
+    }
+
+template < typename Lambda, typename... Args>
+    void        Iterate(  Lambda &&lambda,  Args&&... args)  
+    {   
+        for ( uint32_t i = 0; i < m_Elems.size(); ++i)  
+            lambda( Var( &m_Elems[ i], Crate::Sz), args...);
     }
 
 template < typename Lambda, typename... Args>
