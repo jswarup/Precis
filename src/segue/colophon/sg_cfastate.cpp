@@ -48,9 +48,26 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         dfaRepos->Destroy( supId.GetId());
         return;
     } 
-    DescendIt                   descIt( elemRepos, this);
+    
+    DescendIt                       descIt( elemRepos, this);
 
-    DistribRepos::DfaDistrib    dDist = dfaRepos->m_DistribRepos.ConstructDfaDistrib( &descIt); 
+    DistribRepos::DfaDistrib        dDist = dfaRepos->m_DistribRepos.ConstructDfaDistrib( &descIt); 
+
+ 
+    Cv_Array< uint32_t, 256>        subTrials = dDist.m_DVar( [this, dfaCnstr]( auto distrib) { 
+        Cv_Array< uint32_t, 256>    trials; 
+        trials.Reset( dfaCnstr->m_BaseWts.SzFill(), 0);
+        uint32_t                    mxEc = 0;
+        for ( uint32_t i = 0; i < dfaCnstr->m_BaseWts.SzFill(); ++i)
+        {
+            uint8_t     ec = distrib->Image( i); 
+            trials[ ec] += dfaCnstr->m_BaseWts[ i];
+            if ( mxEc < ec)
+                mxEc = ec;
+        }
+        trials.m_SzFill = uint32_t( mxEc) +1;
+        return  trials; 
+    } );  
 
     //dDist.Dump( std::cout, &dfaRepos->m_DistribRepos);
     descIt.DoSetup( dDist.SzDescend(), m_Level +1); 
@@ -70,6 +87,7 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
             delete subSupState;
             continue;
         }
+        subSupState->m_SzTrials = uint32_t( ( subTrials[ k] * uint64_t( m_SzTrials)) / 256); 
         FsaRuleLump                 *ruleLump =  dfaCnstr->m_RuleLumpSet.Locate( elemRepos, subSupState);
         uint32_t                    ind = ruleLump->Find( subSupState);
         if ( ind != CV_UINT32_MAX)
@@ -86,7 +104,7 @@ void    FsaCfaState::DoConstructTransisition( FsaId supId, FsaDfaCnstr *dfaCnstr
         destArr.Append( subId ); 
         dfaCnstr->m_FsaStk.push_back( subId); 
     }  
-    dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr);   
+    dfaCnstr->ConstructDfaStateAt( supId.GetId(), dDist, action, destArr, m_SzTrials);   
     if ( !m_RuleLump->m_ActiveRef.LowerRef()) 
         dfaCnstr->m_RuleLumpSet.Destroy( m_RuleLump->GetId()); 
     dDist.m_DVar.Delete();

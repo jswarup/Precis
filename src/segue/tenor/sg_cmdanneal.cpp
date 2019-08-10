@@ -236,8 +236,20 @@ int     Sg_AnealCmdProcessor::Test(void)
         return apiErrCode;
 
     dfaCnstr.SubsetConstruction();
-    DistribOptimize     distribOpt( &dfaRepos.m_DistribRepos);
-    distribOpt.Dump( std::cout);
+    DistribRepos            *dRepos = &dfaRepos.m_DistribRepos;
+    std::cout << dfaCnstr.m_HighDistribs.size() << "\n";
+    for ( uint32_t i = 0; i < dfaCnstr.m_HighDistribs.size(); ++i)
+    {
+        auto    pr = dfaCnstr.m_HighDistribs[ i];
+        std::cout << pr.first << ": " <<  pr.second.GetId() << ", ";
+        
+        auto    dVar = dRepos->ToVar(  pr.second);
+        dVar( [ dRepos]( auto k) { k->Dump( dRepos, std::cout); });
+        std::cout << "\n";
+    }
+
+    //DistribOptimize     distribOpt( &dfaRepos.m_DistribRepos);
+    //distribOpt.Dump( std::cout);
     //dfaRepos.DumpStats( std::cout);
     //dfaRepos.m_DistribRepos.Dump( std::cout);
     //dfaCnstr.m_RuleLumpSet.Dump(  std::cout);

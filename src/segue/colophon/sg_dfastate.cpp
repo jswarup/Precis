@@ -82,8 +82,7 @@ void    FsaDfaCnstr::SubsetConstruction( void)
     supRootState->m_RuleLump = ruleLump;
     ruleLump->Register( supRootState, rootId.GetId());
     ruleLump->m_ActiveRef.RaiseRef();
-
-    uint32_t        tyid = FsaCrate::TypeOf< FsaCfaState>();
+ 
     m_FsaStk.push_back( rootId);
     while ( m_FsaStk.size())
     {
@@ -98,12 +97,13 @@ void    FsaDfaCnstr::SubsetConstruction( void)
         return k->CleanupDestIds( m_DfaRepos);
     });
     m_DfaRepos->m_RootId =  m_DfaRepos->GetId( rootId.GetId());
+    std::sort( m_HighDistribs.begin(), m_HighDistribs.end(), []( auto a, auto b) { return a.first > b.first; });
     return;
 }
 
 //_____________________________________________________________________________________________________________________________
 
-void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &dDistrib, Action *action, const Cv_Array< FsaId, 256> &destArr)
+void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &dDistrib, Action *action, const Cv_Array< FsaId, 256> &destArr, uint32_t szTrials)
 {
     uint32_t            sz = dDistrib.SzDescend();
     uint8_t             szTok = action  ? uint8_t( action->m_Values.size()) : 0;    
@@ -197,6 +197,8 @@ void    FsaDfaCnstr::ConstructDfaStateAt( uint32_t index, const DistribRepos::Df
     {
         DistribRepos::Id        dId = m_DfaRepos->m_DistribRepos.StoreDistrib( dDistrib.m_DVar); 
         FsaDfaState             *dfaState = FsaDfaState::Construct( dId, dDistrib.m_Inv, dDistrib.m_MxEqClass, action, destArr);  
+        if ( szTrials)
+            m_HighDistribs.push_back( std::make_pair( szTrials, dId));
         m_DfaRepos->StoreAt( index, dfaState); 
     }
     return;

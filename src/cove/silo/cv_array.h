@@ -33,6 +33,13 @@ struct Cv_Array
     const X     &At( uint32_t k) const { return m_Arr[ k]; }
 
     void        Reset( void) { m_SzFill = 0; }
+    void        Reset( SzType sz, const X &x) 
+    { 
+        m_SzFill = sz; 
+        for ( uint32_t i = 0; i < sz; ++i)
+            m_Arr[ i] = x;
+    }
+
     void        MarkFill( uint32_t sz) { m_SzFill += sz; }                                      // increment additional filled slots
 
     template < typename Array>     
