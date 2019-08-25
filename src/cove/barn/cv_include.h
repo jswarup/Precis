@@ -5,8 +5,10 @@
 
 #ifdef _MSC_VER
 #define     CV_WINDOWS
- 
+#define		PR_VISUALSTUDIO 
 #endif
+
+#define CV_TRACEDBG
 
 #include    <type_traits>
 #include    <list>

@@ -1,9 +1,8 @@
 // cv_cmdexec.cpp _____________________________________________________________________________________________________________
 
-
 #include    "cove/barn/cv_include.h"
 #include    "cove/barn/cv_cmdexec.h"
-#include    "cv_version.h"
+//#include    "cv_version.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -130,7 +129,7 @@ bool  Cv_MainExecutor::ParseArg( const std::string &key, const std::string &arg)
 {
     if ( "-V" == key)
     { 
-        std::cout << "Version: " << Cv_Version().m_GITSHA1 << '\n';
+        //std::cout << "Version: " << Cv_Version().m_GITSHA1 << '\n';
         return true;
     }
     if ( "-h" == key)
