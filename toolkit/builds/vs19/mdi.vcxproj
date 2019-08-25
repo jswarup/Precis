@@ -65,6 +65,9 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mdi</TargetName>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Work\Precis\src;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtWidgets;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtGui;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtANGLE;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtCore;release;..\..\..\..\Tools\Vulkan-1.1.114.0\include;..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -187,12 +190,17 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\fresco\main.cpp" />
-    <ClCompile Include="..\..\..\src\fresco\mainwindow.cpp" />
+    <ClCompile Include="..\..\..\src\fresco\fr_mdlapp.cpp" />
+    <ClCompile Include="..\..\..\src\fresco\fr_mainwindow.cpp" />
     <ClCompile Include="..\..\..\src\fresco\mdichild.cpp" />
+    <ClCompile Include="..\..\..\src\fresco\tenor\fr_include.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="..\..\..\src\fresco\mainwindow.h">
+    <QtMoc Include="..\..\..\src\fresco\fr_mainwindow.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtWidgets;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtGui;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtANGLE;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtCore;.\debug;.\..\..\..\..\Tools\Vulkan-1.1.114.0\include;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\mkspecs\win32-msvc</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtWidgets;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtGui;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtANGLE;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\include\QtCore;.\release;.\..\..\..\..\Tools\Vulkan-1.1.114.0\include;.\..\..\..\..\..\PACKS\QT\5.13.0\MSVC2017_64\mkspecs\win32-msvc</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_DEBUG;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;NDEBUG;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtMoc Include="..\..\..\src\fresco\mdichild.h">
     </QtMoc>
@@ -224,7 +232,10 @@
     <None Include="..\..\..\src\fresco\images\open.png" />
     <None Include="..\..\..\src\fresco\images\paste.png" />
     <None Include="..\..\..\src\fresco\images\save.png" />
-  </ItemGroup>      
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\fresco\tenor\fr_include.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />
