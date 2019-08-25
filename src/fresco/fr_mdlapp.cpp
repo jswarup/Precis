@@ -7,6 +7,9 @@
 
 int main( int argc, char *argv[])
 {
+	Cv_Logger::DoInit( "log.txt");
+	CV_FNTRACE(())
+
     Q_INIT_RESOURCE(mdi);
 
     QApplication app(argc, argv);

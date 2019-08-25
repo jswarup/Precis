@@ -2,7 +2,7 @@
 
 #include	"fresco/tenor/fr_include.h" 
 #include	"fresco/fr_mainwindow.h"
-#include	"fresco/mdichild.h"
+#include	"fresco/fr_mdichild.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -14,6 +14,8 @@ static inline QString fileKey() { return QStringLiteral("file"); }
 MainWindow::MainWindow()
     : mdiArea(new QMdiArea)
 {
+	CV_FNTRACE(())
+
     mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(mdiArea);
@@ -34,6 +36,8 @@ MainWindow::MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+	CV_FNTRACE(())
+
     mdiArea->closeAllSubWindows();
     if (mdiArea->currentSubWindow()) {
         event->ignore();
@@ -46,6 +50,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::newFile()
 {
+	CV_FNTRACE(())
+
     MdiChild *child = createMdiChild();
     child->newFile();
     child->show();
@@ -54,6 +60,8 @@ void MainWindow::newFile()
 
 void MainWindow::open()
 {
+	CV_FNTRACE(())
+
     const QString fileName = QFileDialog::getOpenFileName(this);
     if (!fileName.isEmpty())
         openFile(fileName);
@@ -63,6 +71,8 @@ void MainWindow::open()
 
 bool MainWindow::openFile(const QString &fileName)
 {
+	CV_FNTRACE(())
+
     if (QMdiSubWindow *existing = findMdiChild(fileName)) {
         mdiArea->setActiveSubWindow(existing);
         return true;
@@ -77,6 +87,8 @@ bool MainWindow::openFile(const QString &fileName)
 
 bool MainWindow::loadFile(const QString &fileName)
 {
+	CV_FNTRACE(())
+
     MdiChild *child = createMdiChild();
     const bool succeeded = child->loadFile(fileName);
     if (succeeded)
@@ -91,6 +103,8 @@ bool MainWindow::loadFile(const QString &fileName)
 
 static QStringList readRecentFiles(QSettings &settings)
 {
+	CV_FNTRACE(())
+
     QStringList result;
     const int count = settings.beginReadArray(recentFilesKey());
     for (int i = 0; i < count; ++i) {
@@ -104,6 +118,8 @@ static QStringList readRecentFiles(QSettings &settings)
 
 static void writeRecentFiles(const QStringList &files, QSettings &settings)
 {
+	CV_FNTRACE(())
+
     const int count = files.size();
     settings.beginWriteArray(recentFilesKey());
     for (int i = 0; i < count; ++i) {
@@ -116,6 +132,8 @@ static void writeRecentFiles(const QStringList &files, QSettings &settings)
 
 bool MainWindow::hasRecentFiles()
 {
+	CV_FNTRACE(())
+
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     const int count = settings.beginReadArray(recentFilesKey());
     settings.endArray();
@@ -126,6 +144,8 @@ bool MainWindow::hasRecentFiles()
 
 void MainWindow::prependToRecentFiles(const QString &fileName)
 {
+	CV_FNTRACE(())
+
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
     const QStringList oldRecentFiles = readRecentFiles(settings);
@@ -142,6 +162,8 @@ void MainWindow::prependToRecentFiles(const QString &fileName)
 
 void MainWindow::setRecentFilesVisible(bool visible)
 {
+	CV_FNTRACE(())
+
     recentFileSubMenuAct->setVisible(visible);
     recentFileSeparator->setVisible(visible);
 }
@@ -149,6 +171,8 @@ void MainWindow::setRecentFilesVisible(bool visible)
 
 void MainWindow::updateRecentFileActions()
 {
+	CV_FNTRACE(())
+
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
     const QStringList recentFiles = readRecentFiles(settings);
@@ -167,6 +191,8 @@ void MainWindow::updateRecentFileActions()
 
 void MainWindow::openRecentFile()
 {
+	CV_FNTRACE(())
+
     if (const QAction *action = qobject_cast<const QAction *>(sender()))
         openFile(action->data().toString());
 }
@@ -175,6 +201,8 @@ void MainWindow::openRecentFile()
 
 void MainWindow::save()
 {
+	CV_FNTRACE(())
+
     if (activeMdiChild() && activeMdiChild()->save())
         statusBar()->showMessage(tr("File saved"), 2000);
 }
@@ -183,6 +211,8 @@ void MainWindow::save()
 
 void MainWindow::saveAs()
 {
+	CV_FNTRACE(())
+
     MdiChild *child = activeMdiChild();
     if (child && child->saveAs()) {
         statusBar()->showMessage(tr("File saved"), 2000);
@@ -195,6 +225,8 @@ void MainWindow::saveAs()
 #ifndef QT_NO_CLIPBOARD
 void MainWindow::cut()
 {
+	CV_FNTRACE(())
+
     if (activeMdiChild())
         activeMdiChild()->cut();
 }
@@ -203,6 +235,8 @@ void MainWindow::cut()
 
 void MainWindow::copy()
 {
+	CV_FNTRACE(())
+
     if (activeMdiChild())
         activeMdiChild()->copy();
 }
@@ -211,6 +245,8 @@ void MainWindow::copy()
 
 void MainWindow::paste()
 {
+	CV_FNTRACE(())
+
     if (activeMdiChild())
         activeMdiChild()->paste();
 }
@@ -220,6 +256,8 @@ void MainWindow::paste()
 
 void MainWindow::about()
 {
+	CV_FNTRACE(())
+
    QMessageBox::about(this, tr("About MDI"),
             tr("The <b>MDI</b> example demonstrates how to write multiple "
                "document interface applications using Qt."));
@@ -229,6 +267,8 @@ void MainWindow::about()
 
 void MainWindow::updateMenus()
 {
+	CV_FNTRACE(())
+
     bool hasMdiChild = (activeMdiChild() != nullptr);
     saveAct->setEnabled(hasMdiChild);
     saveAsAct->setEnabled(hasMdiChild);
@@ -250,10 +290,13 @@ void MainWindow::updateMenus()
     copyAct->setEnabled(hasSelection);
 #endif
 }
+
 //_____________________________________________________________________________________________________________________________
 
 void MainWindow::updateWindowMenu()
 {
+	CV_FNTRACE(())
+
     windowMenu->clear();
     windowMenu->addAction(closeAct);
     windowMenu->addAction(closeAllAct);
@@ -287,10 +330,13 @@ void MainWindow::updateWindowMenu()
         action ->setChecked(child == activeMdiChild());
     }
 }
+
 //_____________________________________________________________________________________________________________________________
 
 MdiChild *MainWindow::createMdiChild()
 {
+	CV_FNTRACE(())
+
     MdiChild *child = new MdiChild;
     mdiArea->addSubWindow(child);
 
@@ -306,6 +352,8 @@ MdiChild *MainWindow::createMdiChild()
 
 void MainWindow::createActions()
 {
+	CV_FNTRACE(())
+
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     QToolBar *fileToolBar = addToolBar(tr("File"));
 
@@ -449,6 +497,8 @@ void MainWindow::createActions()
 
 void MainWindow::createStatusBar()
 {
+	CV_FNTRACE(())
+
     statusBar()->showMessage(tr("Ready"));
 }
 
@@ -456,6 +506,8 @@ void MainWindow::createStatusBar()
 
 void MainWindow::readSettings()
 {
+	CV_FNTRACE(())
+
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
     if (geometry.isEmpty()) {
@@ -472,12 +524,16 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
+	CV_FNTRACE(())
+
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     settings.setValue("geometry", saveGeometry());
 }
 
 MdiChild *MainWindow::activeMdiChild() const
 {
+	CV_FNTRACE(())
+
     if (QMdiSubWindow *activeSubWindow = mdiArea->activeSubWindow())
         return qobject_cast<MdiChild *>(activeSubWindow->widget());
     return nullptr;
@@ -487,6 +543,8 @@ MdiChild *MainWindow::activeMdiChild() const
 
 QMdiSubWindow *MainWindow::findMdiChild(const QString &fileName) const
 {
+	CV_FNTRACE(())
+
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
     const QList<QMdiSubWindow *> subWindows = mdiArea->subWindowList();
@@ -502,6 +560,8 @@ QMdiSubWindow *MainWindow::findMdiChild(const QString &fileName) const
 
 void MainWindow::switchLayoutDirection()
 {
+	CV_FNTRACE(())
+
     if (layoutDirection() == Qt::LeftToRight)
         QGuiApplication::setLayoutDirection(Qt::RightToLeft);
     else

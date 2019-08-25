@@ -136,18 +136,18 @@ public:
 
 //-----------------------------------------------------------------------------------------------------------------------------
            
- #define XD_FNTRACE(  Y)                                                                                                        \
+ #define CV_FNTRACE(  Y)                                                                                                        \
     static  Cv_Logger::LogPage    _tracePage( __func__);                                                                    \
     Cv_Logger::LogEntry           _traceEntry(  &_tracePage, Cv_Logger::MaxThreads);                                            \
     _traceEntry.Trace  Y;                                                                                                       \
 
- #define XD_THFNTRACE( thId, Y)                                                                                                 \
+ #define CV_THFNTRACE( thId, Y)                                                                                                 \
     static  Cv_Logger::LogPage    _tracePage( __func__);                                                                    \
     Cv_Logger::LogEntry           _traceEntry(  &_tracePage, thId);                                                             \
     _traceEntry.Trace  Y;                                                                                                       \
 
 
-#define XD_LNTRACE( y)                                                                                                            \
+#define CV_LNTRACE( y)                                                                                                            \
     {                                                                                                                           \
         _traceEntry.Book()->Indent();                                                                                           \
         _traceEntry.Trace  y;                                                                                                   \
@@ -160,8 +160,8 @@ struct Cv_Logger
     static void    DoInit( const std::string &) {}
 };
 
-#define XD_FNTRACE(  Y)   {} 
-#define XD_THFNTRACE( thId, Y)  {}
-#define XD_LNTRACE( y) {} 
+#define CV_FNTRACE(  Y)   {} 
+#define CV_THFNTRACE( thId, Y)  {}
+#define CV_LNTRACE( y) {} 
 
 #endif

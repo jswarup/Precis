@@ -71,6 +71,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Work\Precis\src;$(IncludePath)</IncludePath>
+    <IntDir>..\..\..\delivery\$(Platform)-$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\..\..\delivery\$(Platform)-$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>..\..\..\delivery\$(Platform)-$(Configuration)\$(ProjectName)\</IntDir>
+    <IncludePath>..\..\..\src;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
