@@ -184,7 +184,7 @@
       <QTDIR>C:\PACKS\QT\5.13.0\MSVC2017_64</QTDIR>
       <InputFile>%(FullPath)</InputFile>
       <OutputFile>$(Configuration)\qrc_%(Filename).cpp</OutputFile>
-      <InitFuncName>mdi</InitFuncName>
+      <InitFuncName>fr_mdi</InitFuncName>
       <Compression>default</Compression>
       <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
     </QtRcc>

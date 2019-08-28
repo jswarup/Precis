@@ -63,7 +63,7 @@ int main( int argc, char *argv[])
 	Cv_Logger::DoInit( "log.txt");
 	CV_FNTRACE(())
 
-    Q_INIT_RESOURCE(mdi);
+    Q_INIT_RESOURCE(fr_mdi);
 
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
