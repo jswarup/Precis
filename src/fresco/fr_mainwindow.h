@@ -73,7 +73,7 @@ private:
     MdiChild                *activeMdiChild() const;
     QMdiSubWindow           *findMdiChild(const QString &fileName) const;
 
-    QMdiArea                *mdiArea;
+    //QMdiArea                *mdiArea;
 
     QMenu                   *windowMenu;
     QAction                 *m_NewAct;

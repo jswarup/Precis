@@ -4,6 +4,7 @@
 #include	"fresco/fr_mainwindow.h"
 #include	"fresco/fr_mdichild.h"
 #include	"fresco/fr_toolbar.h"
+#include	"fresco/fr_colorswatch.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -13,14 +14,14 @@ static inline QString fileKey() { return QStringLiteral("file"); }
 //_____________________________________________________________________________________________________________________________
 
 MainWindow::MainWindow(const CustomSizeHintMap &customSizeHints, QWidget *parent, Qt::WindowFlags flags)
-    : QMainWindow(parent, flags), mdiArea( new QMdiArea)
+    : QMainWindow(parent, flags)//, mdiArea( new QMdiArea)
 {
 	CV_FNTRACE(())
 
-    mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    setCentralWidget(mdiArea);
-    connect(mdiArea, &QMdiArea::subWindowActivated,  this, &MainWindow::updateMenus);
+    //mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    //mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    //setCentralWidget(mdiArea);
+    //connect(mdiArea, &QMdiArea::subWindowActivated,  this, &MainWindow::updateMenus);
 
     createActions();
     createStatusBar();
@@ -34,7 +35,7 @@ MainWindow::MainWindow(const CustomSizeHintMap &customSizeHints, QWidget *parent
 
      setupToolBar();
 	setupMenuBar();
-     //setupDockWidgets(customSizeHints);
+    setupDockWidgets(customSizeHints);
 
     statusBar()->showMessage(tr("Status Bar"));
 }
@@ -45,10 +46,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
 	CV_FNTRACE(())
 
-    mdiArea->closeAllSubWindows();
-    if (mdiArea->currentSubWindow()) {
-        event->ignore();
-    } else {
+    //mdiArea->closeAllSubWindows();
+    //if (mdiArea->currentSubWindow()) {
+    //    event->ignore();
+    //} else 
+	{
         writeSettings();
         event->accept();
     }
@@ -183,6 +185,7 @@ void MainWindow::saveLayout()
         return;
     }
 }
+
 //_____________________________________________________________________________________________________________________________
 
 void MainWindow::loadLayout()
@@ -225,6 +228,101 @@ void MainWindow::loadLayout()
         QMessageBox::warning(this, tr("Error"), msg);
         return;
     }
+}
+
+
+//_____________________________________________________________________________________________________________________________
+
+static QAction *addCornerAction(const QString &text, QMainWindow *mw, QMenu *menu, QActionGroup *group,
+                                Qt::Corner c, Qt::DockWidgetArea a)
+{
+    QAction *result = menu->addAction(text, mw, [=]() { mw->setCorner(c, a); });
+    result->setCheckable(true);
+    group->addAction(result);
+    return result;
+}
+
+//_____________________________________________________________________________________________________________________________
+
+void MainWindow::setupDockWidgets(const CustomSizeHintMap &customSizeHints)
+{
+    qRegisterMetaType<QDockWidget::DockWidgetFeatures>();
+
+    QMenu *cornerMenu = m_DockWidgetMenu->addMenu(tr("Top left corner"));
+    QActionGroup *group = new QActionGroup(this);
+    group->setExclusive(true);
+    QAction *cornerAction = addCornerAction(tr("Top dock area"), this, cornerMenu, group, Qt::TopLeftCorner, Qt::TopDockWidgetArea);
+    cornerAction->setChecked(true);
+    addCornerAction(tr("Left dock area"), this, cornerMenu, group, Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+
+    cornerMenu = m_DockWidgetMenu->addMenu(tr("Top right corner"));
+    group = new QActionGroup(this);
+    group->setExclusive(true);
+    cornerAction = addCornerAction(tr("Top dock area"), this, cornerMenu, group, Qt::TopRightCorner, Qt::TopDockWidgetArea);
+    cornerAction->setChecked(true);
+    addCornerAction(tr("Right dock area"), this, cornerMenu, group, Qt::TopRightCorner, Qt::RightDockWidgetArea);
+
+    cornerMenu = m_DockWidgetMenu->addMenu(tr("Bottom left corner"));
+    group = new QActionGroup(this);
+    group->setExclusive(true);
+    cornerAction = addCornerAction(tr("Bottom dock area"), this, cornerMenu, group, Qt::BottomLeftCorner, Qt::BottomDockWidgetArea);
+    cornerAction->setChecked(true);
+    addCornerAction(tr("Left dock area"), this, cornerMenu, group, Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+
+    cornerMenu = m_DockWidgetMenu->addMenu(tr("Bottom right corner"));
+    group = new QActionGroup(this);
+    group->setExclusive(true);
+    cornerAction = addCornerAction(tr("Bottom dock area"), this, cornerMenu, group, Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
+    cornerAction->setChecked(true);
+    addCornerAction(tr("Right dock area"), this, cornerMenu, group, Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
+    m_DockWidgetMenu->addSeparator();
+
+    static const struct Set {
+        const char * name;
+        uint flags;
+        Qt::DockWidgetArea area;
+    } sets [] = {
+#ifndef Q_OS_MAC
+        { "Black", 0, Qt::LeftDockWidgetArea },
+#else
+        { "Black", Qt::Drawer, Qt::LeftDockWidgetArea },
+#endif
+        { "White", 0, Qt::RightDockWidgetArea },
+        { "Red", 0, Qt::TopDockWidgetArea },
+        { "Green", 0, Qt::TopDockWidgetArea },
+        { "Blue", 0, Qt::BottomDockWidgetArea },
+        { "Yellow", 0, Qt::BottomDockWidgetArea }
+    };
+    const int setCount = sizeof(sets) / sizeof(Set);
+
+    const QIcon qtIcon(QPixmap(":/res/qt.png"));
+    for (int i = 0; i < setCount; ++i) {
+        ColorSwatch *swatch = new ColorSwatch(tr(sets[i].name), this, Qt::WindowFlags(sets[i].flags));
+        if (i % 2)
+            swatch->setWindowIcon(qtIcon);
+        if (qstrcmp(sets[i].name, "Blue") == 0) {
+            BlueTitleBar *titlebar = new BlueTitleBar(swatch);
+            swatch->setTitleBarWidget(titlebar);
+            connect(swatch, &QDockWidget::topLevelChanged, titlebar, &BlueTitleBar::updateMask);
+            connect(swatch, &QDockWidget::featuresChanged, titlebar, &BlueTitleBar::updateMask, Qt::QueuedConnection);
+        }
+
+        QString name = QString::fromLatin1(sets[i].name);
+        if (customSizeHints.contains(name))
+            swatch->setCustomSizeHint(customSizeHints.value(name));
+
+        addDockWidget(sets[i].area, swatch);
+        m_DockWidgetMenu->addMenu(swatch->colorSwatchMenu());
+    }
+
+    destroyDockWidgetMenu = new QMenu(tr("Destroy dock widget"), this);
+    destroyDockWidgetMenu->setEnabled(false);
+    connect(destroyDockWidgetMenu, &QMenu::triggered, this, &MainWindow::destroyDockWidget);
+
+    m_DockWidgetMenu->addSeparator();
+    m_DockWidgetMenu->addAction(tr("Add dock widget..."), this, &MainWindow::createDockWidget);
+    m_DockWidgetMenu->addMenu(destroyDockWidgetMenu);
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -270,9 +368,9 @@ void MainWindow::newFile()
 {
 	CV_FNTRACE(())
 
-    MdiChild *child = createMdiChild();
-    child->newFile();
-    child->show();
+    //MdiChild *child = createMdiChild();
+    //child->newFile();
+    //child->show();
 }
 //_____________________________________________________________________________________________________________________________
 
@@ -291,10 +389,11 @@ bool MainWindow::openFile(const QString &fileName)
 {
 	CV_FNTRACE(())
 
-    if (QMdiSubWindow *existing = findMdiChild(fileName)) {
+    /*if (QMdiSubWindow *existing = findMdiChild(fileName)) 
+	{
         mdiArea->setActiveSubWindow(existing);
         return true;
-    }
+    }*/
     const bool succeeded = loadFile(fileName);
     if (succeeded)
         statusBar()->showMessage(tr("File loaded"), 2000);
@@ -307,6 +406,8 @@ bool MainWindow::loadFile(const QString &fileName)
 {
 	CV_FNTRACE(())
 
+	return false;
+		/* 
     MdiChild *child = createMdiChild();
     const bool succeeded = child->loadFile(fileName);
     if (succeeded)
@@ -315,6 +416,7 @@ bool MainWindow::loadFile(const QString &fileName)
         child->close();
     MainWindow::prependToRecentFiles(fileName);
     return succeeded;
+	*/
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -525,7 +627,7 @@ void MainWindow::updateWindowMenu()
     windowMenu->addAction(previousAct);
     windowMenu->addAction(windowMenuSeparatorAct);
 
-    QList<QMdiSubWindow *> windows = mdiArea->subWindowList();
+    /*QList<QMdiSubWindow *> windows = mdiArea->subWindowList();
     windowMenuSeparatorAct->setVisible(!windows.isEmpty());
 
     for (int i = 0; i < windows.size(); ++i) {
@@ -545,7 +647,7 @@ void MainWindow::updateWindowMenu()
         });
         action->setCheckable(true);
         action ->setChecked(child == activeMdiChild());
-    }
+    }*/
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -553,9 +655,10 @@ void MainWindow::updateWindowMenu()
 MdiChild *MainWindow::createMdiChild()
 {
 	CV_FNTRACE(())
+	return nullptr;
 
     MdiChild	*child = new MdiChild;
-    mdiArea->addSubWindow(child);
+    //mdiArea->addSubWindow(child);
 
 #ifndef QT_NO_CLIPBOARD
     connect(child, &QTextEdit::copyAvailable, m_CutAct, &QAction::setEnabled);
@@ -662,31 +765,30 @@ void MainWindow::createActions()
 
     closeAct = new QAction(tr("Cl&ose"), this);
     closeAct->setStatusTip(tr("Close the active window"));
-    connect(closeAct, &QAction::triggered,
-            mdiArea, &QMdiArea::closeActiveSubWindow);
+    //connect(closeAct, &QAction::triggered, mdiArea, &QMdiArea::closeActiveSubWindow);
 
     closeAllAct = new QAction(tr("Close &All"), this);
     closeAllAct->setStatusTip(tr("Close all the windows"));
-    connect(closeAllAct, &QAction::triggered, mdiArea, &QMdiArea::closeAllSubWindows);
+    //connect(closeAllAct, &QAction::triggered, mdiArea, &QMdiArea::closeAllSubWindows);
 
     tileAct = new QAction(tr("&Tile"), this);
     tileAct->setStatusTip(tr("Tile the windows"));
-    connect(tileAct, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
+    //connect(tileAct, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
 
     cascadeAct = new QAction(tr("&Cascade"), this);
     cascadeAct->setStatusTip(tr("Cascade the windows"));
-    connect(cascadeAct, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
+    //connect(cascadeAct, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
 
     nextAct = new QAction(tr("Ne&xt"), this);
     nextAct->setShortcuts(QKeySequence::NextChild);
     nextAct->setStatusTip(tr("Move the focus to the next window"));
-    connect(nextAct, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
+    //connect(nextAct, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
 
     previousAct = new QAction(tr("Pre&vious"), this);
     previousAct->setShortcuts(QKeySequence::PreviousChild);
     previousAct->setStatusTip(tr("Move the focus to the previous "
                                  "window"));
-    connect(previousAct, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
+    //connect(previousAct, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
 
     windowMenuSeparatorAct = new QAction(this);
     windowMenuSeparatorAct->setSeparator(true);
@@ -745,8 +847,8 @@ MdiChild *MainWindow::activeMdiChild() const
 {
 	CV_FNTRACE(())
 
-    if (QMdiSubWindow *activeSubWindow = mdiArea->activeSubWindow())
-        return qobject_cast<MdiChild *>(activeSubWindow->widget());
+//    if (QMdiSubWindow *activeSubWindow = mdiArea->activeSubWindow())
+//        return qobject_cast<MdiChild *>(activeSubWindow->widget());
     return nullptr;
 }
 
@@ -758,12 +860,12 @@ QMdiSubWindow *MainWindow::findMdiChild(const QString &fileName) const
 
     QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-    const QList<QMdiSubWindow *> subWindows = mdiArea->subWindowList();
+/*    const QList<QMdiSubWindow *> subWindows = mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
         MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
         if (mdiChild->currentFile() == canonicalFilePath)
             return window;
-    }
+    }*/
     return nullptr;
 }
 
