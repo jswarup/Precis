@@ -190,9 +190,10 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\fresco\fr_mdlapp.cpp" />
+    <ClCompile Include="..\..\..\src\fresco\fr_mainapp.cpp" />
     <ClCompile Include="..\..\..\src\fresco\fr_mainwindow.cpp" />
     <ClCompile Include="..\..\..\src\fresco\fr_mdichild.cpp" />
+    <ClCompile Include="..\..\..\src\fresco\fr_toolbar.cpp" />
     <ClCompile Include="..\..\..\src\fresco\tenor\fr_include.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +204,8 @@
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_DEBUG;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;NDEBUG;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtMoc Include="..\..\..\src\fresco\fr_mdichild.h">
+    </QtMoc>
+	<QtMoc Include="..\..\..\src\fresco\fr_toolbar.h">
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

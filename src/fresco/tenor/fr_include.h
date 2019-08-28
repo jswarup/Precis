@@ -12,5 +12,15 @@
 #include	<QtWidgets> 
 #include	<QTextEdit>
 #include        <QDebug>
+#include        <QRandomGenerator>
+
+#include        <QMainWindow>
+#include        <QMenu>
+#include        <QPainter>
+#include        <QPainterPath>
+#include        <QSpinBox>
+#include        <QLabel>
+#include        <QToolTip>
+
 
 //_____________________________________________________________________________________________________________________________
