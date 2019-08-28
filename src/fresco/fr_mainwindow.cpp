@@ -3,6 +3,7 @@
 #include	"fresco/tenor/fr_include.h" 
 #include	"fresco/fr_mainwindow.h"
 #include	"fresco/fr_mdichild.h"
+#include	"fresco/fr_toolbar.h"
 
 //_____________________________________________________________________________________________________________________________
 
@@ -19,8 +20,7 @@ MainWindow::MainWindow(const CustomSizeHintMap &customSizeHints, QWidget *parent
     mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(mdiArea);
-    connect(mdiArea, &QMdiArea::subWindowActivated,
-            this, &MainWindow::updateMenus);
+    connect(mdiArea, &QMdiArea::subWindowActivated,  this, &MainWindow::updateMenus);
 
     createActions();
     createStatusBar();
@@ -28,8 +28,15 @@ MainWindow::MainWindow(const CustomSizeHintMap &customSizeHints, QWidget *parent
 
     readSettings();
 
-    setWindowTitle(tr("MDI"));
-    setUnifiedTitleAndToolBarOnMac(true);
+    setObjectName("MainWindow");
+    setWindowTitle(tr("Fresco"));
+    //setUnifiedTitleAndToolBarOnMac(true); 
+
+     setupToolBar();
+     //setupMenuBar();
+     //setupDockWidgets(customSizeHints);
+
+    statusBar()->showMessage(tr("Status Bar"));
 }
 
 //_____________________________________________________________________________________________________________________________
@@ -52,6 +59,39 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::actionTriggered(QAction *action)
 {
 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+void MainWindow::setupToolBar()
+{
+    ToolBar            *fileToolBar = new ToolBar( QString::fromUtf8("File"), this);
+	
+    fileToolBar->addAction( m_NewAct);
+    fileToolBar->addAction( m_OpenAct);
+    fileToolBar->addAction(m_SaveAct);
+
+	m_ToolBars.append( fileToolBar);
+	addToolBar( fileToolBar);
+
+	
+    ToolBar				*editToolBar = new ToolBar( QString::fromUtf8("Edit"), this); 
+    editToolBar->addAction(m_CutAct);
+    editToolBar->addAction(m_CopyAct);
+    editToolBar->addAction(m_PasteAct);
+	m_ToolBars.append( editToolBar);
+	addToolBar( editToolBar);
+
+#ifdef Q_OS_OSX
+    setUnifiedTitleAndToolBarOnMac(true);
+#endif
+
+    for (int i = 0; i < 3; ++i) {
+        ToolBar *tb = new ToolBar(QString::fromLatin1("Tool Bar %1").arg(i + 1), this);
+		tb->CreateActions();
+        m_ToolBars.append(tb);
+        addToolBar(tb);
+    }
 }
 //_____________________________________________________________________________________________________________________________
 
@@ -315,7 +355,7 @@ void MainWindow::updateMenus()
     m_SaveAct->setEnabled(hasMdiChild);
     m_SaveAsAct->setEnabled(hasMdiChild);
 #ifndef QT_NO_CLIPBOARD
-    pasteAct->setEnabled(hasMdiChild);
+    m_PasteAct->setEnabled(hasMdiChild);
 #endif
     closeAct->setEnabled(hasMdiChild);
     closeAllAct->setEnabled(hasMdiChild);
@@ -326,10 +366,9 @@ void MainWindow::updateMenus()
     windowMenuSeparatorAct->setVisible(hasMdiChild);
 
 #ifndef QT_NO_CLIPBOARD
-    bool hasSelection = (activeMdiChild() &&
-                         activeMdiChild()->textCursor().hasSelection());
-    cutAct->setEnabled(hasSelection);
-    copyAct->setEnabled(hasSelection);
+    bool hasSelection = (activeMdiChild() && activeMdiChild()->textCursor().hasSelection());
+    m_CutAct->setEnabled(hasSelection);
+    m_CopyAct->setEnabled(hasSelection);
 #endif
 }
 
@@ -383,12 +422,14 @@ MdiChild *MainWindow::createMdiChild()
     mdiArea->addSubWindow(child);
 
 #ifndef QT_NO_CLIPBOARD
-    connect(child, &QTextEdit::copyAvailable, cutAct, &QAction::setEnabled);
-    connect(child, &QTextEdit::copyAvailable, copyAct, &QAction::setEnabled);
+    connect(child, &QTextEdit::copyAvailable, m_CutAct, &QAction::setEnabled);
+    connect(child, &QTextEdit::copyAvailable, m_CopyAct, &QAction::setEnabled);
 #endif
 
     return child;
 }
+
+ 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -397,7 +438,6 @@ void MainWindow::createActions()
 	CV_FNTRACE(())
 
     QMenu               *fileMenu = menuBar()->addMenu(tr("&File"));
-    QToolBar            *fileToolBar = addToolBar(tr("File"));
 
     const QIcon         newIcon = QIcon::fromTheme("document-new", QIcon(":/images/new.png"));
     m_NewAct = new QAction(newIcon, tr("&New"), this);
@@ -405,22 +445,19 @@ void MainWindow::createActions()
     m_NewAct->setStatusTip(tr("Create a new file"));
     connect( m_NewAct, &QAction::triggered, this, &MainWindow::newFile);
     fileMenu->addAction( m_NewAct);
-    fileToolBar->addAction( m_NewAct);
 
     const QIcon         openIcon = QIcon::fromTheme("document-open", QIcon(":/images/open.png"));
-    QAction             *openAct = new QAction( openIcon, tr("&Open..."), this);
-    openAct->setShortcuts( QKeySequence::Open);
-    openAct->setStatusTip(tr("Open an existing file"));
-    connect(openAct, &QAction::triggered, this, &MainWindow::open);
-    fileMenu->addAction(openAct);
-    fileToolBar->addAction(openAct);
+    m_OpenAct = new QAction( openIcon, tr("&Open..."), this);
+    m_OpenAct->setShortcuts( QKeySequence::Open);
+    m_OpenAct->setStatusTip(tr("Open an existing file"));
+    connect( m_OpenAct, &QAction::triggered, this, &MainWindow::open);
+    fileMenu->addAction( m_OpenAct);
 
     const QIcon         saveIcon = QIcon::fromTheme("document-save", QIcon(":/images/save.png"));
     m_SaveAct = new QAction(saveIcon, tr("&Save"), this);
     m_SaveAct->setShortcuts(QKeySequence::Save);
     m_SaveAct->setStatusTip(tr("Save the document to disk"));
     connect(m_SaveAct, &QAction::triggered, this, &MainWindow::save);
-    fileToolBar->addAction(m_SaveAct);
 
     const QIcon saveAsIcon = QIcon::fromTheme("document-save-as");
     m_SaveAsAct = new QAction(saveAsIcon, tr("Save &As..."), this);
@@ -458,34 +495,30 @@ void MainWindow::createActions()
 
 #ifndef QT_NO_CLIPBOARD
     QMenu *editMenu = menuBar()->addMenu(tr("&Edit"));
-    QToolBar *editToolBar = addToolBar(tr("Edit"));
 
     const QIcon cutIcon = QIcon::fromTheme("edit-cut", QIcon(":/images/cut.png"));
-    cutAct = new QAction(cutIcon, tr("Cu&t"), this);
-    cutAct->setShortcuts(QKeySequence::Cut);
-    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
+    m_CutAct = new QAction(cutIcon, tr("Cu&t"), this);
+    m_CutAct->setShortcuts(QKeySequence::Cut);
+    m_CutAct->setStatusTip(tr("Cut the current selection's contents to the "
                             "clipboard"));
-    connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
-    editMenu->addAction(cutAct);
-    editToolBar->addAction(cutAct);
+    connect(m_CutAct, &QAction::triggered, this, &MainWindow::cut);
+    editMenu->addAction(m_CutAct);
 
     const QIcon copyIcon = QIcon::fromTheme("edit-copy", QIcon(":/images/copy.png"));
-    copyAct = new QAction(copyIcon, tr("&Copy"), this);
-    copyAct->setShortcuts(QKeySequence::Copy);
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
+    m_CopyAct = new QAction(copyIcon, tr("&Copy"), this);
+    m_CopyAct->setShortcuts(QKeySequence::Copy);
+    m_CopyAct->setStatusTip(tr("Copy the current selection's contents to the "
                              "clipboard"));
-    connect(copyAct, &QAction::triggered, this, &MainWindow::copy);
-    editMenu->addAction(copyAct);
-    editToolBar->addAction(copyAct);
+    connect(m_CopyAct, &QAction::triggered, this, &MainWindow::copy);
+    editMenu->addAction(m_CopyAct);
 
     const QIcon pasteIcon = QIcon::fromTheme("edit-paste", QIcon(":/images/paste.png"));
-    pasteAct = new QAction(pasteIcon, tr("&Paste"), this);
-    pasteAct->setShortcuts(QKeySequence::Paste);
-    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
+    m_PasteAct = new QAction(pasteIcon, tr("&Paste"), this);
+    m_PasteAct->setShortcuts(QKeySequence::Paste);
+    m_PasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
                               "selection"));
-    connect(pasteAct, &QAction::triggered, this, &MainWindow::paste);
-    editMenu->addAction(pasteAct);
-    editToolBar->addAction(pasteAct);
+    connect(m_PasteAct, &QAction::triggered, this, &MainWindow::paste);
+    editMenu->addAction(m_PasteAct);
 #endif
 
     windowMenu = menuBar()->addMenu(tr("&Window"));

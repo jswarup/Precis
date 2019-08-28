@@ -94,19 +94,29 @@ static QPixmap genIcon(const QSize &iconSize, const QString &, const QColor &col
     return pm;
 }
 
+//_____________________________________________________________________________________________________________________________
+
 static QPixmap genIcon(const QSize &iconSize, int number, const QColor &color, qreal pixelRatio)
-{ return genIcon(iconSize, QString::number(number), color, pixelRatio); }
+{ 
+	return genIcon(iconSize, QString::number(number), color, pixelRatio); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 ToolBar::ToolBar(const QString &title, QWidget *parent)
-    : QToolBar(parent)
-    , spinbox(nullptr)
-    , spinboxAction(nullptr)
+    : QToolBar(parent), spinbox(nullptr), spinboxAction(nullptr)
 {
     setWindowTitle(title);
     setObjectName(title);
 
-    setIconSize(QSize(32, 32));
+    setIconSize(QSize(24, 24));
 
+}
+
+//_____________________________________________________________________________________________________________________________
+
+void	ToolBar::CreateActions( void)
+{
     qreal dpr = devicePixelRatioF();
     menu = new QMenu("One", this);
     menu->setIcon(genIcon(iconSize(), 1, Qt::black, dpr));
@@ -197,7 +207,7 @@ ToolBar::ToolBar(const QString &title, QWidget *parent)
 
     connect(movableAction, &QAction::triggered, allowedAreasActions, &QActionGroup::setEnabled);
 
-    menu = new QMenu(title, this);
+    menu = new QMenu("Tool Menu", this);
     menu->addAction(toggleViewAction());
     menu->addSeparator();
     menu->addAction(orderAction);
@@ -218,6 +228,8 @@ ToolBar::ToolBar(const QString &title, QWidget *parent)
 
     randomize();
 }
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::updateMenu()
 {
@@ -254,6 +266,8 @@ void ToolBar::updateMenu()
     }
 }
 
+//_____________________________________________________________________________________________________________________________
+
 void ToolBar::order()
 {
     QList<QAction *> ordered;
@@ -272,6 +286,8 @@ void ToolBar::order()
     orderAction->setEnabled(false);
 }
 
+//_____________________________________________________________________________________________________________________________
+
 void ToolBar::randomize()
 {
     QList<QAction *> randomized;
@@ -285,6 +301,8 @@ void ToolBar::randomize()
 
     orderAction->setEnabled(true);
 }
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::addSpinBox()
 {
@@ -322,6 +340,8 @@ void ToolBar::allow(Qt::ToolBarArea area, bool a)
     }
 }
 
+//_____________________________________________________________________________________________________________________________
+
 void ToolBar::place(Qt::ToolBarArea area, bool p)
 {
     if (!p)
@@ -340,32 +360,71 @@ void ToolBar::place(Qt::ToolBarArea area, bool p)
     }
 }
 
+//_____________________________________________________________________________________________________________________________
+
 void ToolBar::changeMovable(bool movable)
-{ setMovable(movable); }
+{ 
+	setMovable(movable); 
+}
+
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::allowLeft(bool a)
-{ allow(Qt::LeftToolBarArea, a); }
+{ 
+	allow(Qt::LeftToolBarArea, a); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::allowRight(bool a)
-{ allow(Qt::RightToolBarArea, a); }
+{ 
+	allow(Qt::RightToolBarArea, a); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::allowTop(bool a)
-{ allow(Qt::TopToolBarArea, a); }
+{ 
+	allow(Qt::TopToolBarArea, a); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::allowBottom(bool a)
-{ allow(Qt::BottomToolBarArea, a); }
+{ 
+	allow(Qt::BottomToolBarArea, a); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::placeLeft(bool p)
-{ place(Qt::LeftToolBarArea, p); }
+{ 
+	place(Qt::LeftToolBarArea, p); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::placeRight(bool p)
-{ place(Qt::RightToolBarArea, p); }
+{ 
+	place(Qt::RightToolBarArea, p); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::placeTop(bool p)
-{ place(Qt::TopToolBarArea, p); }
+{ 
+	place(Qt::TopToolBarArea, p); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::placeBottom(bool p)
-{ place(Qt::BottomToolBarArea, p); }
+{ 
+	place(Qt::BottomToolBarArea, p); 
+}
+
+//_____________________________________________________________________________________________________________________________
 
 void ToolBar::insertToolBarBreak()
 {
@@ -374,3 +433,5 @@ void ToolBar::insertToolBarBreak()
 
     mainWindow->insertToolBarBreak(this);
 }
+
+//_____________________________________________________________________________________________________________________________

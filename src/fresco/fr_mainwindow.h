@@ -6,6 +6,7 @@
 //_____________________________________________________________________________________________________________________________
 
 class MdiChild;
+class ToolBar;
 QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
@@ -76,6 +77,7 @@ private:
 
     QMenu                   *windowMenu;
     QAction                 *m_NewAct;
+    QAction                 *m_OpenAct;
     QAction                 *m_SaveAct;
     QAction                 *m_SaveAsAct;
     QAction                 *recentFileActs[MaxRecentFiles];
@@ -83,9 +85,9 @@ private:
     QAction                 *recentFileSubMenuAct;
 
 #ifndef QT_NO_CLIPBOARD
-    QAction                 *cutAct;
-    QAction                 *copyAct;
-    QAction                 *pasteAct;
+    QAction                 *m_CutAct;
+    QAction                 *m_CopyAct;
+    QAction                 *m_PasteAct;
 #endif
 
     QAction                 *closeAct;
@@ -96,8 +98,11 @@ private:
     QAction                 *previousAct;
     QAction                 *windowMenuSeparatorAct;
 
+	void					setupToolBar();
+    void					setupMenuBar();
+    void					setupDockWidgets(const CustomSizeHintMap &customSizeHints);
 
-    QList<QToolBar*>        m_ToolBars;
+    QList<ToolBar*>			m_ToolBars;
     QMenu                   *dockWidgetMenu;
     QMenu                   *mainWindowMenu;
     QList<QDockWidget *>    extraDockWidgets;
