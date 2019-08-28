@@ -105,33 +105,33 @@ void MainWindow::setupMenuBar()
     m_LayoutMenu->addAction(tr("Switch layout direction"),this, &MainWindow::switchLayoutDirection);
 
     m_LayoutMenu->addSeparator();  
-
-    QAction *action = m_LayoutMenu->addAction(tr("Animated docks"));
+	m_DockMenu  = menuBar()->addMenu(tr("&Dock"));
+    QAction *action = m_DockMenu->addAction(tr("Animated docks"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & AnimatedDocks);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
 
-    action = m_LayoutMenu->addAction(tr("Allow nested docks"));
+    action = m_DockMenu->addAction(tr("Allow nested docks"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & AllowNestedDocks);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
 
-    action = m_LayoutMenu->addAction(tr("Allow tabbed docks"));
+    action = m_DockMenu->addAction(tr("Allow tabbed docks"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & AllowTabbedDocks);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
 
-    action = m_LayoutMenu->addAction(tr("Force tabbed docks"));
+    action = m_DockMenu->addAction(tr("Force tabbed docks"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & ForceTabbedDocks);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
 
-    action = m_LayoutMenu->addAction(tr("Vertical tabs"));
+    action = m_DockMenu->addAction(tr("Vertical tabs"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & VerticalTabs);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
 
-    action = m_LayoutMenu->addAction(tr("Grouped dragging"));
+    action = m_DockMenu->addAction(tr("Grouped dragging"));
     action->setCheckable(true);
     action->setChecked(dockOptions() & GroupedDragging);
     connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
@@ -157,23 +157,98 @@ void MainWindow::setupMenuBar()
 //_____________________________________________________________________________________________________________________________
 
 void MainWindow::saveLayout()
-{
+{ 
+    QString			fileName = QFileDialog::getSaveFileName(this, tr("Save layout"));
+    if (fileName.isEmpty())
+        return;
+    QFile			file( fileName);
+    if ( !file.open( QFile::WriteOnly)) {
+        QString			msg = tr("Failed to open %1\n%2").arg( QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning( this, tr( "Error"), msg);
+        return;
+    }
 
+    QByteArray		geo_data = saveGeometry();
+    QByteArray		layout_data = saveState();
+
+    bool ok = file.putChar((uchar)geo_data.size());
+    if (ok)
+        ok = file.write(geo_data) == geo_data.size();
+    if (ok)
+        ok = file.write(layout_data) == layout_data.size();
+
+    if (!ok) {
+        QString msg = tr( "Error writing to %1\n%2").arg( QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
 }
-
 //_____________________________________________________________________________________________________________________________
 
 void MainWindow::loadLayout()
 {
+    QString		fileName = QFileDialog::getOpenFileName(this, tr("Load layout"));
+    if (fileName.isEmpty())
+        return;
+    QFile		file(fileName);
+    if (!file.open(QFile::ReadOnly)) 
+	{
+        QString msg = tr("Failed to open %1\n%2").arg(QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
 
+    uchar			geo_size;
+    QByteArray		geo_data;
+    QByteArray		layout_data;
+
+    bool			ok = file.getChar((char*)&geo_size);
+    if (ok) 
+	{
+        geo_data = file.read(geo_size);
+        ok = geo_data.size() == geo_size;
+    }
+    if (ok) 
+	{
+        layout_data = file.readAll();
+        ok = layout_data.size() > 0;
+    }
+
+    if (ok)
+        ok = restoreGeometry(geo_data);
+    if (ok)
+        ok = restoreState(layout_data);
+
+    if (!ok) 
+	{
+        QString		msg = tr("Error reading %1").arg(QDir::toNativeSeparators(fileName));
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
 }
 
 //_____________________________________________________________________________________________________________________________
 
-void MainWindow::setDockOptions()
-{
+void MainWindow::setDockOptions( void)
+{ 
+    DockOptions opts;
+    QList<QAction*> actions = m_DockMenu->actions();
 
-}
+    if (actions.at(0)->isChecked())
+        opts |= AnimatedDocks;
+    if (actions.at(1)->isChecked())
+        opts |= AllowNestedDocks;
+    if (actions.at(2)->isChecked())
+        opts |= AllowTabbedDocks;
+    if (actions.at(3)->isChecked())
+        opts |= ForceTabbedDocks;
+    if (actions.at(4)->isChecked())
+        opts |= VerticalTabs;
+    if (actions.at(5)->isChecked())
+        opts |= GroupedDragging;
+
+    QMainWindow::setDockOptions(opts);
+} 
 
 //_____________________________________________________________________________________________________________________________
 
@@ -479,7 +554,7 @@ MdiChild *MainWindow::createMdiChild()
 {
 	CV_FNTRACE(())
 
-    MdiChild *child = new MdiChild;
+    MdiChild	*child = new MdiChild;
     mdiArea->addSubWindow(child);
 
 #ifndef QT_NO_CLIPBOARD
