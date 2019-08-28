@@ -1,4 +1,4 @@
-// fr_mainapp.cpp ________________________________________________________________________________________________________
+// fr_toolbar.cpp ________________________________________________________________________________________________________
 
 #include	"fresco/tenor/fr_include.h"
 #include	"fresco/fr_toolbar.h"
@@ -86,8 +86,7 @@ static QPixmap genIcon(const QSize &iconSize, const QString &, const QColor &col
     image.fill(0);
 
     QPainter p(&image);
-
-    extern void render_qt_text(QPainter *, int, int, const QColor &);
+	 
     render_qt_text(&p, w, h, color);
 
     QPixmap pm = QPixmap::fromImage(image, Qt::DiffuseDither | Qt::DiffuseAlphaDither);
