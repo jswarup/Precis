@@ -75,9 +75,9 @@ private:
     QMdiArea                *mdiArea;
 
     QMenu                   *windowMenu;
-    QAction                 *newAct;
-    QAction                 *saveAct;
-    QAction                 *saveAsAct;
+    QAction                 *m_NewAct;
+    QAction                 *m_SaveAct;
+    QAction                 *m_SaveAsAct;
     QAction                 *recentFileActs[MaxRecentFiles];
     QAction                 *recentFileSeparator;
     QAction                 *recentFileSubMenuAct;
@@ -97,7 +97,7 @@ private:
     QAction                 *windowMenuSeparatorAct;
 
 
-    QList<QToolBar*>        toolBars;
+    QList<QToolBar*>        m_ToolBars;
     QMenu                   *dockWidgetMenu;
     QMenu                   *mainWindowMenu;
     QList<QDockWidget *>    extraDockWidgets;

@@ -91,7 +91,7 @@ bool    Cv_Logger::LogPage::MarkEntry( LogEntry *entry)
 {
     m_Counts[ entry->ThreadId()] += 1;  
     LogBook      *logBook = entry->Book();;
-    logBook->RaiseLevel( m_Name, m_Counts[ entry->ThreadId()]); 
+    logBook->RaiseLevel( m_Name, int32_t( m_Counts[ entry->ThreadId()]));
     logBook->Push( entry);
     return true;
 }

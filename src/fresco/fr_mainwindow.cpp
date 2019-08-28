@@ -312,8 +312,8 @@ void MainWindow::updateMenus()
 	CV_FNTRACE(())
 
     bool hasMdiChild = (activeMdiChild() != nullptr);
-    saveAct->setEnabled(hasMdiChild);
-    saveAsAct->setEnabled(hasMdiChild);
+    m_SaveAct->setEnabled(hasMdiChild);
+    m_SaveAsAct->setEnabled(hasMdiChild);
 #ifndef QT_NO_CLIPBOARD
     pasteAct->setEnabled(hasMdiChild);
 #endif
@@ -396,42 +396,42 @@ void MainWindow::createActions()
 {
 	CV_FNTRACE(())
 
-    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    QToolBar *fileToolBar = addToolBar(tr("File"));
+    QMenu               *fileMenu = menuBar()->addMenu(tr("&File"));
+    QToolBar            *fileToolBar = addToolBar(tr("File"));
 
-    const QIcon newIcon = QIcon::fromTheme("document-new", QIcon(":/images/new.png"));
-    newAct = new QAction(newIcon, tr("&New"), this);
-    newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
-    connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
-    fileMenu->addAction(newAct);
-    fileToolBar->addAction(newAct);
+    const QIcon         newIcon = QIcon::fromTheme("document-new", QIcon(":/images/new.png"));
+    m_NewAct = new QAction(newIcon, tr("&New"), this);
+    m_NewAct->setShortcuts(QKeySequence::New);
+    m_NewAct->setStatusTip(tr("Create a new file"));
+    connect( m_NewAct, &QAction::triggered, this, &MainWindow::newFile);
+    fileMenu->addAction( m_NewAct);
+    fileToolBar->addAction( m_NewAct);
 
-    const QIcon openIcon = QIcon::fromTheme("document-open", QIcon(":/images/open.png"));
-    QAction *openAct = new QAction(openIcon, tr("&Open..."), this);
-    openAct->setShortcuts(QKeySequence::Open);
+    const QIcon         openIcon = QIcon::fromTheme("document-open", QIcon(":/images/open.png"));
+    QAction             *openAct = new QAction( openIcon, tr("&Open..."), this);
+    openAct->setShortcuts( QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
     fileMenu->addAction(openAct);
     fileToolBar->addAction(openAct);
 
-    const QIcon saveIcon = QIcon::fromTheme("document-save", QIcon(":/images/save.png"));
-    saveAct = new QAction(saveIcon, tr("&Save"), this);
-    saveAct->setShortcuts(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, &QAction::triggered, this, &MainWindow::save);
-    fileToolBar->addAction(saveAct);
+    const QIcon         saveIcon = QIcon::fromTheme("document-save", QIcon(":/images/save.png"));
+    m_SaveAct = new QAction(saveIcon, tr("&Save"), this);
+    m_SaveAct->setShortcuts(QKeySequence::Save);
+    m_SaveAct->setStatusTip(tr("Save the document to disk"));
+    connect(m_SaveAct, &QAction::triggered, this, &MainWindow::save);
+    fileToolBar->addAction(m_SaveAct);
 
     const QIcon saveAsIcon = QIcon::fromTheme("document-save-as");
-    saveAsAct = new QAction(saveAsIcon, tr("Save &As..."), this);
-    saveAsAct->setShortcuts(QKeySequence::SaveAs);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
-    fileMenu->addAction(saveAsAct);
+    m_SaveAsAct = new QAction(saveAsIcon, tr("Save &As..."), this);
+    m_SaveAsAct->setShortcuts(QKeySequence::SaveAs);
+    m_SaveAsAct->setStatusTip(tr("Save the document under a new name"));
+    connect(m_SaveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
+    fileMenu->addAction(m_SaveAsAct);
 
     fileMenu->addSeparator();
 
-    QMenu *recentMenu = fileMenu->addMenu(tr("Recent..."));
+    QMenu               *recentMenu = fileMenu->addMenu(tr("Recent..."));
     connect(recentMenu, &QMenu::aboutToShow, this, &MainWindow::updateRecentFileActions);
     recentFileSubMenuAct = recentMenu->menuAction();
 
