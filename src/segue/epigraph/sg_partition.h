@@ -24,11 +24,17 @@ struct Sg_CharPartitionHelper< SzChBits, 1>
 template < uint32_t SzChBits>
 class Sg_CharPartition  
 {
-protected:
-    //uint8_t        m_MxEqClass;
+protected: 
+    enum {
+        MxSzBits = 256
+    };
+
     uint8_t        m_EqClassIds[  SzChBits];         
     
 public: 
+    enum {
+        Sz = SzChBits
+    };
     typedef Sg_Bitset< SzChBits>    Bitset;
     typedef void                    Copiable;
 
@@ -44,8 +50,7 @@ public:
             if ( mxEq < m_EqClassIds[ i] )
                 mxEq = m_EqClassIds[ i];
         return uint32_t( mxEq) +1; 
-    }
-    //void            SetSzImage( uint32_t sz) { /* m_MxEqClass = uint8_t( sz -1) */; }
+    } 
 
     // k is Representative if not instance of same Equivalence class is encountered before.
     bool            IsRep( uint32_t k) const            
@@ -58,14 +63,13 @@ public:
 
     int32_t         Compare( const Sg_CharPartition &cd) const
     {
-       // if  ( m_MxEqClass != cd.m_MxEqClass)
-       //     return m_MxEqClass < cd.m_MxEqClass ? -1 : 1;
         return memcmp ( m_EqClassIds, cd.m_EqClassIds, sizeof( m_EqClassIds));
     }
     
     void            MergeClass( uint8_t eq1, uint8_t eq2)
     {
-        //CV_ERROR_ASSERT(( eq1 != eq2) && ( eq1 < eq2) && ( eq2 <= m_MxEqClass))
+        CV_SANITY_ASSERT(( eq1 != eq2) && ( eq1 < eq2))
+
         for ( uint32_t i = 0; i < SzChBits; i++) 
         {
             if ( m_EqClassIds[ i] < eq2)
@@ -75,13 +79,11 @@ public:
             else
                 --m_EqClassIds[ i];
         }
-        //--m_MxEqClass;
         return;
     }
 
     void            MakeUniversal( void)
     {
-        // m_MxEqClass = 0;
         for ( uint32_t i = 0; i < SzChBits; i++) 
             m_EqClassIds[ i] = 0;
         return;
@@ -89,12 +91,28 @@ public:
 
     void            MakeDiscrete(  void)
     {  
-        //m_MxEqClass = uint8_t( SzChBits -1);
         for ( uint32_t i = 0; i < SzChBits; i++) 
             m_EqClassIds[ i] = i;
         return;
     }
- 
+
+    Cv_Array< uint32_t, 256>     ImgWeights( void) const
+    {
+        uint8_t                     mxEc = 0;
+        Cv_Array< uint32_t, 256>    imgWts; 
+        for ( uint32_t i = 0; i < SzChBits; i++)  
+            imgWts[ i] = 0;
+        for ( uint32_t i = 0; i < SzChBits; i++) 
+        {
+            uint8_t     ec = m_EqClassIds[ i];
+            ++imgWts[ ec];
+            if ( mxEc < ec)
+                mxEc = ec;
+        }
+        imgWts.m_SzFill = uint32_t( mxEc) +1;
+        return imgWts;
+    }
+
     bool            IsCutByCCL( const Bitset &ccl) const
     {
         std::bitset< SzChBits>          eqClassEnc;              // whether a equivalence class was encountered
@@ -171,7 +189,6 @@ public:
             }
             m_EqClassIds[ i] = grId;          
         }
-        // m_MxEqClass = grId;
         return;
     }
 
@@ -279,7 +296,6 @@ template < uint32_t  TSz>
                 }
                 *pEqClassId = *pGrId;     
             }
-            //distrib->m_MxEqClass = mxId;
             return;
         }
     }; 
@@ -364,7 +380,7 @@ template < uint32_t N>
             if ( i != SzChBits)
                 ostr << ", ";  
         }
-        ostr << "]\n";   
+        ostr << "] ";   
         return true; 
     }
 };

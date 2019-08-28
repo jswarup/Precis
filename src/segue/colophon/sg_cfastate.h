@@ -17,9 +17,10 @@ struct FsaCfaState  : public FsaState
     Action                          *m_Action; 
     uint32_t                        m_Level;
     FsaRuleLump                     *m_RuleLump;
+	uint32_t						m_SzTrials;
 
     FsaCfaState( uint32_t level)
-        : m_Action( NULL), m_Level( level), m_RuleLump( NULL)
+        : m_Action( NULL), m_Level( level), m_RuleLump( NULL), m_SzTrials( 0)
     {}
 
     ~FsaCfaState( void)

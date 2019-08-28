@@ -426,18 +426,22 @@ struct  FsaDfaCnstr
     FsaDfaRepos                         *m_DfaRepos;               
     std::vector< FsaId>                 m_FsaStk;
     FsaRuleLumpSet                      m_RuleLumpSet;
+    Cv_Array< uint32_t, 256>            m_BaseWts;
+
+    std::vector< std::pair< uint32_t, FsaDfaRepos::Id>>      m_HighDistribs;
 
     FsaDfaCnstr( FsaElemRepos *elemRepos, FsaDfaRepos *dfaRepos)
         : m_ElemRepos( elemRepos), m_DfaRepos( dfaRepos), m_RuleLumpSet( this)
     {
         dfaRepos->m_ElemRepos = elemRepos;
         dfaRepos->m_DistribRepos.SetBaseDistrib( elemRepos->m_FilterRepos.BaseDistrib());
+        m_BaseWts = elemRepos->m_FilterRepos.BaseDistrib().ImgWeights();
     }
 
     void        SubsetConstruction( void);
     bool        DumpDot( const char *path);
 
-    void        ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &distrib, Action *action, const Cv_Array< FsaId, 256> &destArr);
+    void        ConstructDfaStateAt( uint32_t index, const DistribRepos::DfaDistrib &distrib, Action *action, const Cv_Array< FsaId, 256> &destArr, uint32_t szTrials);
 };
 
 
