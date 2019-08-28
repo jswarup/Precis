@@ -33,7 +33,7 @@ MainWindow::MainWindow(const CustomSizeHintMap &customSizeHints, QWidget *parent
     //setUnifiedTitleAndToolBarOnMac(true); 
 
      setupToolBar();
-     //setupMenuBar();
+	setupMenuBar();
      //setupDockWidgets(customSizeHints);
 
     statusBar()->showMessage(tr("Status Bar"));
@@ -93,6 +93,67 @@ void MainWindow::setupToolBar()
         addToolBar(tb);
     }
 }
+
+//_____________________________________________________________________________________________________________________________
+
+void MainWindow::setupMenuBar()
+{
+    m_LayoutMenu = menuBar()->addMenu(tr("&Layout"));
+
+    m_LayoutMenu->addAction(tr("Save layout..."), this, &MainWindow::saveLayout);
+    m_LayoutMenu->addAction(tr("Load layout..."), this, &MainWindow::loadLayout);
+    m_LayoutMenu->addAction(tr("Switch layout direction"),this, &MainWindow::switchLayoutDirection);
+
+    m_LayoutMenu->addSeparator();  
+
+    QAction *action = m_LayoutMenu->addAction(tr("Animated docks"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & AnimatedDocks);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    action = m_LayoutMenu->addAction(tr("Allow nested docks"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & AllowNestedDocks);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    action = m_LayoutMenu->addAction(tr("Allow tabbed docks"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & AllowTabbedDocks);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    action = m_LayoutMenu->addAction(tr("Force tabbed docks"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & ForceTabbedDocks);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    action = m_LayoutMenu->addAction(tr("Vertical tabs"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & VerticalTabs);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    action = m_LayoutMenu->addAction(tr("Grouped dragging"));
+    action->setCheckable(true);
+    action->setChecked(dockOptions() & GroupedDragging);
+    connect(action, &QAction::toggled, this, &MainWindow::setDockOptions);
+
+    QMenu *toolBarMenu = menuBar()->addMenu(tr("Tool bars"));
+    for (int i = 0; i < m_ToolBars.count(); ++i)
+	{
+		QMenu	*menu = m_ToolBars.at(i)->toolbarMenu();
+		if ( menu)
+        toolBarMenu->addMenu( menu);
+	}
+
+    m_DockWidgetMenu = menuBar()->addMenu(tr("&Widgets"));
+
+    QMenu *aboutMenu = menuBar()->addMenu(tr("About"));
+    QAction *aboutAct = aboutMenu->addAction(tr("&About"), this, &MainWindow::about);
+    aboutAct->setStatusTip(tr("Show the application's About box"));
+
+    QAction *aboutQtAct = aboutMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
+    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+}
+
 //_____________________________________________________________________________________________________________________________
 
 void MainWindow::saveLayout()

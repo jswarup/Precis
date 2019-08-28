@@ -104,7 +104,7 @@ static QPixmap genIcon(const QSize &iconSize, int number, const QColor &color, q
 //_____________________________________________________________________________________________________________________________
 
 ToolBar::ToolBar(const QString &title, QWidget *parent)
-    : QToolBar(parent), spinbox(nullptr), spinboxAction(nullptr)
+    : QToolBar(parent), spinbox(nullptr), spinboxAction(nullptr), m_Menu( NULL)
 {
     setWindowTitle(title);
     setObjectName(title);
@@ -118,12 +118,12 @@ ToolBar::ToolBar(const QString &title, QWidget *parent)
 void	ToolBar::CreateActions( void)
 {
     qreal dpr = devicePixelRatioF();
-    menu = new QMenu("One", this);
+	QMenu	*menu = new QMenu("One", this);
     menu->setIcon(genIcon(iconSize(), 1, Qt::black, dpr));
     menu->addAction(genIcon(iconSize(), "A", Qt::blue, dpr), "A");
     menu->addAction(genIcon(iconSize(), "B", Qt::blue, dpr), "B");
     menu->addAction(genIcon(iconSize(), "C", Qt::blue, dpr), "C");
-    addAction(menu->menuAction());
+    addAction( menu->menuAction());
 
     QAction *two = addAction(genIcon(iconSize(), 2, Qt::white, dpr), "Two");
     QFont boldFont;
@@ -207,24 +207,24 @@ void	ToolBar::CreateActions( void)
 
     connect(movableAction, &QAction::triggered, allowedAreasActions, &QActionGroup::setEnabled);
 
-    menu = new QMenu("Tool Menu", this);
-    menu->addAction(toggleViewAction());
-    menu->addSeparator();
-    menu->addAction(orderAction);
-    menu->addAction(randomizeAction);
-    menu->addSeparator();
-    menu->addAction(addSpinBoxAction);
-    menu->addAction(removeSpinBoxAction);
-    menu->addSeparator();
-    menu->addAction(movableAction);
-    menu->addSeparator();
-    menu->addActions(allowedAreasActions->actions());
-    menu->addSeparator();
-    menu->addActions(areaActions->actions());
-    menu->addSeparator();
-    menu->addAction(tr("Insert break"), this, &ToolBar::insertToolBarBreak);
+    m_Menu = new QMenu("Tool Menu", this);
+    m_Menu->addAction(toggleViewAction());
+    m_Menu->addSeparator();
+    m_Menu->addAction(orderAction);
+    m_Menu->addAction(randomizeAction);
+    m_Menu->addSeparator();
+    m_Menu->addAction(addSpinBoxAction);
+    m_Menu->addAction(removeSpinBoxAction);
+    m_Menu->addSeparator();
+    m_Menu->addAction(movableAction);
+    m_Menu->addSeparator();
+    m_Menu->addActions(allowedAreasActions->actions());
+    m_Menu->addSeparator();
+    m_Menu->addActions(areaActions->actions());
+    m_Menu->addSeparator();
+    m_Menu->addAction(tr("Insert break"), this, &ToolBar::insertToolBarBreak);
 
-    connect(menu, &QMenu::aboutToShow, this, &ToolBar::updateMenu);
+    connect(m_Menu, &QMenu::aboutToShow, this, &ToolBar::updateMenu);
 
     randomize();
 }

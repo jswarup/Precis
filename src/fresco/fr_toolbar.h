@@ -21,7 +21,7 @@ public:
 
 	void			CreateActions( void);
 
-    QMenu			*toolbarMenu() const { return menu; }
+    QMenu			*toolbarMenu() const { return m_Menu; }
 
 private slots:
     void			order();
@@ -51,7 +51,7 @@ private:
     QSpinBox		*spinbox;
     QAction			*spinboxAction;
 
-    QMenu			*menu;
+    QMenu			*m_Menu;
     QAction			*orderAction;
     QAction			*randomizeAction;
     QAction			*addSpinBoxAction;

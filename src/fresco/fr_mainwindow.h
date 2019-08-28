@@ -103,8 +103,8 @@ private:
     void					setupDockWidgets(const CustomSizeHintMap &customSizeHints);
 
     QList<ToolBar*>			m_ToolBars;
-    QMenu                   *dockWidgetMenu;
-    QMenu                   *mainWindowMenu;
+    QMenu                   *m_DockWidgetMenu;
+    QMenu                   *m_LayoutMenu;
     QList<QDockWidget *>    extraDockWidgets;
     QMenu                   *destroyDockWidgetMenu;
 
