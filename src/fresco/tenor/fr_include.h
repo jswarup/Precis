@@ -11,5 +11,6 @@
 #include	<QCommandLineOption> 
 #include	<QtWidgets> 
 #include	<QTextEdit>
- 
+#include        <QDebug>
+
 //_____________________________________________________________________________________________________________________________
